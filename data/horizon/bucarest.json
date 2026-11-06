@@ -1,0 +1,23 @@
+{
+ "id": "bucarest",
+ "format": "int16le",
+ "layout": "az,ring",
+ "naz": 1440,
+ "nr": 320,
+ "r0": 1500,
+ "r1": 42000,
+ "unit": 0.25,
+ "center": [
+  44.447,
+  26.0925
+ ],
+ "altitude": 85,
+ "northDeg": 0,
+ "min": -72,
+ "max": 86.75,
+ "source": "Copernicus GLO-30",
+ "tiles": [
+  "Copernicus_DSM_COG_10_N44_00_E025_00_DEM.tif",
+  "Copernicus_DSM_COG_10_N44_00_E026_00_DEM.tif"
+ ]
+}

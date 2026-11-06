@@ -1,0 +1,16 @@
+{
+  "name": "racing-karts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Cartoon kart racing in the mountains of Cadore, Romania and Indonesia: TV split screen, phones as controllers.",
+  "scripts": {
+    "build": "node build.mjs",
+    "start": "node server/index.js",
+    "play": "node build.mjs && node server/index.js --open",
+    "test": "node --test --test-concurrency=1 'test/*.test.mjs'"
+  },
+  "engines": { "node": ">=24" },
+  "dependencies": { "nosleep.js": "^0.12.0", "qrcode": "^1.5.4", "three": "^0.186.1", "ws": "^8.18.3" },
+  "devDependencies": { "esbuild": "^0.28.2", "geotiff": "^3.0.5", "playwright-core": "^1.63.0" }
+}

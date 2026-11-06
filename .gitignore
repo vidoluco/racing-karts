@@ -1,0 +1,13 @@
+node_modules/
+dist/
+ref/
+data/raw/
+docs/audio/*.wav
+.DS_Store
+*.log
+docs/shots/
+docs/progress/
+__pycache__/
+.venv/
+# edge-tts audio: not redistributable until its licence is settled, see CREDITS.md
+assets/voice/

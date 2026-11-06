@@ -1,0 +1,65 @@
+{
+ "track": "bromo",
+ "center": [
+  -7.916,
+  112.953
+ ],
+ "altitude": 2124,
+ "painter": "tools/panoramas/bromo-paint.py reads this recipe: the place has no forest and no second viewpoint, so the whole repaint is the hero and the walls round the rest of the circle are painted to its colours rather than by tools/compose-panorama.py",
+ "ppd": 45,
+ "topTan": 0.6,
+ "bottomTan": -0.052,
+ "tiles": {
+  "file": "bromo-pano",
+  "centers": [
+   0,
+   60,
+   120,
+   180,
+   240,
+   300
+  ],
+  "half": 31,
+  "edge": 0,
+  "quality": 84
+ },
+ "mist": "#f0ba9c",
+ "sun": {
+  "bearing": 100,
+  "elevation": 11
+ },
+ "photos": [
+  {
+   "id": "bromo-dawn-gemini",
+   "file": "bromo-dawn.jpg",
+   "painted": true,
+   "source_photo": "bromo-semeru-9524hi/Bromo_and_Semeru_volcanoes,_Java,_Indonesia,_20220820_0718_9524.jpg (Jakub Hałun, CC BY-SA 4.0)",
+   "summit": {
+    "name": "Semeru",
+    "lat": -8.1078,
+    "lon": 112.9225,
+    "altitude": 3676,
+    "u": 0.548,
+    "v": 0.312
+   },
+   "width": 88,
+   "horizon_v": 0.9,
+   "crop": [
+    0,
+    0,
+    1,
+    0.945
+   ],
+   "ridge_file": "tools/panoramas/bromo-ridge.json",
+   "fall": [
+    9,
+    8
+   ],
+   "crater": {
+    "u": 0.268,
+    "v": 0.585
+   },
+   "compressed": "Semeru stands as the classic views of the caldera show it, filling the skyline behind Bromo and Batok, which is what names the place"
+  }
+ ]
+}

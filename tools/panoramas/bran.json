@@ -1,0 +1,385 @@
+{
+  "track": "bran",
+  "center": [
+    45.505,
+    25.3175
+  ],
+  "altitude": 943,
+  "dem": "data/horizon/bran",
+  "ppd": 30,
+  "topTan": 0.6,
+  "bottomTan": -0.052,
+  "preset": "moonlight",
+  "sun": {
+    "bearing": 152,
+    "elevation": 40
+  },
+  "glow_bearing": 96,
+  "moon": {
+    "bearing": 96,
+    "elevation": 18.5,
+    "radius": 3.3,
+    "glow": 0.42,
+    "disc": false
+  },
+  "stars": {
+    "count": 900,
+    "seed": 3,
+    "from": 21
+  },
+  "compress": {
+    "from": 5,
+    "factor": 1.25
+  },
+  "tiles": {
+    "file": "bran-pano",
+    "centers": [
+      0,
+      60,
+      120,
+      180,
+      240,
+      300
+    ],
+    "half": 31,
+    "edge": 0,
+    "quality": 86
+  },
+  "photos": [
+    {
+      "id": "bran-dem-paint",
+      "file": "piatra.jpg",
+      "painted": true,
+      "source_photo": "Copernicus GLO-30, tools/panoramas/bran-paint.py; outline checked against bran-pc-kamm, bran-pc-haupt",
+      "summit": {
+        "name": "La Om (Piatra Craiului)",
+        "lat": 45.527,
+        "lon": 25.2117,
+        "altitude": 2238,
+        "elevation": 14.5,
+        "compressed": "true 8.5 deg from the hill west of Bran: the real skyline raised by one factor, 1.7, as the long lens the massif is always photographed with"
+      },
+      "width": 106,
+      "crop": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "summit_u": 0.47641,
+      "fall": [
+        8,
+        10
+      ],
+      "fall_pen": 0.7,
+      "clear_dist": 14000,
+      "ridge_file": "tools/panoramas/bran-piatra-ridge.json"
+    },
+    {
+      "id": "bran-dem-paint",
+      "file": "bucegi.jpg",
+      "painted": true,
+      "source_photo": "Copernicus GLO-30, tools/panoramas/bran-paint.py; outline checked against bran-castle-buc, the view from behind Bran Castle",
+      "summit": {
+        "name": "Omu (Bucegi)",
+        "lat": 45.4456,
+        "lon": 25.4563,
+        "altitude": 2505,
+        "elevation": 15.5,
+        "compressed": "true 7 deg from the hill west of Bran, 9.5 from the castle itself: the real skyline raised by one factor and widened, as the long lens of the photo along the Rucar-Bran corridor"
+      },
+      "width": 106,
+      "crop": [
+        0,
+        0,
+        1,
+        1
+      ],
+      "fall": [
+        10,
+        10
+      ],
+      "fall_pen": 0.7,
+      "clear_dist": 16000,
+      "ridge_file": "tools/panoramas/bran-bucegi-ridge.json",
+      "summit_u": 0.42798
+    }
+  ],
+  "belts": [
+    {
+      "base": 3.0,
+      "amp": 1.5,
+      "tree": 0,
+      "seed": 31,
+      "air": 0.42,
+      "foot_air": 0.14,
+      "larch": 0.0,
+      "dips": [
+        [
+          121,
+          26,
+          -1.2
+        ],
+        [
+          300,
+          30,
+          -1.6
+        ]
+      ],
+      "walls": [
+        [
+          62,
+          32,
+          30,
+          11
+        ],
+        [
+          205,
+          24,
+          24,
+          9
+        ],
+        [
+          345,
+          27,
+          24,
+          11.5
+        ]
+      ],
+      "wall_power": 0.7,
+      "wall_rough": 1.8,
+      "ink": {
+        "tones": 3,
+        "sx": 170,
+        "sy": 150,
+        "contrast": 0.45,
+        "soft": 0.3,
+        "octaves": 2,
+        "pen": 0.5
+      }
+    },
+    {
+      "base": 2.2,
+      "amp": 1.2,
+      "tree": 5,
+      "seed": 32,
+      "air": 0.2,
+      "foot_air": 0.1,
+      "larch": 0.0,
+      "dips": [
+        [
+          121,
+          22,
+          -0.9
+        ],
+        [
+          300,
+          26,
+          -1.0
+        ]
+      ],
+      "walls": [
+        [
+          62,
+          30,
+          26,
+          7.5
+        ],
+        [
+          205,
+          22,
+          22,
+          6
+        ],
+        [
+          345,
+          24,
+          20,
+          7.5
+        ]
+      ],
+      "wall_power": 0.7,
+      "villages": [
+        {
+          "bearing": 104,
+          "el": 1.2,
+          "spread": 7,
+          "houses": 22,
+          "size": 8,
+          "seed": 5
+        },
+        {
+          "bearing": 270,
+          "el": 1.3,
+          "spread": 6,
+          "houses": 14,
+          "size": 7,
+          "seed": 6
+        }
+      ],
+      "wall_rough": 1.8,
+      "ink": {
+        "tones": 3,
+        "sx": 140,
+        "sy": 140,
+        "slant": 0.3,
+        "contrast": 0.55,
+        "soft": 0.3,
+        "octaves": 2,
+        "pen": 0.5
+      }
+    },
+    {
+      "base": 1.4,
+      "amp": 1.0,
+      "tree": 8,
+      "seed": 33,
+      "air": 0.05,
+      "foot_air": 0.05,
+      "larch": 0.0,
+      "dips": [
+        [
+          121,
+          20,
+          -0.3
+        ],
+        [
+          300,
+          20,
+          -0.3
+        ]
+      ],
+      "walls": [
+        [
+          62,
+          30,
+          24,
+          4.2
+        ],
+        [
+          205,
+          20,
+          20,
+          3.4
+        ],
+        [
+          345,
+          22,
+          18,
+          4
+        ]
+      ],
+      "wall_power": 0.7,
+      "ink": {
+        "tones": 3,
+        "sx": 110,
+        "sy": 130,
+        "slant": 0.5,
+        "contrast": 0.7,
+        "pen": 0.5,
+        "soft": 0.3,
+        "octaves": 2
+      },
+      "wall_rough": 1.8
+    }
+  ],
+  "mist": "#2e6a70",
+  "front_dem": {
+    "dist": 3500,
+    "except": [
+      [
+        90,
+        192
+      ],
+      [
+        218,
+        324
+      ]
+    ],
+    "fade": 22
+  },
+  "cloud_bank": 0.0,
+  "preset_over": {
+    "sky_el": [
+      [
+        0,
+        "#8ac4c0"
+      ],
+      [
+        6,
+        "#84c0bf"
+      ],
+      [
+        11,
+        "#70b0ba"
+      ],
+      [
+        15,
+        "#5f9fb0"
+      ],
+      [
+        19,
+        "#44809f"
+      ],
+      [
+        22.5,
+        "#2c6494"
+      ],
+      [
+        25.5,
+        "#1c4c80"
+      ],
+      [
+        28.5,
+        "#153a6c"
+      ],
+      [
+        35,
+        "#102c5a"
+      ],
+      [
+        50,
+        "#0c1f48"
+      ]
+    ],
+    "rock_i": [
+      [
+        0,
+        "#22305e"
+      ],
+      [
+        0.3,
+        "#3c4a86"
+      ],
+      [
+        0.6,
+        "#6c7abc"
+      ],
+      [
+        0.85,
+        "#9aa2dc"
+      ],
+      [
+        1,
+        "#c6c8f0"
+      ]
+    ],
+    "spruce_m": [
+      "#0d2642",
+      "#17405c",
+      "#28606e"
+    ],
+    "larch_m": [
+      "#153a52",
+      "#215264",
+      "#346c74"
+    ],
+    "forest_air": "#3c7478",
+    "foot_air": "#4c8480",
+    "far_air": "#6a9cb0",
+    "air": "#6fa2b4",
+    "air_high": "#7aa8bc",
+    "ink": "#0b1834",
+    "glow": "#d6ecdf"
+  }
+}

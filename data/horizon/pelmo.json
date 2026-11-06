@@ -1,0 +1,23 @@
+{
+ "id": "pelmo",
+ "format": "int16le",
+ "layout": "az,ring",
+ "naz": 1440,
+ "nr": 320,
+ "r0": 1500,
+ "r1": 42000,
+ "unit": 0.25,
+ "center": [
+  46.4215,
+  12.195
+ ],
+ "altitude": 1467,
+ "northDeg": 268,
+ "min": -1216,
+ "max": 1801.75,
+ "source": "Copernicus GLO-30",
+ "tiles": [
+  "Copernicus_DSM_COG_10_N46_00_E011_00_DEM.tif",
+  "Copernicus_DSM_COG_10_N46_00_E012_00_DEM.tif"
+ ]
+}

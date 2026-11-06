@@ -1,0 +1,458 @@
+{
+  "track": "antelao",
+  "center": [
+    46.437,
+    12.218
+  ],
+  "altitude": 919,
+  "dem": "data/horizon/antelao",
+  "ppd": 30,
+  "topTan": 0.6,
+  "bottomTan": -0.052,
+  "preset": "golden",
+  "sun": {
+    "bearing": 225,
+    "elevation": 21
+  },
+  "compress": {
+    "from": 10,
+    "factor": 0.68
+  },
+  "tiles": {
+    "file": "antelao-pano",
+    "centers": [
+      0,
+      60,
+      120,
+      180,
+      240,
+      300
+    ],
+    "half": 31,
+    "edge": 0,
+    "quality": 86
+  },
+  "photos": [
+    {
+      "id": "pelmo-golden-gemini",
+      "file": "pelmo-golden.jpg",
+      "painted": true,
+      "source_photo": "pelmo-sanvito/PelmoSanVitoDiCadore.JPG",
+      "summit": {
+        "name": "Pelmo",
+        "lat": 46.42,
+        "lon": 12.1347,
+        "altitude": 3168,
+        "elevation": 22,
+        "compressed": "true 18.7 deg, raised and stretched because over the wooded ridge only the upper rock shows, and it must still read as the block it is from the road"
+      },
+      "width": 52,
+      "crop": [
+        0,
+        0,
+        0.875,
+        0.9
+      ],
+      "fall": [
+        3,
+        9
+      ],
+      "clear_dist": 11000,
+      "ridge_file": "tools/panoramas/antelao-golden-ridge.json",
+      "fall_pen": 0.2
+    },
+    {
+      "id": "antelao-gemini2",
+      "file": "antelao-repaint.jpg",
+      "painted": true,
+      "source_photo": "antelao-sanvito/Monte_Antelao,_3264_m_und_San_Vito_di_Cadore.jpg",
+      "summit": {
+        "name": "Antelao",
+        "lat": 46.4519,
+        "lon": 12.2618,
+        "altitude": 3264,
+        "elevation": 24,
+        "compressed": "true 32 deg, top of the chase frame is 24.4 deg"
+      },
+      "width": 92,
+      "crop": [
+        0,
+        0,
+        1,
+        0.84
+      ],
+      "fall": [
+        18,
+        12
+      ],
+      "clear_dist": 9000,
+      "ridge_file": "tools/panoramas/antelao-hero-ridge.json",
+      "fall_pen": 0.7,
+      "squash": {
+        "foot": 0.857,
+        "at": [
+          [
+            0,
+            0.72
+          ],
+          [
+            0.2,
+            0.72
+          ],
+          [
+            0.36,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      }
+    }
+  ],
+  "belts": [
+    {
+      "base": 3.0,
+      "amp": 0.7,
+      "tree": 0,
+      "seed": 11,
+      "air": 0.6,
+      "foot_air": 0.08,
+      "larch": 0.0,
+      "dips": [
+        [
+          64,
+          26,
+          -3.0
+        ],
+        [
+          254,
+          18,
+          -1.0
+        ],
+        [
+          281,
+          8,
+          2.0
+        ]
+      ],
+      "walls": [
+        [
+          172,
+          74,
+          78,
+          8.5
+        ],
+        [
+          0,
+          120,
+          34,
+          9.5
+        ],
+        [
+          120,
+          30,
+          70,
+          7
+        ]
+      ],
+      "wall_power": 0.8,
+      "wall_rough": 1.4,
+      "ink": {
+        "tones": 3,
+        "sx": 220,
+        "sy": 190,
+        "slant": 0.5,
+        "contrast": 0.4,
+        "pen": 0.12,
+        "soft": 0.7,
+        "octaves": 2
+      }
+    },
+    {
+      "base": 2.6,
+      "amp": 0.7,
+      "tree": 0,
+      "seed": 21,
+      "air": 0.42,
+      "foot_air": 0.08,
+      "larch": 0.18,
+      "dips": [
+        [
+          64,
+          30,
+          -2.6
+        ],
+        [
+          254,
+          20,
+          -0.6
+        ]
+      ],
+      "walls": [
+        [
+          140,
+          34,
+          60,
+          5.5
+        ],
+        [
+          195,
+          40,
+          40,
+          6
+        ],
+        [
+          335,
+          60,
+          40,
+          6.5
+        ],
+        [
+          30,
+          26,
+          18,
+          4.5
+        ]
+      ],
+      "wall_power": 0.8,
+      "wall_rough": 1.6,
+      "ink": {
+        "tones": 3,
+        "sx": 220,
+        "sy": 190,
+        "slant": 0.5,
+        "contrast": 0.4,
+        "pen": 0.12,
+        "soft": 0.7,
+        "octaves": 2,
+        "drift": [
+          0.54,
+          0.64,
+          240,
+          70
+        ]
+      }
+    },
+    {
+      "base": 2.2,
+      "amp": 0.8,
+      "tree": 0,
+      "seed": 12,
+      "air": 0.24,
+      "foot_air": 0.08,
+      "larch": 0.45,
+      "dips": [
+        [
+          64,
+          34,
+          4.0
+        ],
+        [
+          254,
+          18,
+          0.6
+        ]
+      ],
+      "walls": [
+        [
+          172,
+          52,
+          68,
+          5
+        ],
+        [
+          350,
+          80,
+          40,
+          5.5
+        ]
+      ],
+      "wall_power": 0.7,
+      "wall_rough": 1.2,
+      "ink": {
+        "tones": 3,
+        "sx": 220,
+        "sy": 190,
+        "slant": 0.5,
+        "contrast": 0.4,
+        "pen": 0.12,
+        "soft": 0.7,
+        "octaves": 2,
+        "drift": [
+          0.54,
+          0.64,
+          240,
+          70
+        ]
+      }
+    },
+    {
+      "base": 1.4,
+      "amp": 0.6,
+      "tree": 0,
+      "seed": 13,
+      "air": 0.05,
+      "foot_air": 0.05,
+      "larch": 0.8,
+      "dips": [
+        [
+          40,
+          16,
+          3.0
+        ],
+        [
+          92,
+          20,
+          2.6
+        ],
+        [
+          64,
+          14,
+          1.2
+        ],
+        [
+          254,
+          18,
+          0.6
+        ]
+      ],
+      "walls": [
+        [
+          165,
+          38,
+          60,
+          3.5
+        ],
+        [
+          345,
+          65,
+          30,
+          4
+        ]
+      ],
+      "wall_power": 0.7,
+      "ink": {
+        "tones": 3,
+        "sx": 220,
+        "sy": 190,
+        "slant": 0.5,
+        "contrast": 0.4,
+        "pen": 0.12,
+        "soft": 0.7,
+        "octaves": 2,
+        "drift": [
+          0.52,
+          0.62,
+          200,
+          70
+        ]
+      }
+    }
+  ],
+  "mist": "#5d6c92",
+  "preset_over": {
+    "sky_el": [
+      [
+        2,
+        "#fbc8b0"
+      ],
+      [
+        8,
+        "#fbbdb4"
+      ],
+      [
+        14,
+        "#f8b4b3"
+      ],
+      [
+        17,
+        "#feb5bc"
+      ],
+      [
+        19,
+        "#faa4c1"
+      ],
+      [
+        21,
+        "#eca1cc"
+      ],
+      [
+        23,
+        "#d79cd4"
+      ],
+      [
+        27,
+        "#9f93dd"
+      ],
+      [
+        30.5,
+        "#7e8de0"
+      ],
+      [
+        45,
+        "#7585df"
+      ]
+    ],
+    "rock_i": [
+      [
+        0,
+        "#3f4969"
+      ],
+      [
+        0.14,
+        "#5a5981"
+      ],
+      [
+        0.3,
+        "#7c6a93"
+      ],
+      [
+        0.46,
+        "#9c7a9c"
+      ],
+      [
+        0.62,
+        "#c491a3"
+      ],
+      [
+        0.78,
+        "#e7a9ae"
+      ],
+      [
+        0.9,
+        "#fbcbb4"
+      ],
+      [
+        1,
+        "#fde3cf"
+      ]
+    ],
+    "spruce_m": [
+      "#2c4a5e",
+      "#3f6470",
+      "#5a8078"
+    ],
+    "larch_m": [
+      "#c27b34",
+      "#e09a3e",
+      "#f4bf58"
+    ],
+    "forest_air": "#6a6f9c",
+    "foot_air": "#6d6fa0",
+    "far_air": "#8d80b8",
+    "air": "#b58bba",
+    "air_high": "#c996c4",
+    "ink": "#2a1a40",
+    "glow": "#ffc2a8"
+  },
+  "cloud_bank": 0.0,
+  "dem_clear": [
+    [
+      0,
+      359.9,
+      0
+    ]
+  ]
+}

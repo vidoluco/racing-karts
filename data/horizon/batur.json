@@ -1,0 +1,25 @@
+{
+ "id": "batur",
+ "format": "int16le",
+ "layout": "az,ring",
+ "naz": 1440,
+ "nr": 320,
+ "r0": 1500,
+ "r1": 42000,
+ "unit": 0.25,
+ "center": [
+  -8.255,
+  115.351
+ ],
+ "altitude": 1031,
+ "northDeg": 66,
+ "min": -1031,
+ "max": 1960.25,
+ "source": "Copernicus GLO-30",
+ "tiles": [
+  "Copernicus_DSM_COG_10_S09_00_E114_00_DEM.tif",
+  "Copernicus_DSM_COG_10_S09_00_E115_00_DEM.tif",
+  "Copernicus_DSM_COG_10_S08_00_E114_00_DEM.tif",
+  "Copernicus_DSM_COG_10_S08_00_E115_00_DEM.tif"
+ ]
+}

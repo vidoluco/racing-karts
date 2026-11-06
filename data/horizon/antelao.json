@@ -1,0 +1,23 @@
+{
+ "id": "antelao",
+ "format": "int16le",
+ "layout": "az,ring",
+ "naz": 1440,
+ "nr": 320,
+ "r0": 1500,
+ "r1": 42000,
+ "unit": 0.25,
+ "center": [
+  46.437,
+  12.218
+ ],
+ "altitude": 919,
+ "northDeg": 0,
+ "min": -648.25,
+ "max": 2333,
+ "source": "Copernicus GLO-30",
+ "tiles": [
+  "Copernicus_DSM_COG_10_N46_00_E011_00_DEM.tif",
+  "Copernicus_DSM_COG_10_N46_00_E012_00_DEM.tif"
+ ]
+}

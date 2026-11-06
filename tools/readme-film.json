@@ -1,0 +1,4 @@
+{"name":"film","track":"antelao","kart":"tabia","u":0.124,"settle":4,"speed":28,"rivalSpeed":25,"seed":11,"query":{"disasters":"[]"},
+ "rivals":[[11,-3],[16,3],[24,0],[33,-3],[43,3],[55,-2],[68,2]],
+ "count":165,"stepsPerFrame":3,
+ "timeline":[{"at":4,"do":"spin","item":"razzo","t":0.6},{"at":62,"do":"fire"},{"at":305,"do":"giveRival","rival":1,"item":"sambal"},{"at":307,"do":"pressRival","rival":1},{"at":330,"do":"spin","item":"mici","t":0.45}]}

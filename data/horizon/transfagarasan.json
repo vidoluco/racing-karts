@@ -1,0 +1,23 @@
+{
+ "id": "transfagarasan",
+ "format": "int16le",
+ "layout": "az,ring",
+ "naz": 1440,
+ "nr": 320,
+ "r0": 300,
+ "r1": 42000,
+ "unit": 0.25,
+ "center": [
+  45.6035,
+  24.616
+ ],
+ "altitude": 2034,
+ "northDeg": 0,
+ "min": -1730,
+ "max": 485.25,
+ "source": "Copernicus GLO-30",
+ "tiles": [
+  "Copernicus_DSM_COG_10_N45_00_E024_00_DEM.tif",
+  "Copernicus_DSM_COG_10_N45_00_E025_00_DEM.tif"
+ ]
+}

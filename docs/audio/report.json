@@ -1,0 +1,6642 @@
+{
+ "tunes": {
+  "pelmo": {
+   "seconds": 83,
+   "loop": 75,
+   "bars": 80,
+   "notes": 1983,
+   "renderS": 3.1,
+   "peak": 0.74,
+   "peakDb": -2.6,
+   "rmsDb": -18.4,
+   "hot": 0,
+   "over": 0,
+   "silenceS": 0.02,
+   "seam": {
+    "jump": 0.0683,
+    "norm": 0.1488,
+    "ratio": 0.46,
+    "before": 0.1384,
+    "after": 0.1378
+   },
+   "centroid": 909,
+   "barCentroid": [
+    814,
+    1026
+   ],
+   "sections": [
+    {
+     "name": "A",
+     "centroid": 928,
+     "rmsDb": -25.4,
+     "low": 0.16,
+     "mid": 0.76,
+     "high": 0.07
+    },
+    {
+     "name": "B",
+     "centroid": 844,
+     "rmsDb": -26.5,
+     "low": 0.19,
+     "mid": 0.74,
+     "high": 0.08
+    },
+    {
+     "name": "A'",
+     "centroid": 1006,
+     "rmsDb": -25.7,
+     "low": 0.17,
+     "mid": 0.75,
+     "high": 0.08
+    },
+    {
+     "name": "Trio",
+     "centroid": 916,
+     "rmsDb": -26.8,
+     "low": 0.17,
+     "mid": 0.76,
+     "high": 0.07
+    },
+    {
+     "name": "A last",
+     "centroid": 850,
+     "rmsDb": -25.2,
+     "low": 0.18,
+     "mid": 0.75,
+     "high": 0.07
+    }
+   ],
+   "errors": []
+  },
+  "antelao": {
+   "seconds": 94.7,
+   "loop": 86.75,
+   "bars": 80,
+   "notes": 1550,
+   "renderS": 3.4,
+   "peak": 0.779,
+   "peakDb": -2.2,
+   "rmsDb": -18.8,
+   "hot": 0,
+   "over": 0,
+   "silenceS": 0.02,
+   "seam": {
+    "jump": 0.0486,
+    "norm": 0.117,
+    "ratio": 0.42,
+    "before": 0.1203,
+    "after": 0.1289
+   },
+   "centroid": 782,
+   "barCentroid": [
+    674,
+    908
+   ],
+   "sections": [
+    {
+     "name": "A",
+     "centroid": 773,
+     "rmsDb": -25.8,
+     "low": 0.21,
+     "mid": 0.74,
+     "high": 0.06
+    },
+    {
+     "name": "B",
+     "centroid": 788,
+     "rmsDb": -26.3,
+     "low": 0.18,
+     "mid": 0.76,
+     "high": 0.06
+    },
+    {
+     "name": "A'",
+     "centroid": 793,
+     "rmsDb": -26.8,
+     "low": 0.19,
+     "mid": 0.75,
+     "high": 0.06
+    },
+    {
+     "name": "Trio",
+     "centroid": 779,
+     "rmsDb": -27.6,
+     "low": 0.14,
+     "mid": 0.8,
+     "high": 0.06
+    },
+    {
+     "name": "A last",
+     "centroid": 785,
+     "rmsDb": -25.4,
+     "low": 0.17,
+     "mid": 0.77,
+     "high": 0.06
+    }
+   ],
+   "errors": []
+  },
+  "transfagarasan": {
+   "seconds": 78.4,
+   "loop": 70.4,
+   "bars": 88,
+   "notes": 2932,
+   "renderS": 3.8,
+   "peak": 0.732,
+   "peakDb": -2.7,
+   "rmsDb": -18.3,
+   "hot": 0,
+   "over": 0,
+   "silenceS": 0,
+   "seam": {
+    "jump": 0.1158,
+    "norm": 0.1486,
+    "ratio": 0.78,
+    "before": 0.1518,
+    "after": 0.1211
+   },
+   "centroid": 967,
+   "barCentroid": [
+    700,
+    1219
+   ],
+   "sections": [
+    {
+     "name": "A",
+     "centroid": 1113,
+     "rmsDb": -26.7,
+     "low": 0.39,
+     "mid": 0.39,
+     "high": 0.21
+    },
+    {
+     "name": "B",
+     "centroid": 811,
+     "rmsDb": -25.6,
+     "low": 0.29,
+     "mid": 0.61,
+     "high": 0.09
+    },
+    {
+     "name": "A'",
+     "centroid": 1040,
+     "rmsDb": -25.2,
+     "low": 0.3,
+     "mid": 0.54,
+     "high": 0.16
+    },
+    {
+     "name": "Tambal",
+     "centroid": 814,
+     "rmsDb": -26.5,
+     "low": 0.32,
+     "mid": 0.61,
+     "high": 0.08
+    },
+    {
+     "name": "B'",
+     "centroid": 820,
+     "rmsDb": -25.4,
+     "low": 0.3,
+     "mid": 0.61,
+     "high": 0.09
+    },
+    {
+     "name": "A last",
+     "centroid": 1058,
+     "rmsDb": -24.9,
+     "low": 0.31,
+     "mid": 0.52,
+     "high": 0.18
+    }
+   ],
+   "errors": []
+  },
+  "bran": {
+   "seconds": 113.6,
+   "loop": 105.6,
+   "bars": 88,
+   "notes": 2242,
+   "renderS": 4.8,
+   "peak": 0.746,
+   "peakDb": -2.5,
+   "rmsDb": -19,
+   "hot": 0,
+   "over": 0,
+   "silenceS": 0,
+   "seam": {
+    "jump": 0.0597,
+    "norm": 0.0999,
+    "ratio": 0.6,
+    "before": 0.091,
+    "after": 0.1226
+   },
+   "centroid": 858,
+   "barCentroid": [
+    715,
+    1026
+   ],
+   "sections": [
+    {
+     "name": "A",
+     "centroid": 871,
+     "rmsDb": -26.6,
+     "low": 0.22,
+     "mid": 0.73,
+     "high": 0.05
+    },
+    {
+     "name": "B",
+     "centroid": 870,
+     "rmsDb": -27.1,
+     "low": 0.23,
+     "mid": 0.67,
+     "high": 0.1
+    },
+    {
+     "name": "A'",
+     "centroid": 889,
+     "rmsDb": -26.1,
+     "low": 0.19,
+     "mid": 0.76,
+     "high": 0.05
+    },
+    {
+     "name": "Tiptoe",
+     "centroid": 682,
+     "rmsDb": -27.9,
+     "low": 0.2,
+     "mid": 0.79,
+     "high": 0.01
+    },
+    {
+     "name": "B'",
+     "centroid": 866,
+     "rmsDb": -26.5,
+     "low": 0.22,
+     "mid": 0.68,
+     "high": 0.1
+    },
+    {
+     "name": "A last",
+     "centroid": 865,
+     "rmsDb": -25.6,
+     "low": 0.22,
+     "mid": 0.73,
+     "high": 0.05
+    }
+   ],
+   "errors": []
+  },
+  "jakarta": {
+   "seconds": 148.5,
+   "loop": 140.49,
+   "bars": 96,
+   "notes": 3164,
+   "renderS": 4.3,
+   "peak": 0.816,
+   "peakDb": -1.8,
+   "rmsDb": -16.7,
+   "hot": 0,
+   "over": 0,
+   "silenceS": 0,
+   "seam": {
+    "jump": 0.0215,
+    "norm": 0.1505,
+    "ratio": 0.14,
+    "before": 0.1576,
+    "after": 0.1682
+   },
+   "centroid": 426,
+   "barCentroid": [
+    335,
+    554
+   ],
+   "sections": [
+    {
+     "name": "Horns",
+     "centroid": 472,
+     "rmsDb": -25.4,
+     "low": 0.31,
+     "mid": 0.68,
+     "high": 0.01
+    },
+    {
+     "name": "A",
+     "centroid": 410,
+     "rmsDb": -23.8,
+     "low": 0.29,
+     "mid": 0.7,
+     "high": 0.01
+    },
+    {
+     "name": "B",
+     "centroid": 438,
+     "rmsDb": -24.5,
+     "low": 0.33,
+     "mid": 0.66,
+     "high": 0.01
+    },
+    {
+     "name": "A'",
+     "centroid": 407,
+     "rmsDb": -23.4,
+     "low": 0.3,
+     "mid": 0.69,
+     "high": 0.01
+    },
+    {
+     "name": "Horns 2",
+     "centroid": 468,
+     "rmsDb": -25.2,
+     "low": 0.31,
+     "mid": 0.68,
+     "high": 0.01
+    },
+    {
+     "name": "B'",
+     "centroid": 439,
+     "rmsDb": -24,
+     "low": 0.33,
+     "mid": 0.67,
+     "high": 0.01
+    },
+    {
+     "name": "A last",
+     "centroid": 407,
+     "rmsDb": -23.2,
+     "low": 0.3,
+     "mid": 0.69,
+     "high": 0.01
+    }
+   ],
+   "errors": []
+  },
+  "bromo": {
+   "seconds": 148.8,
+   "loop": 140.8,
+   "bars": 88,
+   "notes": 3818,
+   "renderS": 5,
+   "peak": 0.852,
+   "peakDb": -1.4,
+   "rmsDb": -18.7,
+   "hot": 0,
+   "over": 0,
+   "silenceS": 0,
+   "seam": {
+    "jump": 0.0197,
+    "norm": 0.171,
+    "ratio": 0.12,
+    "before": 0.1239,
+    "after": 0.1299
+   },
+   "centroid": 549,
+   "barCentroid": [
+    409,
+    673
+   ],
+   "sections": [
+    {
+     "name": "A",
+     "centroid": 600,
+     "rmsDb": -26.8,
+     "low": 0.35,
+     "mid": 0.63,
+     "high": 0.03
+    },
+    {
+     "name": "B",
+     "centroid": 507,
+     "rmsDb": -25.6,
+     "low": 0.26,
+     "mid": 0.73,
+     "high": 0.01
+    },
+    {
+     "name": "A'",
+     "centroid": 591,
+     "rmsDb": -26.4,
+     "low": 0.35,
+     "mid": 0.63,
+     "high": 0.03
+    },
+    {
+     "name": "Vents",
+     "centroid": 419,
+     "rmsDb": -27.3,
+     "low": 0.51,
+     "mid": 0.47,
+     "high": 0.01
+    },
+    {
+     "name": "B'",
+     "centroid": 509,
+     "rmsDb": -25.5,
+     "low": 0.26,
+     "mid": 0.73,
+     "high": 0.01
+    },
+    {
+     "name": "A last",
+     "centroid": 593,
+     "rmsDb": -26,
+     "low": 0.35,
+     "mid": 0.63,
+     "high": 0.03
+    }
+   ],
+   "errors": []
+  },
+  "bali": {
+   "seconds": 146.8,
+   "loop": 138.8,
+   "bars": 96,
+   "notes": 4498,
+   "renderS": 5.1,
+   "peak": 0.852,
+   "peakDb": -1.4,
+   "rmsDb": -18.6,
+   "hot": 0,
+   "over": 0,
+   "silenceS": 0,
+   "seam": {
+    "jump": 0.0206,
+    "norm": 0.1738,
+    "ratio": 0.12,
+    "before": 0.1274,
+    "after": 0.1463
+   },
+   "centroid": 615,
+   "barCentroid": [
+    440,
+    800
+   ],
+   "sections": [
+    {
+     "name": "Kebyar",
+     "centroid": 435,
+     "rmsDb": -26.1,
+     "low": 0.47,
+     "mid": 0.51,
+     "high": 0.01
+    },
+    {
+     "name": "A",
+     "centroid": 694,
+     "rmsDb": -26.2,
+     "low": 0.35,
+     "mid": 0.62,
+     "high": 0.03
+    },
+    {
+     "name": "B",
+     "centroid": 623,
+     "rmsDb": -26.5,
+     "low": 0.34,
+     "mid": 0.64,
+     "high": 0.02
+    },
+    {
+     "name": "A'",
+     "centroid": 685,
+     "rmsDb": -25.9,
+     "low": 0.35,
+     "mid": 0.62,
+     "high": 0.03
+    },
+    {
+     "name": "Kebyar 2",
+     "centroid": 434,
+     "rmsDb": -25.9,
+     "low": 0.49,
+     "mid": 0.5,
+     "high": 0.02
+    },
+    {
+     "name": "B'",
+     "centroid": 620,
+     "rmsDb": -26.4,
+     "low": 0.33,
+     "mid": 0.65,
+     "high": 0.02
+    },
+    {
+     "name": "A last",
+     "centroid": 691,
+     "rmsDb": -25.6,
+     "low": 0.35,
+     "mid": 0.61,
+     "high": 0.03
+    }
+   ],
+   "errors": []
+  },
+  "results": {
+   "seconds": 12.8,
+   "loop": 7.27,
+   "bars": 4,
+   "notes": 190,
+   "renderS": 0.4,
+   "peak": 0.882,
+   "peakDb": -1.1,
+   "rmsDb": -17.3,
+   "hot": 0,
+   "over": 0,
+   "silenceS": 0,
+   "seam": null,
+   "centroid": 956,
+   "barCentroid": [
+    839,
+    1148
+   ],
+   "sections": [
+    {
+     "name": "S",
+     "centroid": 955,
+     "rmsDb": -22.5,
+     "low": 0.22,
+     "mid": 0.72,
+     "high": 0.06
+    }
+   ],
+   "errors": []
+  },
+  "menu": {
+   "seconds": 105.6,
+   "loop": 97.63,
+   "bars": 48,
+   "notes": 1716,
+   "renderS": 4.2,
+   "peak": 0.817,
+   "peakDb": -1.8,
+   "rmsDb": -18.8,
+   "hot": 0,
+   "over": 0,
+   "silenceS": 0.06,
+   "seam": {
+    "jump": 0.0502,
+    "norm": 0.1368,
+    "ratio": 0.37,
+    "before": 0.1235,
+    "after": 0.1216
+   },
+   "centroid": 709,
+   "barCentroid": [
+    589,
+    794
+   ],
+   "sections": [
+    {
+     "name": "Accordion",
+     "centroid": 744,
+     "rmsDb": -26.7,
+     "low": 0.35,
+     "mid": 0.6,
+     "high": 0.05
+    },
+    {
+     "name": "Accordion'",
+     "centroid": 771,
+     "rmsDb": -25.4,
+     "low": 0.27,
+     "mid": 0.68,
+     "high": 0.05
+    },
+    {
+     "name": "Tambal",
+     "centroid": 648,
+     "rmsDb": -26.3,
+     "low": 0.32,
+     "mid": 0.65,
+     "high": 0.03
+    },
+    {
+     "name": "Bells",
+     "centroid": 683,
+     "rmsDb": -26.1,
+     "low": 0.32,
+     "mid": 0.66,
+     "high": 0.02
+    },
+    {
+     "name": "Tambal'",
+     "centroid": 585,
+     "rmsDb": -27.8,
+     "low": 0.46,
+     "mid": 0.53,
+     "high": 0.02
+    },
+    {
+     "name": "All",
+     "centroid": 765,
+     "rmsDb": -25.5,
+     "low": 0.27,
+     "mid": 0.67,
+     "high": 0.05
+    }
+   ],
+   "errors": []
+  },
+  "podium": {
+   "seconds": 22.6,
+   "loop": 17.14,
+   "bars": 8,
+   "notes": 509,
+   "renderS": 0.9,
+   "peak": 0.809,
+   "peakDb": -1.8,
+   "rmsDb": -17,
+   "hot": 0,
+   "over": 0,
+   "silenceS": 0.02,
+   "seam": null,
+   "centroid": 912,
+   "barCentroid": [
+    817,
+    1108
+   ],
+   "sections": [
+    {
+     "name": "S",
+     "centroid": 915,
+     "rmsDb": -23.4,
+     "low": 0.15,
+     "mid": 0.77,
+     "high": 0.08
+    }
+   ],
+   "errors": []
+  }
+ },
+ "sfx": {
+  "box": {
+   "seconds": 2.48,
+   "peak": 0.7,
+   "rmsDb": -24.2,
+   "over": 0,
+   "centroid": 1285
+  },
+  "boxFull": {
+   "seconds": 2.32,
+   "peak": 0.412,
+   "rmsDb": -34.6,
+   "over": 0,
+   "centroid": 367
+  },
+  "tick": {
+   "seconds": 2.1,
+   "peak": 0.494,
+   "rmsDb": -34.8,
+   "over": 0,
+   "centroid": 1618
+  },
+  "itemGet": {
+   "seconds": 2.55,
+   "peak": 0.609,
+   "rmsDb": -24.7,
+   "over": 0,
+   "centroid": 1212
+  },
+  "razzo": {
+   "seconds": 2.68,
+   "peak": 0.699,
+   "rmsDb": -22.2,
+   "over": 0,
+   "centroid": 499
+  },
+  "razzoLoop": {
+   "seconds": 3.41,
+   "peak": 0.731,
+   "rmsDb": -15.7,
+   "over": 0,
+   "centroid": 1608
+  },
+  "boom": {
+   "seconds": 2.72,
+   "peak": 0.698,
+   "rmsDb": -23.2,
+   "over": 0,
+   "centroid": 183
+  },
+  "grappa": {
+   "seconds": 3.36,
+   "peak": 0.729,
+   "rmsDb": -20.8,
+   "over": 0,
+   "centroid": 792
+  },
+  "zuica": {
+   "seconds": 2.7,
+   "peak": 0.717,
+   "rmsDb": -21.2,
+   "over": 0,
+   "centroid": 1449
+  },
+  "hic": {
+   "seconds": 2.36,
+   "peak": 0.699,
+   "rmsDb": -25.8,
+   "over": 0,
+   "centroid": 532
+  },
+  "miciReady": {
+   "seconds": 2.54,
+   "peak": 0.501,
+   "rmsDb": -31.2,
+   "over": 0,
+   "centroid": 3802
+  },
+  "miciThrow": {
+   "seconds": 2.45,
+   "peak": 0.697,
+   "rmsDb": -24,
+   "over": 0,
+   "centroid": 923
+  },
+  "shield": {
+   "seconds": 2.46,
+   "peak": 0.7,
+   "rmsDb": -27.8,
+   "over": 0,
+   "centroid": 1038
+  },
+  "uova": {
+   "seconds": 2.82,
+   "peak": 0.699,
+   "rmsDb": -24.6,
+   "over": 0,
+   "centroid": 771
+  },
+  "sizzleLoop": {
+   "seconds": 3.88,
+   "peak": 0.579,
+   "rmsDb": -30.4,
+   "over": 0,
+   "centroid": 4295
+  },
+  "polenta": {
+   "seconds": 2.63,
+   "peak": 0.699,
+   "rmsDb": -23.9,
+   "over": 0,
+   "centroid": 402
+  },
+  "formaggio": {
+   "seconds": 3.84,
+   "peak": 0.7,
+   "rmsDb": -23.9,
+   "over": 0,
+   "centroid": 112
+  },
+  "durian": {
+   "seconds": 2.97,
+   "peak": 0.711,
+   "rmsDb": -20.2,
+   "over": 0,
+   "centroid": 454
+  },
+  "sambal": {
+   "seconds": 2.75,
+   "peak": 0.714,
+   "rmsDb": -25.5,
+   "over": 0,
+   "centroid": 1772
+  },
+  "cityLoop": {
+   "seconds": 5,
+   "peak": 0.521,
+   "rmsDb": -19.6,
+   "over": 0,
+   "centroid": 652
+  },
+  "rainLoop": {
+   "seconds": 4.85,
+   "peak": 0.496,
+   "rmsDb": -28.1,
+   "over": 0,
+   "centroid": 4449
+  },
+  "windLoop": {
+   "seconds": 5,
+   "peak": 0.5,
+   "rmsDb": -23.9,
+   "over": 0,
+   "centroid": 844
+  },
+  "nightLoop": {
+   "seconds": 5,
+   "peak": 0.44,
+   "rmsDb": -21.3,
+   "over": 0,
+   "centroid": 2489
+  },
+  "splashWater": {
+   "seconds": 2.41,
+   "peak": 0.661,
+   "rmsDb": -28.1,
+   "over": 0,
+   "centroid": 2749
+  },
+  "splashSnow": {
+   "seconds": 2.42,
+   "peak": 0.618,
+   "rmsDb": -25,
+   "over": 0,
+   "centroid": 175
+  },
+  "thunder": {
+   "seconds": 5,
+   "peak": 0.665,
+   "rmsDb": -26.8,
+   "over": 0,
+   "centroid": 244
+  },
+  "flameLoop": {
+   "seconds": 3.78,
+   "peak": 0.612,
+   "rmsDb": -20.6,
+   "over": 0,
+   "centroid": 1576
+  },
+  "rendang": {
+   "seconds": 3.46,
+   "peak": 0.718,
+   "rmsDb": -20.8,
+   "over": 0,
+   "centroid": 362
+  },
+  "frana": {
+   "seconds": 4.46,
+   "peak": 0.707,
+   "rmsDb": -25.3,
+   "over": 0,
+   "centroid": 667
+  },
+  "disasterAlarm": {
+   "seconds": 3.29,
+   "peak": 0.699,
+   "rmsDb": -15.8,
+   "over": 0,
+   "centroid": 933
+  },
+  "disasterRumble": {
+   "seconds": 4.42,
+   "peak": 0.699,
+   "rmsDb": -14.2,
+   "over": 0,
+   "centroid": 61
+  },
+  "disasterDebris": {
+   "seconds": 4.86,
+   "peak": 0.693,
+   "rmsDb": -21.2,
+   "over": 0,
+   "centroid": 296
+  },
+  "disasterAvalanche": {
+   "seconds": 4.68,
+   "peak": 0.699,
+   "rmsDb": -21.6,
+   "over": 0,
+   "centroid": 881
+  },
+  "disasterRockfall": {
+   "seconds": 4.3,
+   "peak": 0.7,
+   "rmsDb": -19.9,
+   "over": 0,
+   "centroid": 131
+  },
+  "disasterQuake": {
+   "seconds": 5,
+   "peak": 0.71,
+   "rmsDb": -12.9,
+   "over": 0,
+   "centroid": 55
+  },
+  "disasterEruption": {
+   "seconds": 5,
+   "peak": 0.69,
+   "rmsDb": -14.6,
+   "over": 0,
+   "centroid": 88
+  },
+  "disasterBomb": {
+   "seconds": 2.76,
+   "peak": 0.492,
+   "rmsDb": -19.1,
+   "over": 0,
+   "centroid": 908
+  },
+  "disasterCloud": {
+   "seconds": 5,
+   "peak": 0.656,
+   "rmsDb": -22.5,
+   "over": 0,
+   "centroid": 615
+  },
+  "disasterLahar": {
+   "seconds": 5,
+   "peak": 0.707,
+   "rmsDb": -16.9,
+   "over": 0,
+   "centroid": 197
+  },
+  "disasterBanjir": {
+   "seconds": 5,
+   "peak": 0.725,
+   "rmsDb": -16.8,
+   "over": 0,
+   "centroid": 811
+  },
+  "hornBeep": {
+   "seconds": 2.59,
+   "peak": 0.706,
+   "rmsDb": -22.7,
+   "over": 0,
+   "centroid": 1140
+  },
+  "hornToot": {
+   "seconds": 2.63,
+   "peak": 0.699,
+   "rmsDb": -22.9,
+   "over": 0,
+   "centroid": 988
+  },
+  "hornCar": {
+   "seconds": 2.73,
+   "peak": 0.699,
+   "rmsDb": -23.6,
+   "over": 0,
+   "centroid": 744
+  },
+  "hornAir": {
+   "seconds": 3.11,
+   "peak": 0.703,
+   "rmsDb": -21.8,
+   "over": 0,
+   "centroid": 603
+  },
+  "hornBell": {
+   "seconds": 2.42,
+   "peak": 0.696,
+   "rmsDb": -23.9,
+   "over": 0,
+   "centroid": 2487
+  },
+  "trafficScatter": {
+   "seconds": 2.46,
+   "peak": 0.701,
+   "rmsDb": -24.3,
+   "over": 0,
+   "centroid": 394
+  },
+  "trafficCrash": {
+   "seconds": 2.84,
+   "peak": 0.699,
+   "rmsDb": -22.9,
+   "over": 0,
+   "centroid": 612
+  },
+  "crossingBell": {
+   "seconds": 3.23,
+   "peak": 0.699,
+   "rmsDb": -20.7,
+   "over": 0,
+   "centroid": 1396
+  },
+  "trainPass": {
+   "seconds": 5,
+   "peak": 0.698,
+   "rmsDb": -20.2,
+   "over": 0,
+   "centroid": 614
+  },
+  "disasterSnow": {
+   "seconds": 2.36,
+   "peak": 0.577,
+   "rmsDb": -27.6,
+   "over": 0,
+   "centroid": 286
+  },
+  "disasterTile": {
+   "seconds": 2.16,
+   "peak": 0.494,
+   "rmsDb": -35.5,
+   "over": 0,
+   "centroid": 1472
+  },
+  "hitSpin": {
+   "seconds": 2.84,
+   "peak": 0.699,
+   "rmsDb": -23.8,
+   "over": 0,
+   "centroid": 833
+  },
+  "hitTumble": {
+   "seconds": 2.73,
+   "peak": 0.699,
+   "rmsDb": -25.2,
+   "over": 0,
+   "centroid": 304
+  },
+  "wall": {
+   "seconds": 2.36,
+   "peak": 0.511,
+   "rmsDb": -29.5,
+   "over": 0,
+   "centroid": 121
+  },
+  "bump": {
+   "seconds": 2.39,
+   "peak": 0.511,
+   "rmsDb": -27.9,
+   "over": 0,
+   "centroid": 258
+  },
+  "jump": {
+   "seconds": 2.45,
+   "peak": 0.461,
+   "rmsDb": -26.7,
+   "over": 0,
+   "centroid": 358
+  },
+  "land": {
+   "seconds": 2.39,
+   "peak": 0.577,
+   "rmsDb": -25.3,
+   "over": 0,
+   "centroid": 95
+  },
+  "driftStart": {
+   "seconds": 2.32,
+   "peak": 0.395,
+   "rmsDb": -33.5,
+   "over": 0,
+   "centroid": 1085
+  },
+  "tier1": {
+   "seconds": 2.14,
+   "peak": 0.371,
+   "rmsDb": -31.6,
+   "over": 0,
+   "centroid": 1399
+  },
+  "tier2": {
+   "seconds": 2.37,
+   "peak": 0.416,
+   "rmsDb": -28.9,
+   "over": 0,
+   "centroid": 1735
+  },
+  "tier3": {
+   "seconds": 2.42,
+   "peak": 0.461,
+   "rmsDb": -27.2,
+   "over": 0,
+   "centroid": 2207
+  },
+  "boostPad": {
+   "seconds": 2.66,
+   "peak": 0.593,
+   "rmsDb": -23.1,
+   "over": 0,
+   "centroid": 621
+  },
+  "boostDrift": {
+   "seconds": 2.39,
+   "peak": 0.56,
+   "rmsDb": -30.7,
+   "over": 0,
+   "centroid": 1576
+  },
+  "rescue": {
+   "seconds": 3.18,
+   "peak": 0.551,
+   "rmsDb": -21.3,
+   "over": 0,
+   "centroid": 753
+  },
+  "overtake": {
+   "seconds": 2.34,
+   "peak": 0.333,
+   "rmsDb": -30.3,
+   "over": 0,
+   "centroid": 1230
+  },
+  "overtaken": {
+   "seconds": 2.39,
+   "peak": 0.29,
+   "rmsDb": -31.4,
+   "over": 0,
+   "centroid": 651
+  },
+  "lap": {
+   "seconds": 2.65,
+   "peak": 0.565,
+   "rmsDb": -23.8,
+   "over": 0,
+   "centroid": 1249
+  },
+  "lastLap": {
+   "seconds": 3.55,
+   "peak": 0.684,
+   "rmsDb": -21.4,
+   "over": 0,
+   "centroid": 1352
+  },
+  "finish": {
+   "seconds": 3.3,
+   "peak": 0.702,
+   "rmsDb": -21.1,
+   "over": 0,
+   "centroid": 1056
+  },
+  "countdown": {
+   "seconds": 2.32,
+   "peak": 0.61,
+   "rmsDb": -28.3,
+   "over": 0,
+   "centroid": 696
+  },
+  "go": {
+   "seconds": 2.58,
+   "peak": 0.682,
+   "rmsDb": -24.4,
+   "over": 0,
+   "centroid": 1150
+  },
+  "click": {
+   "seconds": 2.31,
+   "peak": 0.56,
+   "rmsDb": -34.6,
+   "over": 0,
+   "centroid": 1162
+  },
+  "move": {
+   "seconds": 2.3,
+   "peak": 0.461,
+   "rmsDb": -35,
+   "over": 0,
+   "centroid": 844
+  },
+  "back": {
+   "seconds": 2.34,
+   "peak": 0.511,
+   "rmsDb": -32,
+   "over": 0,
+   "centroid": 750
+  },
+  "confirm": {
+   "seconds": 2.4,
+   "peak": 0.514,
+   "rmsDb": -27.7,
+   "over": 0,
+   "centroid": 1205
+  },
+  "cowbells": {
+   "seconds": 3.64,
+   "peak": 0.563,
+   "rmsDb": -22.8,
+   "over": 0,
+   "centroid": 635
+  },
+  "moo": {
+   "seconds": 3.27,
+   "peak": 0.568,
+   "rmsDb": -20.4,
+   "over": 0,
+   "centroid": 387
+  },
+  "sheep": {
+   "seconds": 2.88,
+   "peak": 0.525,
+   "rmsDb": -21.7,
+   "over": 0,
+   "centroid": 868
+  },
+  "dog": {
+   "seconds": 2.55,
+   "peak": 0.527,
+   "rmsDb": -28.9,
+   "over": 0,
+   "centroid": 827
+  },
+  "bear": {
+   "seconds": 3.08,
+   "peak": 0.577,
+   "rmsDb": -23.9,
+   "over": 0,
+   "centroid": 617
+  },
+  "monkey": {
+   "seconds": 2.89,
+   "peak": 0.5,
+   "rmsDb": -24.5,
+   "over": 0,
+   "centroid": 1149
+  },
+  "bats": {
+   "seconds": 2.67,
+   "peak": 0.419,
+   "rmsDb": -29.2,
+   "over": 0,
+   "centroid": 3320
+  },
+  "steam": {
+   "seconds": 3.07,
+   "peak": 0.497,
+   "rmsDb": -24.5,
+   "over": 0,
+   "centroid": 3309
+  },
+  "pony": {
+   "seconds": 2.79,
+   "peak": 0.512,
+   "rmsDb": -26.6,
+   "over": 0,
+   "centroid": 881
+  },
+  "kids": {
+   "seconds": 2.71,
+   "peak": 0.42,
+   "rmsDb": -26.8,
+   "over": 0,
+   "centroid": 2219
+  },
+  "whee": {
+   "seconds": 2.56,
+   "peak": 0.418,
+   "rmsDb": -27.5,
+   "over": 0,
+   "centroid": 2219
+  },
+  "tickClank": {
+   "seconds": 2.29,
+   "peak": 0.412,
+   "rmsDb": -36.8,
+   "over": 0,
+   "centroid": 494
+  },
+  "tickChain": {
+   "seconds": 1.39,
+   "peak": 0.346,
+   "rmsDb": -43.8,
+   "over": 0,
+   "centroid": 5830
+  },
+  "tickFlap": {
+   "seconds": 2.23,
+   "peak": 0.412,
+   "rmsDb": -35.8,
+   "over": 0,
+   "centroid": 1929
+  },
+  "tickCreak": {
+   "seconds": 2.39,
+   "peak": 0.28,
+   "rmsDb": -30.6,
+   "over": 0,
+   "centroid": 912
+  },
+  "tickRattle": {
+   "seconds": 2.11,
+   "peak": 0.346,
+   "rmsDb": -37.5,
+   "over": 0,
+   "centroid": 1002
+  },
+  "tickChunk": {
+   "seconds": 2.33,
+   "peak": 0.445,
+   "rmsDb": -33.7,
+   "over": 0,
+   "centroid": 247
+  },
+  "tickStone": {
+   "seconds": 2.3,
+   "peak": 0.428,
+   "rmsDb": -36.6,
+   "over": 0,
+   "centroid": 233
+  },
+  "biteChomp": {
+   "seconds": 2.43,
+   "peak": 0.46,
+   "rmsDb": -28.3,
+   "over": 0,
+   "centroid": 1059
+  },
+  "panClank": {
+   "seconds": 2.29,
+   "peak": 0.346,
+   "rmsDb": -33.1,
+   "over": 0,
+   "centroid": 1363
+  },
+  "formaGrab": {
+   "seconds": 2.64,
+   "peak": 0.521,
+   "rmsDb": -23.4,
+   "over": 0,
+   "centroid": 824
+  },
+  "formaDrop": {
+   "seconds": 2.78,
+   "peak": 0.545,
+   "rmsDb": -23.3,
+   "over": 0,
+   "centroid": 307
+  },
+  "formaOther": {
+   "seconds": 2.39,
+   "peak": 0.346,
+   "rmsDb": -29.8,
+   "over": 0,
+   "centroid": 620
+  },
+  "formaLead": {
+   "seconds": 2.41,
+   "peak": 0.365,
+   "rmsDb": -28.1,
+   "over": 0,
+   "centroid": 1119
+  },
+  "formaTick": {
+   "seconds": 2.29,
+   "peak": 0.412,
+   "rmsDb": -35,
+   "over": 0,
+   "centroid": 1089
+  },
+  "formaEnd": {
+   "seconds": 3.66,
+   "peak": 0.557,
+   "rmsDb": -17.6,
+   "over": 0,
+   "centroid": 736
+  },
+  "bellTing": {
+   "seconds": 2.35,
+   "peak": 0.419,
+   "rmsDb": -25.9,
+   "over": 0,
+   "centroid": 2177
+  },
+  "whistle": {
+   "seconds": 2.94,
+   "peak": 0.42,
+   "rmsDb": -21.7,
+   "over": 0,
+   "centroid": 1120
+  }
+ },
+ "engines": {
+  "tabia": {
+   "peak": 0.249,
+   "rmsDb": -24.2,
+   "centroid": 219,
+   "fluctuation": {
+    "hz": 47,
+    "depth": 0.06
+   }
+  },
+  "gatto": {
+   "peak": 0.339,
+   "rmsDb": -22.3,
+   "centroid": 147,
+   "fluctuation": {
+    "hz": 37.5,
+    "depth": 0.1
+   }
+  },
+  "seggiovia": {
+   "peak": 0.312,
+   "rmsDb": -23.7,
+   "centroid": 336,
+   "fluctuation": {
+    "hz": 3,
+    "depth": 0.07
+   }
+  },
+  "mocanita": {
+   "peak": 0.423,
+   "rmsDb": -22.9,
+   "centroid": 1133,
+   "fluctuation": {
+    "hz": 9,
+    "depth": 0.22
+   }
+  },
+  "caruta": {
+   "peak": 0.318,
+   "rmsDb": -22.4,
+   "centroid": 278,
+   "fluctuation": {
+    "hz": 4.5,
+    "depth": 0.06
+   }
+  },
+  "logan": {
+   "peak": 0.301,
+   "rmsDb": -25.4,
+   "centroid": 401,
+   "fluctuation": {
+    "hz": 4,
+    "depth": 0.05
+   }
+  },
+  "jeep": {
+   "peak": 0.281,
+   "rmsDb": -24.5,
+   "centroid": 464,
+   "fluctuation": {
+    "hz": 2,
+    "depth": 0.02
+   }
+  },
+  "becak": {
+   "peak": 0.212,
+   "rmsDb": -24.8,
+   "centroid": 456,
+   "fluctuation": {
+    "hz": 2,
+    "depth": 0.25
+   }
+  },
+  "jukung": {
+   "peak": 0.315,
+   "rmsDb": -24.8,
+   "centroid": 765,
+   "fluctuation": {
+    "hz": 3,
+    "depth": 0.06
+   }
+  },
+  "baileys": {
+   "peak": 0.218,
+   "rmsDb": -24.9,
+   "centroid": 177,
+   "fluctuation": {
+    "hz": 2,
+    "depth": 0.05
+   }
+  },
+  "fifi": {
+   "peak": 0.182,
+   "rmsDb": -25.3,
+   "centroid": 292,
+   "fluctuation": {
+    "hz": 2,
+    "depth": 0.05
+   }
+  }
+ },
+ "instruments": {
+  "accordion": {
+   "peak": 0.503,
+   "rmsDb": -19.2,
+   "centroid": 906
+  },
+  "squeeze": {
+   "peak": 0.816,
+   "rmsDb": -17.9,
+   "centroid": 516
+  },
+  "clarinet": {
+   "peak": 0.849,
+   "rmsDb": -11,
+   "centroid": 651
+  },
+  "tuba": {
+   "peak": 0.883,
+   "rmsDb": -11,
+   "centroid": 270
+  },
+  "fiddle": {
+   "peak": 0.819,
+   "rmsDb": -14.7,
+   "centroid": 841
+  },
+  "kontra": {
+   "peak": 0.469,
+   "rmsDb": -25.8,
+   "centroid": 787
+  },
+  "nai": {
+   "peak": 0.435,
+   "rmsDb": -13.4,
+   "centroid": 817
+  },
+  "suling": {
+   "peak": 0.462,
+   "rmsDb": -13.4,
+   "centroid": 828
+  },
+  "tambal": {
+   "peak": 0.762,
+   "rmsDb": -18.5,
+   "centroid": 669
+  },
+  "bassPluck": {
+   "peak": 0.783,
+   "rmsDb": -14.4,
+   "centroid": 172
+  },
+  "gangsa": {
+   "peak": 0.667,
+   "rmsDb": -17.2,
+   "centroid": 695
+  },
+  "reyong": {
+   "peak": 0.67,
+   "rmsDb": -19.8,
+   "centroid": 740
+  },
+  "jegogan": {
+   "peak": 0.832,
+   "rmsDb": -14.6,
+   "centroid": 212
+  },
+  "bell": {
+   "peak": 0.8,
+   "rmsDb": -16.5,
+   "centroid": 1231
+  }
+ },
+ "race": {
+  "bali": {
+   "peak": 0.892,
+   "rmsDb": -15.7,
+   "hot": 0,
+   "over": 0
+  },
+  "antelao": {
+   "peak": 0.881,
+   "rmsDb": -15.6,
+   "hot": 0,
+   "over": 0
+  }
+ },
+ "masking": {
+  "box": {
+   "pelmo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 15.3
+   },
+   "antelao": {
+    "bandsAbove": 6,
+    "bestMarginDb": 14.8
+   },
+   "transfagarasan": {
+    "bandsAbove": 4,
+    "bestMarginDb": 14.3
+   },
+   "bran": {
+    "bandsAbove": 5,
+    "bestMarginDb": 12.7
+   },
+   "jakarta": {
+    "bandsAbove": 6,
+    "bestMarginDb": 24.7
+   },
+   "bromo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 17.3
+   },
+   "bali": {
+    "bandsAbove": 6,
+    "bestMarginDb": 16.1
+   },
+   "results": {
+    "bandsAbove": 5,
+    "bestMarginDb": 10.3
+   },
+   "menu": {
+    "bandsAbove": 6,
+    "bestMarginDb": 15.2
+   },
+   "podium": {
+    "bandsAbove": 6,
+    "bestMarginDb": 10.3
+   }
+  },
+  "boxFull": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 17.3
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 19.5
+   },
+   "transfagarasan": {
+    "bandsAbove": 2,
+    "bestMarginDb": 10.2
+   },
+   "bran": {
+    "bandsAbove": 2,
+    "bestMarginDb": 8.9
+   },
+   "jakarta": {
+    "bandsAbove": 0,
+    "bestMarginDb": 1.4
+   },
+   "bromo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 4.8
+   },
+   "bali": {
+    "bandsAbove": 2,
+    "bestMarginDb": 5.6
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 14.5
+   },
+   "menu": {
+    "bandsAbove": 2,
+    "bestMarginDb": 9.6
+   },
+   "podium": {
+    "bandsAbove": 2,
+    "bestMarginDb": 6.8
+   }
+  },
+  "tick": {
+   "pelmo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 8.8
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 8.4
+   },
+   "transfagarasan": {
+    "bandsAbove": 2,
+    "bestMarginDb": 7.8
+   },
+   "bran": {
+    "bandsAbove": 2,
+    "bestMarginDb": 5.2
+   },
+   "jakarta": {
+    "bandsAbove": 5,
+    "bestMarginDb": 18.1
+   },
+   "bromo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 11.1
+   },
+   "bali": {
+    "bandsAbove": 3,
+    "bestMarginDb": 10.3
+   },
+   "results": {
+    "bandsAbove": 1,
+    "bestMarginDb": 3.9
+   },
+   "menu": {
+    "bandsAbove": 3,
+    "bestMarginDb": 8.7
+   },
+   "podium": {
+    "bandsAbove": 1,
+    "bestMarginDb": 4.9
+   }
+  },
+  "itemGet": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 15.2
+   },
+   "antelao": {
+    "bandsAbove": 4,
+    "bestMarginDb": 14.8
+   },
+   "transfagarasan": {
+    "bandsAbove": 4,
+    "bestMarginDb": 14.2
+   },
+   "bran": {
+    "bandsAbove": 5,
+    "bestMarginDb": 11.7
+   },
+   "jakarta": {
+    "bandsAbove": 6,
+    "bestMarginDb": 24.6
+   },
+   "bromo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 16.3
+   },
+   "bali": {
+    "bandsAbove": 6,
+    "bestMarginDb": 14.2
+   },
+   "results": {
+    "bandsAbove": 4,
+    "bestMarginDb": 8.8
+   },
+   "menu": {
+    "bandsAbove": 6,
+    "bestMarginDb": 15.2
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 8.7
+   }
+  },
+  "razzo": {
+   "pelmo": {
+    "bandsAbove": 10,
+    "bestMarginDb": 34.7
+   },
+   "antelao": {
+    "bandsAbove": 9,
+    "bestMarginDb": 38.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 9,
+    "bestMarginDb": 20.3
+   },
+   "bran": {
+    "bandsAbove": 10,
+    "bestMarginDb": 22.1
+   },
+   "jakarta": {
+    "bandsAbove": 14,
+    "bestMarginDb": 17.7
+   },
+   "bromo": {
+    "bandsAbove": 11,
+    "bestMarginDb": 17.8
+   },
+   "bali": {
+    "bandsAbove": 9,
+    "bestMarginDb": 17.5
+   },
+   "results": {
+    "bandsAbove": 9,
+    "bestMarginDb": 20.7
+   },
+   "menu": {
+    "bandsAbove": 10,
+    "bestMarginDb": 19.9
+   },
+   "podium": {
+    "bandsAbove": 9,
+    "bestMarginDb": 19
+   }
+  },
+  "razzoLoop": {
+   "pelmo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 24
+   },
+   "antelao": {
+    "bandsAbove": 4,
+    "bestMarginDb": 23.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 21
+   },
+   "bran": {
+    "bandsAbove": 6,
+    "bestMarginDb": 22.2
+   },
+   "jakarta": {
+    "bandsAbove": 10,
+    "bestMarginDb": 32.4
+   },
+   "bromo": {
+    "bandsAbove": 8,
+    "bestMarginDb": 28.7
+   },
+   "bali": {
+    "bandsAbove": 5,
+    "bestMarginDb": 24.2
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 21.6
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 24.8
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 22.5
+   }
+  },
+  "boom": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 48.2
+   },
+   "antelao": {
+    "bandsAbove": 4,
+    "bestMarginDb": 50.3
+   },
+   "transfagarasan": {
+    "bandsAbove": 4,
+    "bestMarginDb": 19.2
+   },
+   "bran": {
+    "bandsAbove": 5,
+    "bestMarginDb": 24.3
+   },
+   "jakarta": {
+    "bandsAbove": 7,
+    "bestMarginDb": 12.2
+   },
+   "bromo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 20.1
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 20.5
+   },
+   "results": {
+    "bandsAbove": 6,
+    "bestMarginDb": 22.9
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 24.2
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 21.7
+   }
+  },
+  "grappa": {
+   "pelmo": {
+    "bandsAbove": 7,
+    "bestMarginDb": 14.1
+   },
+   "antelao": {
+    "bandsAbove": 8,
+    "bestMarginDb": 15.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 5,
+    "bestMarginDb": 16.3
+   },
+   "bran": {
+    "bandsAbove": 11,
+    "bestMarginDb": 14.9
+   },
+   "jakarta": {
+    "bandsAbove": 11,
+    "bestMarginDb": 21.9
+   },
+   "bromo": {
+    "bandsAbove": 11,
+    "bestMarginDb": 16.2
+   },
+   "bali": {
+    "bandsAbove": 10,
+    "bestMarginDb": 15.9
+   },
+   "results": {
+    "bandsAbove": 8,
+    "bestMarginDb": 14
+   },
+   "menu": {
+    "bandsAbove": 10,
+    "bestMarginDb": 13.6
+   },
+   "podium": {
+    "bandsAbove": 8,
+    "bestMarginDb": 14.9
+   }
+  },
+  "zuica": {
+   "pelmo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 18.5
+   },
+   "antelao": {
+    "bandsAbove": 7,
+    "bestMarginDb": 19
+   },
+   "transfagarasan": {
+    "bandsAbove": 5,
+    "bestMarginDb": 21.2
+   },
+   "bran": {
+    "bandsAbove": 11,
+    "bestMarginDb": 20.5
+   },
+   "jakarta": {
+    "bandsAbove": 9,
+    "bestMarginDb": 29.5
+   },
+   "bromo": {
+    "bandsAbove": 8,
+    "bestMarginDb": 26.2
+   },
+   "bali": {
+    "bandsAbove": 8,
+    "bestMarginDb": 23.2
+   },
+   "results": {
+    "bandsAbove": 7,
+    "bestMarginDb": 26.9
+   },
+   "menu": {
+    "bandsAbove": 7,
+    "bestMarginDb": 22
+   },
+   "podium": {
+    "bandsAbove": 6,
+    "bestMarginDb": 19.2
+   }
+  },
+  "hic": {
+   "pelmo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 7.8
+   },
+   "antelao": {
+    "bandsAbove": 2,
+    "bestMarginDb": 6.8
+   },
+   "transfagarasan": {
+    "bandsAbove": 2,
+    "bestMarginDb": 10
+   },
+   "bran": {
+    "bandsAbove": 2,
+    "bestMarginDb": 10
+   },
+   "jakarta": {
+    "bandsAbove": 4,
+    "bestMarginDb": 12.6
+   },
+   "bromo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 9.8
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 10.3
+   },
+   "results": {
+    "bandsAbove": 2,
+    "bestMarginDb": 13.8
+   },
+   "menu": {
+    "bandsAbove": 3,
+    "bestMarginDb": 10
+   },
+   "podium": {
+    "bandsAbove": 2,
+    "bestMarginDb": 6.4
+   }
+  },
+  "miciReady": {
+   "pelmo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 9
+   },
+   "antelao": {
+    "bandsAbove": 6,
+    "bestMarginDb": 10.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 9.5
+   },
+   "bran": {
+    "bandsAbove": 5,
+    "bestMarginDb": 14.9
+   },
+   "jakarta": {
+    "bandsAbove": 7,
+    "bestMarginDb": 16.1
+   },
+   "bromo": {
+    "bandsAbove": 7,
+    "bestMarginDb": 15.6
+   },
+   "bali": {
+    "bandsAbove": 7,
+    "bestMarginDb": 14.4
+   },
+   "results": {
+    "bandsAbove": 5,
+    "bestMarginDb": 10.2
+   },
+   "menu": {
+    "bandsAbove": 6,
+    "bestMarginDb": 12
+   },
+   "podium": {
+    "bandsAbove": 5,
+    "bestMarginDb": 9.7
+   }
+  },
+  "miciThrow": {
+   "pelmo": {
+    "bandsAbove": 14,
+    "bestMarginDb": 13.2
+   },
+   "antelao": {
+    "bandsAbove": 16,
+    "bestMarginDb": 15.2
+   },
+   "transfagarasan": {
+    "bandsAbove": 13,
+    "bestMarginDb": 15.4
+   },
+   "bran": {
+    "bandsAbove": 15,
+    "bestMarginDb": 20.6
+   },
+   "jakarta": {
+    "bandsAbove": 15,
+    "bestMarginDb": 20.5
+   },
+   "bromo": {
+    "bandsAbove": 15,
+    "bestMarginDb": 15.6
+   },
+   "bali": {
+    "bandsAbove": 15,
+    "bestMarginDb": 14.5
+   },
+   "results": {
+    "bandsAbove": 13,
+    "bestMarginDb": 21.1
+   },
+   "menu": {
+    "bandsAbove": 15,
+    "bestMarginDb": 16.7
+   },
+   "podium": {
+    "bandsAbove": 12,
+    "bestMarginDb": 13.6
+   }
+  },
+  "shield": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 14.5
+   },
+   "antelao": {
+    "bandsAbove": 4,
+    "bestMarginDb": 14
+   },
+   "transfagarasan": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13.5
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 10.9
+   },
+   "jakarta": {
+    "bandsAbove": 9,
+    "bestMarginDb": 23.8
+   },
+   "bromo": {
+    "bandsAbove": 8,
+    "bestMarginDb": 15.5
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13.4
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 7.8
+   },
+   "menu": {
+    "bandsAbove": 5,
+    "bestMarginDb": 14.4
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 8
+   }
+  },
+  "uova": {
+   "pelmo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 14.8
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 14.9
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 16.5
+   },
+   "bran": {
+    "bandsAbove": 3,
+    "bestMarginDb": 16.7
+   },
+   "jakarta": {
+    "bandsAbove": 5,
+    "bestMarginDb": 19.1
+   },
+   "bromo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13.1
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 12.7
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 22
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 18.3
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 14.6
+   }
+  },
+  "sizzleLoop": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 7.7
+   },
+   "antelao": {
+    "bandsAbove": 5,
+    "bestMarginDb": 11.4
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 10.1
+   },
+   "bran": {
+    "bandsAbove": 5,
+    "bestMarginDb": 15.4
+   },
+   "jakarta": {
+    "bandsAbove": 7,
+    "bestMarginDb": 14.8
+   },
+   "bromo": {
+    "bandsAbove": 7,
+    "bestMarginDb": 14.3
+   },
+   "bali": {
+    "bandsAbove": 5,
+    "bestMarginDb": 13.1
+   },
+   "results": {
+    "bandsAbove": 4,
+    "bestMarginDb": 10.9
+   },
+   "menu": {
+    "bandsAbove": 5,
+    "bestMarginDb": 12.6
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 10.3
+   }
+  },
+  "polenta": {
+   "pelmo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 17.4
+   },
+   "antelao": {
+    "bandsAbove": 5,
+    "bestMarginDb": 18.1
+   },
+   "transfagarasan": {
+    "bandsAbove": 5,
+    "bestMarginDb": 20.3
+   },
+   "bran": {
+    "bandsAbove": 8,
+    "bestMarginDb": 19.7
+   },
+   "jakarta": {
+    "bandsAbove": 14,
+    "bestMarginDb": 13
+   },
+   "bromo": {
+    "bandsAbove": 10,
+    "bestMarginDb": 14.6
+   },
+   "bali": {
+    "bandsAbove": 8,
+    "bestMarginDb": 16.4
+   },
+   "results": {
+    "bandsAbove": 5,
+    "bestMarginDb": 26.1
+   },
+   "menu": {
+    "bandsAbove": 6,
+    "bestMarginDb": 21.2
+   },
+   "podium": {
+    "bandsAbove": 5,
+    "bestMarginDb": 18.4
+   }
+  },
+  "formaggio": {
+   "pelmo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 33.4
+   },
+   "antelao": {
+    "bandsAbove": 5,
+    "bestMarginDb": 36.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 5,
+    "bestMarginDb": 13.4
+   },
+   "bran": {
+    "bandsAbove": 6,
+    "bestMarginDb": 17.6
+   },
+   "jakarta": {
+    "bandsAbove": 4,
+    "bestMarginDb": 10.3
+   },
+   "bromo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 10.8
+   },
+   "bali": {
+    "bandsAbove": 5,
+    "bestMarginDb": 10.5
+   },
+   "results": {
+    "bandsAbove": 6,
+    "bestMarginDb": 16.2
+   },
+   "menu": {
+    "bandsAbove": 5,
+    "bestMarginDb": 17.5
+   },
+   "podium": {
+    "bandsAbove": 5,
+    "bestMarginDb": 13.3
+   }
+  },
+  "durian": {
+   "pelmo": {
+    "bandsAbove": 18,
+    "bestMarginDb": 36.1
+   },
+   "antelao": {
+    "bandsAbove": 19,
+    "bestMarginDb": 38.2
+   },
+   "transfagarasan": {
+    "bandsAbove": 16,
+    "bestMarginDb": 15.8
+   },
+   "bran": {
+    "bandsAbove": 18,
+    "bestMarginDb": 19.1
+   },
+   "jakarta": {
+    "bandsAbove": 18,
+    "bestMarginDb": 19.8
+   },
+   "bromo": {
+    "bandsAbove": 19,
+    "bestMarginDb": 14.5
+   },
+   "bali": {
+    "bandsAbove": 19,
+    "bestMarginDb": 13.8
+   },
+   "results": {
+    "bandsAbove": 19,
+    "bestMarginDb": 16.3
+   },
+   "menu": {
+    "bandsAbove": 19,
+    "bestMarginDb": 17.2
+   },
+   "podium": {
+    "bandsAbove": 17,
+    "bestMarginDb": 14.6
+   }
+  },
+  "sambal": {
+   "pelmo": {
+    "bandsAbove": 12,
+    "bestMarginDb": 12.7
+   },
+   "antelao": {
+    "bandsAbove": 14,
+    "bestMarginDb": 12.2
+   },
+   "transfagarasan": {
+    "bandsAbove": 8,
+    "bestMarginDb": 11.8
+   },
+   "bran": {
+    "bandsAbove": 13,
+    "bestMarginDb": 15.4
+   },
+   "jakarta": {
+    "bandsAbove": 13,
+    "bestMarginDb": 22
+   },
+   "bromo": {
+    "bandsAbove": 13,
+    "bestMarginDb": 14.9
+   },
+   "bali": {
+    "bandsAbove": 13,
+    "bestMarginDb": 14.5
+   },
+   "results": {
+    "bandsAbove": 14,
+    "bestMarginDb": 9.2
+   },
+   "menu": {
+    "bandsAbove": 13,
+    "bestMarginDb": 12.6
+   },
+   "podium": {
+    "bandsAbove": 11,
+    "bestMarginDb": 8.5
+   }
+  },
+  "cityLoop": {
+   "pelmo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 20.1
+   },
+   "antelao": {
+    "bandsAbove": 6,
+    "bestMarginDb": 22.3
+   },
+   "transfagarasan": {
+    "bandsAbove": 5,
+    "bestMarginDb": 12.3
+   },
+   "bran": {
+    "bandsAbove": 7,
+    "bestMarginDb": 12.4
+   },
+   "jakarta": {
+    "bandsAbove": 6,
+    "bestMarginDb": 19.5
+   },
+   "bromo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 14.3
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 12.6
+   },
+   "results": {
+    "bandsAbove": 6,
+    "bestMarginDb": 9.7
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 10.7
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 8.5
+   }
+  },
+  "rainLoop": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 7.6
+   },
+   "antelao": {
+    "bandsAbove": 6,
+    "bestMarginDb": 10
+   },
+   "transfagarasan": {
+    "bandsAbove": 5,
+    "bestMarginDb": 7.6
+   },
+   "bran": {
+    "bandsAbove": 6,
+    "bestMarginDb": 15.5
+   },
+   "jakarta": {
+    "bandsAbove": 8,
+    "bestMarginDb": 14.9
+   },
+   "bromo": {
+    "bandsAbove": 8,
+    "bestMarginDb": 13.3
+   },
+   "bali": {
+    "bandsAbove": 7,
+    "bestMarginDb": 12.1
+   },
+   "results": {
+    "bandsAbove": 6,
+    "bestMarginDb": 8.5
+   },
+   "menu": {
+    "bandsAbove": 7,
+    "bestMarginDb": 10.7
+   },
+   "podium": {
+    "bandsAbove": 6,
+    "bestMarginDb": 8.5
+   }
+  },
+  "windLoop": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 4.6
+   },
+   "antelao": {
+    "bandsAbove": 5,
+    "bestMarginDb": 6.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 3.9
+   },
+   "bran": {
+    "bandsAbove": 1,
+    "bestMarginDb": 4.1
+   },
+   "jakarta": {
+    "bandsAbove": 6,
+    "bestMarginDb": 14.1
+   },
+   "bromo": {
+    "bandsAbove": 7,
+    "bestMarginDb": 10
+   },
+   "bali": {
+    "bandsAbove": 6,
+    "bestMarginDb": 7.1
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 7.4
+   },
+   "menu": {
+    "bandsAbove": 6,
+    "bestMarginDb": 4.7
+   },
+   "podium": {
+    "bandsAbove": 1,
+    "bestMarginDb": 5
+   }
+  },
+  "nightLoop": {
+   "pelmo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 16.2
+   },
+   "antelao": {
+    "bandsAbove": 2,
+    "bestMarginDb": 17
+   },
+   "transfagarasan": {
+    "bandsAbove": 2,
+    "bestMarginDb": 19.2
+   },
+   "bran": {
+    "bandsAbove": 3,
+    "bestMarginDb": 18.5
+   },
+   "jakarta": {
+    "bandsAbove": 3,
+    "bestMarginDb": 18.5
+   },
+   "bromo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 16.8
+   },
+   "bali": {
+    "bandsAbove": 3,
+    "bestMarginDb": 15.3
+   },
+   "results": {
+    "bandsAbove": 2,
+    "bestMarginDb": 24.9
+   },
+   "menu": {
+    "bandsAbove": 2,
+    "bestMarginDb": 20
+   },
+   "podium": {
+    "bandsAbove": 2,
+    "bestMarginDb": 17.2
+   }
+  },
+  "splashWater": {
+   "pelmo": {
+    "bandsAbove": 11,
+    "bestMarginDb": 12.8
+   },
+   "antelao": {
+    "bandsAbove": 11,
+    "bestMarginDb": 14.4
+   },
+   "transfagarasan": {
+    "bandsAbove": 11,
+    "bestMarginDb": 11.9
+   },
+   "bran": {
+    "bandsAbove": 10,
+    "bestMarginDb": 19.4
+   },
+   "jakarta": {
+    "bandsAbove": 11,
+    "bestMarginDb": 25.8
+   },
+   "bromo": {
+    "bandsAbove": 11,
+    "bestMarginDb": 20.2
+   },
+   "bali": {
+    "bandsAbove": 11,
+    "bestMarginDb": 19.8
+   },
+   "results": {
+    "bandsAbove": 9,
+    "bestMarginDb": 13.7
+   },
+   "menu": {
+    "bandsAbove": 10,
+    "bestMarginDb": 15.7
+   },
+   "podium": {
+    "bandsAbove": 9,
+    "bestMarginDb": 12.6
+   }
+  },
+  "splashSnow": {
+   "pelmo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 32.7
+   },
+   "antelao": {
+    "bandsAbove": 6,
+    "bestMarginDb": 36.8
+   },
+   "transfagarasan": {
+    "bandsAbove": 5,
+    "bestMarginDb": 18.2
+   },
+   "bran": {
+    "bandsAbove": 5,
+    "bestMarginDb": 19.9
+   },
+   "jakarta": {
+    "bandsAbove": 11,
+    "bestMarginDb": 17.4
+   },
+   "bromo": {
+    "bandsAbove": 9,
+    "bestMarginDb": 15.6
+   },
+   "bali": {
+    "bandsAbove": 8,
+    "bestMarginDb": 16.5
+   },
+   "results": {
+    "bandsAbove": 5,
+    "bestMarginDb": 18.6
+   },
+   "menu": {
+    "bandsAbove": 6,
+    "bestMarginDb": 17.8
+   },
+   "podium": {
+    "bandsAbove": 5,
+    "bestMarginDb": 16.9
+   }
+  },
+  "thunder": {
+   "pelmo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 44.9
+   },
+   "antelao": {
+    "bandsAbove": 7,
+    "bestMarginDb": 47
+   },
+   "transfagarasan": {
+    "bandsAbove": 8,
+    "bestMarginDb": 13.6
+   },
+   "bran": {
+    "bandsAbove": 11,
+    "bestMarginDb": 19.1
+   },
+   "jakarta": {
+    "bandsAbove": 11,
+    "bestMarginDb": 10.9
+   },
+   "bromo": {
+    "bandsAbove": 9,
+    "bestMarginDb": 16.9
+   },
+   "bali": {
+    "bandsAbove": 8,
+    "bestMarginDb": 17.3
+   },
+   "results": {
+    "bandsAbove": 7,
+    "bestMarginDb": 16.6
+   },
+   "menu": {
+    "bandsAbove": 8,
+    "bestMarginDb": 18.7
+   },
+   "podium": {
+    "bandsAbove": 7,
+    "bestMarginDb": 18.4
+   }
+  },
+  "flameLoop": {
+   "pelmo": {
+    "bandsAbove": 7,
+    "bestMarginDb": 13.5
+   },
+   "antelao": {
+    "bandsAbove": 9,
+    "bestMarginDb": 13
+   },
+   "transfagarasan": {
+    "bandsAbove": 7,
+    "bestMarginDb": 9.3
+   },
+   "bran": {
+    "bandsAbove": 7,
+    "bestMarginDb": 13.6
+   },
+   "jakarta": {
+    "bandsAbove": 10,
+    "bestMarginDb": 24.7
+   },
+   "bromo": {
+    "bandsAbove": 9,
+    "bestMarginDb": 21.2
+   },
+   "bali": {
+    "bandsAbove": 8,
+    "bestMarginDb": 18.7
+   },
+   "results": {
+    "bandsAbove": 7,
+    "bestMarginDb": 13.1
+   },
+   "menu": {
+    "bandsAbove": 8,
+    "bestMarginDb": 14.9
+   },
+   "podium": {
+    "bandsAbove": 6,
+    "bestMarginDb": 11.5
+   }
+  },
+  "rendang": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 15.9
+   },
+   "antelao": {
+    "bandsAbove": 4,
+    "bestMarginDb": 14.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 4,
+    "bestMarginDb": 21.4
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 20.2
+   },
+   "jakarta": {
+    "bandsAbove": 3,
+    "bestMarginDb": 17.2
+   },
+   "bromo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 16.5
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 16.8
+   },
+   "results": {
+    "bandsAbove": 4,
+    "bestMarginDb": 22.1
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 17.5
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 16.7
+   }
+  },
+  "frana": {
+   "pelmo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 24.1
+   },
+   "antelao": {
+    "bandsAbove": 7,
+    "bestMarginDb": 26.2
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 7.3
+   },
+   "bran": {
+    "bandsAbove": 5,
+    "bestMarginDb": 7.3
+   },
+   "jakarta": {
+    "bandsAbove": 6,
+    "bestMarginDb": 17.6
+   },
+   "bromo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 11.6
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 11.2
+   },
+   "results": {
+    "bandsAbove": 0,
+    "bestMarginDb": 2.9
+   },
+   "menu": {
+    "bandsAbove": 3,
+    "bestMarginDb": 8.2
+   },
+   "podium": {
+    "bandsAbove": 1,
+    "bestMarginDb": 6.4
+   }
+  },
+  "disasterAlarm": {
+   "pelmo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 17.7
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 19.4
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 17.3
+   },
+   "bran": {
+    "bandsAbove": 3,
+    "bestMarginDb": 17.5
+   },
+   "jakarta": {
+    "bandsAbove": 3,
+    "bestMarginDb": 25.4
+   },
+   "bromo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 21.7
+   },
+   "bali": {
+    "bandsAbove": 3,
+    "bestMarginDb": 19.4
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 17.6
+   },
+   "menu": {
+    "bandsAbove": 3,
+    "bestMarginDb": 17.8
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 18.5
+   }
+  },
+  "disasterRumble": {
+   "pelmo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 50.3
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 52.4
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 26.1
+   },
+   "bran": {
+    "bandsAbove": 3,
+    "bestMarginDb": 31.2
+   },
+   "jakarta": {
+    "bandsAbove": 2,
+    "bestMarginDb": 17.3
+   },
+   "bromo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 23.3
+   },
+   "bali": {
+    "bandsAbove": 2,
+    "bestMarginDb": 23.6
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 29.7
+   },
+   "menu": {
+    "bandsAbove": 3,
+    "bestMarginDb": 31.1
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 26.9
+   }
+  },
+  "disasterDebris": {
+   "pelmo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 38.3
+   },
+   "antelao": {
+    "bandsAbove": 7,
+    "bestMarginDb": 40.4
+   },
+   "transfagarasan": {
+    "bandsAbove": 5,
+    "bestMarginDb": 18.4
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 17.5
+   },
+   "jakarta": {
+    "bandsAbove": 7,
+    "bestMarginDb": 14.6
+   },
+   "bromo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 13.9
+   },
+   "bali": {
+    "bandsAbove": 5,
+    "bestMarginDb": 13.8
+   },
+   "results": {
+    "bandsAbove": 5,
+    "bestMarginDb": 15.2
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 14.5
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 14
+   }
+  },
+  "disasterAvalanche": {
+   "pelmo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 40
+   },
+   "antelao": {
+    "bandsAbove": 6,
+    "bestMarginDb": 44.1
+   },
+   "transfagarasan": {
+    "bandsAbove": 7,
+    "bestMarginDb": 21
+   },
+   "bran": {
+    "bandsAbove": 7,
+    "bestMarginDb": 25
+   },
+   "jakarta": {
+    "bandsAbove": 7,
+    "bestMarginDb": 18.1
+   },
+   "bromo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 18.4
+   },
+   "bali": {
+    "bandsAbove": 6,
+    "bestMarginDb": 18.1
+   },
+   "results": {
+    "bandsAbove": 7,
+    "bestMarginDb": 23.5
+   },
+   "menu": {
+    "bandsAbove": 6,
+    "bestMarginDb": 24.9
+   },
+   "podium": {
+    "bandsAbove": 6,
+    "bestMarginDb": 20.7
+   }
+  },
+  "disasterRockfall": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 53.2
+   },
+   "antelao": {
+    "bandsAbove": 4,
+    "bestMarginDb": 55.3
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 21.9
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 27.4
+   },
+   "jakarta": {
+    "bandsAbove": 4,
+    "bestMarginDb": 17.2
+   },
+   "bromo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 25.1
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 25.5
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 24.8
+   },
+   "menu": {
+    "bandsAbove": 3,
+    "bestMarginDb": 26.9
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 26.7
+   }
+  },
+  "disasterQuake": {
+   "pelmo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 58
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 60.1
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 26.7
+   },
+   "bran": {
+    "bandsAbove": 3,
+    "bestMarginDb": 32.2
+   },
+   "jakarta": {
+    "bandsAbove": 4,
+    "bestMarginDb": 22
+   },
+   "bromo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 29.9
+   },
+   "bali": {
+    "bandsAbove": 3,
+    "bestMarginDb": 30.3
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 29.6
+   },
+   "menu": {
+    "bandsAbove": 3,
+    "bestMarginDb": 31.7
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 31.5
+   }
+  },
+  "disasterEruption": {
+   "pelmo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 39.6
+   },
+   "antelao": {
+    "bandsAbove": 5,
+    "bestMarginDb": 43.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 24.8
+   },
+   "bran": {
+    "bandsAbove": 5,
+    "bestMarginDb": 26.5
+   },
+   "jakarta": {
+    "bandsAbove": 3,
+    "bestMarginDb": 18.4
+   },
+   "bromo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 22.2
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 21.9
+   },
+   "results": {
+    "bandsAbove": 4,
+    "bestMarginDb": 25.2
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 24.5
+   },
+   "podium": {
+    "bandsAbove": 5,
+    "bestMarginDb": 23.5
+   }
+  },
+  "disasterBomb": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 15.4
+   },
+   "antelao": {
+    "bandsAbove": 4,
+    "bestMarginDb": 17.1
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 15.1
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 15.3
+   },
+   "jakarta": {
+    "bandsAbove": 4,
+    "bestMarginDb": 23.9
+   },
+   "bromo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 17.2
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 17.2
+   },
+   "results": {
+    "bandsAbove": 4,
+    "bestMarginDb": 15.3
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 15
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 16.2
+   }
+  },
+  "disasterCloud": {
+   "pelmo": {
+    "bandsAbove": 11,
+    "bestMarginDb": 31.4
+   },
+   "antelao": {
+    "bandsAbove": 10,
+    "bestMarginDb": 33.5
+   },
+   "transfagarasan": {
+    "bandsAbove": 9,
+    "bestMarginDb": 10.5
+   },
+   "bran": {
+    "bandsAbove": 13,
+    "bestMarginDb": 13.7
+   },
+   "jakarta": {
+    "bandsAbove": 14,
+    "bestMarginDb": 13.9
+   },
+   "bromo": {
+    "bandsAbove": 15,
+    "bestMarginDb": 9
+   },
+   "bali": {
+    "bandsAbove": 14,
+    "bestMarginDb": 10.3
+   },
+   "results": {
+    "bandsAbove": 12,
+    "bestMarginDb": 13.4
+   },
+   "menu": {
+    "bandsAbove": 13,
+    "bestMarginDb": 8.7
+   },
+   "podium": {
+    "bandsAbove": 11,
+    "bestMarginDb": 10.3
+   }
+  },
+  "disasterLahar": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 56.8
+   },
+   "antelao": {
+    "bandsAbove": 4,
+    "bestMarginDb": 58.9
+   },
+   "transfagarasan": {
+    "bandsAbove": 4,
+    "bestMarginDb": 25.5
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 31
+   },
+   "jakarta": {
+    "bandsAbove": 4,
+    "bestMarginDb": 20.8
+   },
+   "bromo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 28.8
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 29.2
+   },
+   "results": {
+    "bandsAbove": 5,
+    "bestMarginDb": 28.4
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 30.5
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 30.3
+   }
+  },
+  "disasterBanjir": {
+   "pelmo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 57.6
+   },
+   "antelao": {
+    "bandsAbove": 2,
+    "bestMarginDb": 59.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 2,
+    "bestMarginDb": 26.3
+   },
+   "bran": {
+    "bandsAbove": 3,
+    "bestMarginDb": 31.8
+   },
+   "jakarta": {
+    "bandsAbove": 3,
+    "bestMarginDb": 21.7
+   },
+   "bromo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 29.6
+   },
+   "bali": {
+    "bandsAbove": 2,
+    "bestMarginDb": 30
+   },
+   "results": {
+    "bandsAbove": 2,
+    "bestMarginDb": 29.2
+   },
+   "menu": {
+    "bandsAbove": 2,
+    "bestMarginDb": 31.4
+   },
+   "podium": {
+    "bandsAbove": 2,
+    "bestMarginDb": 31.1
+   }
+  },
+  "hornBeep": {
+   "pelmo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 14.5
+   },
+   "antelao": {
+    "bandsAbove": 5,
+    "bestMarginDb": 14.1
+   },
+   "transfagarasan": {
+    "bandsAbove": 5,
+    "bestMarginDb": 13.5
+   },
+   "bran": {
+    "bandsAbove": 5,
+    "bestMarginDb": 12.5
+   },
+   "jakarta": {
+    "bandsAbove": 5,
+    "bestMarginDb": 26.2
+   },
+   "bromo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 20.6
+   },
+   "bali": {
+    "bandsAbove": 5,
+    "bestMarginDb": 20.2
+   },
+   "results": {
+    "bandsAbove": 5,
+    "bestMarginDb": 11.9
+   },
+   "menu": {
+    "bandsAbove": 5,
+    "bestMarginDb": 15.1
+   },
+   "podium": {
+    "bandsAbove": 5,
+    "bestMarginDb": 12.8
+   }
+  },
+  "hornToot": {
+   "pelmo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 13.6
+   },
+   "antelao": {
+    "bandsAbove": 6,
+    "bestMarginDb": 13.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 5,
+    "bestMarginDb": 15.3
+   },
+   "bran": {
+    "bandsAbove": 6,
+    "bestMarginDb": 15.5
+   },
+   "jakarta": {
+    "bandsAbove": 6,
+    "bestMarginDb": 22.3
+   },
+   "bromo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 17.4
+   },
+   "bali": {
+    "bandsAbove": 6,
+    "bestMarginDb": 14.1
+   },
+   "results": {
+    "bandsAbove": 6,
+    "bestMarginDb": 20.9
+   },
+   "menu": {
+    "bandsAbove": 6,
+    "bestMarginDb": 17.1
+   },
+   "podium": {
+    "bandsAbove": 6,
+    "bestMarginDb": 13.5
+   }
+  },
+  "hornCar": {
+   "pelmo": {
+    "bandsAbove": 7,
+    "bestMarginDb": 12.1
+   },
+   "antelao": {
+    "bandsAbove": 7,
+    "bestMarginDb": 12.2
+   },
+   "transfagarasan": {
+    "bandsAbove": 6,
+    "bestMarginDb": 13.8
+   },
+   "bran": {
+    "bandsAbove": 6,
+    "bestMarginDb": 14
+   },
+   "jakarta": {
+    "bandsAbove": 7,
+    "bestMarginDb": 18.6
+   },
+   "bromo": {
+    "bandsAbove": 7,
+    "bestMarginDb": 14.9
+   },
+   "bali": {
+    "bandsAbove": 7,
+    "bestMarginDb": 12.3
+   },
+   "results": {
+    "bandsAbove": 5,
+    "bestMarginDb": 19.4
+   },
+   "menu": {
+    "bandsAbove": 7,
+    "bestMarginDb": 15.6
+   },
+   "podium": {
+    "bandsAbove": 5,
+    "bestMarginDb": 12
+   }
+  },
+  "hornAir": {
+   "pelmo": {
+    "bandsAbove": 9,
+    "bestMarginDb": 11.6
+   },
+   "antelao": {
+    "bandsAbove": 8,
+    "bestMarginDb": 10.4
+   },
+   "transfagarasan": {
+    "bandsAbove": 8,
+    "bestMarginDb": 15
+   },
+   "bran": {
+    "bandsAbove": 9,
+    "bestMarginDb": 15.9
+   },
+   "jakarta": {
+    "bandsAbove": 8,
+    "bestMarginDb": 17.8
+   },
+   "bromo": {
+    "bandsAbove": 10,
+    "bestMarginDb": 12.3
+   },
+   "bali": {
+    "bandsAbove": 9,
+    "bestMarginDb": 11.5
+   },
+   "results": {
+    "bandsAbove": 6,
+    "bestMarginDb": 14.9
+   },
+   "menu": {
+    "bandsAbove": 10,
+    "bestMarginDb": 12.1
+   },
+   "podium": {
+    "bandsAbove": 8,
+    "bestMarginDb": 12.4
+   }
+  },
+  "hornBell": {
+   "pelmo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 19
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 18.5
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 14.9
+   },
+   "bran": {
+    "bandsAbove": 3,
+    "bestMarginDb": 19.2
+   },
+   "jakarta": {
+    "bandsAbove": 4,
+    "bestMarginDb": 30
+   },
+   "bromo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 26.7
+   },
+   "bali": {
+    "bandsAbove": 3,
+    "bestMarginDb": 23.8
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 18.6
+   },
+   "menu": {
+    "bandsAbove": 3,
+    "bestMarginDb": 20.5
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 13.7
+   }
+  },
+  "trafficScatter": {
+   "pelmo": {
+    "bandsAbove": 10,
+    "bestMarginDb": 20.4
+   },
+   "antelao": {
+    "bandsAbove": 11,
+    "bestMarginDb": 22.5
+   },
+   "transfagarasan": {
+    "bandsAbove": 7,
+    "bestMarginDb": 16.9
+   },
+   "bran": {
+    "bandsAbove": 10,
+    "bestMarginDb": 16.3
+   },
+   "jakarta": {
+    "bandsAbove": 14,
+    "bestMarginDb": 18
+   },
+   "bromo": {
+    "bandsAbove": 11,
+    "bestMarginDb": 12.4
+   },
+   "bali": {
+    "bandsAbove": 10,
+    "bestMarginDb": 13.1
+   },
+   "results": {
+    "bandsAbove": 8,
+    "bestMarginDb": 22.7
+   },
+   "menu": {
+    "bandsAbove": 10,
+    "bestMarginDb": 17.8
+   },
+   "podium": {
+    "bandsAbove": 6,
+    "bestMarginDb": 15
+   }
+  },
+  "trafficCrash": {
+   "pelmo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 48.1
+   },
+   "antelao": {
+    "bandsAbove": 5,
+    "bestMarginDb": 50.2
+   },
+   "transfagarasan": {
+    "bandsAbove": 5,
+    "bestMarginDb": 16.8
+   },
+   "bran": {
+    "bandsAbove": 6,
+    "bestMarginDb": 22.3
+   },
+   "jakarta": {
+    "bandsAbove": 5,
+    "bestMarginDb": 26.5
+   },
+   "bromo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 20.9
+   },
+   "bali": {
+    "bandsAbove": 6,
+    "bestMarginDb": 20.5
+   },
+   "results": {
+    "bandsAbove": 5,
+    "bestMarginDb": 19.7
+   },
+   "menu": {
+    "bandsAbove": 6,
+    "bestMarginDb": 21.8
+   },
+   "podium": {
+    "bandsAbove": 5,
+    "bestMarginDb": 21.6
+   }
+  },
+  "crossingBell": {
+   "pelmo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 19
+   },
+   "antelao": {
+    "bandsAbove": 2,
+    "bestMarginDb": 18.5
+   },
+   "transfagarasan": {
+    "bandsAbove": 2,
+    "bestMarginDb": 17.9
+   },
+   "bran": {
+    "bandsAbove": 2,
+    "bestMarginDb": 15.4
+   },
+   "jakarta": {
+    "bandsAbove": 2,
+    "bestMarginDb": 28.3
+   },
+   "bromo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 20
+   },
+   "bali": {
+    "bandsAbove": 2,
+    "bestMarginDb": 17.9
+   },
+   "results": {
+    "bandsAbove": 2,
+    "bestMarginDb": 12.2
+   },
+   "menu": {
+    "bandsAbove": 2,
+    "bestMarginDb": 18.9
+   },
+   "podium": {
+    "bandsAbove": 2,
+    "bestMarginDb": 12.5
+   }
+  },
+  "trainPass": {
+   "pelmo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 17.1
+   },
+   "antelao": {
+    "bandsAbove": 5,
+    "bestMarginDb": 17.9
+   },
+   "transfagarasan": {
+    "bandsAbove": 4,
+    "bestMarginDb": 20.1
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 19.4
+   },
+   "jakarta": {
+    "bandsAbove": 5,
+    "bestMarginDb": 20.7
+   },
+   "bromo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 14.4
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 16.2
+   },
+   "results": {
+    "bandsAbove": 4,
+    "bestMarginDb": 25.8
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 20.9
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 18.1
+   }
+  },
+  "disasterSnow": {
+   "pelmo": {
+    "bandsAbove": 7,
+    "bestMarginDb": 15
+   },
+   "antelao": {
+    "bandsAbove": 9,
+    "bestMarginDb": 17.1
+   },
+   "transfagarasan": {
+    "bandsAbove": 5,
+    "bestMarginDb": 11
+   },
+   "bran": {
+    "bandsAbove": 5,
+    "bestMarginDb": 14.2
+   },
+   "jakarta": {
+    "bandsAbove": 10,
+    "bestMarginDb": 15.9
+   },
+   "bromo": {
+    "bandsAbove": 10,
+    "bestMarginDb": 13.7
+   },
+   "bali": {
+    "bandsAbove": 8,
+    "bestMarginDb": 11.2
+   },
+   "results": {
+    "bandsAbove": 6,
+    "bestMarginDb": 12.8
+   },
+   "menu": {
+    "bandsAbove": 8,
+    "bestMarginDb": 12.7
+   },
+   "podium": {
+    "bandsAbove": 5,
+    "bestMarginDb": 16.3
+   }
+  },
+  "disasterTile": {
+   "pelmo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 4.4
+   },
+   "antelao": {
+    "bandsAbove": 1,
+    "bestMarginDb": 4.1
+   },
+   "transfagarasan": {
+    "bandsAbove": 0,
+    "bestMarginDb": 1.7
+   },
+   "bran": {
+    "bandsAbove": 1,
+    "bestMarginDb": 3.4
+   },
+   "jakarta": {
+    "bandsAbove": 6,
+    "bestMarginDb": 14.3
+   },
+   "bromo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 11
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 8
+   },
+   "results": {
+    "bandsAbove": 0,
+    "bestMarginDb": 2.9
+   },
+   "menu": {
+    "bandsAbove": 2,
+    "bestMarginDb": 5.1
+   },
+   "podium": {
+    "bandsAbove": 0,
+    "bestMarginDb": 2.9
+   }
+  },
+  "hitSpin": {
+   "pelmo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 27.2
+   },
+   "antelao": {
+    "bandsAbove": 7,
+    "bestMarginDb": 31.3
+   },
+   "transfagarasan": {
+    "bandsAbove": 6,
+    "bestMarginDb": 13.4
+   },
+   "bran": {
+    "bandsAbove": 6,
+    "bestMarginDb": 14.4
+   },
+   "jakarta": {
+    "bandsAbove": 7,
+    "bestMarginDb": 12
+   },
+   "bromo": {
+    "bandsAbove": 7,
+    "bestMarginDb": 10.1
+   },
+   "bali": {
+    "bandsAbove": 6,
+    "bestMarginDb": 11.1
+   },
+   "results": {
+    "bandsAbove": 6,
+    "bestMarginDb": 13
+   },
+   "menu": {
+    "bandsAbove": 6,
+    "bestMarginDb": 12.2
+   },
+   "podium": {
+    "bandsAbove": 6,
+    "bestMarginDb": 11.3
+   }
+  },
+  "hitTumble": {
+   "pelmo": {
+    "bandsAbove": 8,
+    "bestMarginDb": 43.4
+   },
+   "antelao": {
+    "bandsAbove": 7,
+    "bestMarginDb": 45.6
+   },
+   "transfagarasan": {
+    "bandsAbove": 7,
+    "bestMarginDb": 15.8
+   },
+   "bran": {
+    "bandsAbove": 8,
+    "bestMarginDb": 20.9
+   },
+   "jakarta": {
+    "bandsAbove": 7,
+    "bestMarginDb": 13.5
+   },
+   "bromo": {
+    "bandsAbove": 8,
+    "bestMarginDb": 15.4
+   },
+   "bali": {
+    "bandsAbove": 7,
+    "bestMarginDb": 15.8
+   },
+   "results": {
+    "bandsAbove": 8,
+    "bestMarginDb": 19.4
+   },
+   "menu": {
+    "bandsAbove": 7,
+    "bestMarginDb": 20.8
+   },
+   "podium": {
+    "bandsAbove": 8,
+    "bestMarginDb": 17
+   }
+  },
+  "wall": {
+   "pelmo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 25.1
+   },
+   "antelao": {
+    "bandsAbove": 5,
+    "bestMarginDb": 27.2
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 14.7
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 16.4
+   },
+   "jakarta": {
+    "bandsAbove": 3,
+    "bestMarginDb": 13.9
+   },
+   "bromo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 12.1
+   },
+   "bali": {
+    "bandsAbove": 3,
+    "bestMarginDb": 13
+   },
+   "results": {
+    "bandsAbove": 6,
+    "bestMarginDb": 15.1
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 14.3
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13.4
+   }
+  },
+  "bump": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 15.6
+   },
+   "antelao": {
+    "bandsAbove": 5,
+    "bestMarginDb": 14.4
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 19
+   },
+   "bran": {
+    "bandsAbove": 3,
+    "bestMarginDb": 19.9
+   },
+   "jakarta": {
+    "bandsAbove": 2,
+    "bestMarginDb": 17
+   },
+   "bromo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 16.3
+   },
+   "bali": {
+    "bandsAbove": 2,
+    "bestMarginDb": 15.5
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 17
+   },
+   "menu": {
+    "bandsAbove": 3,
+    "bestMarginDb": 16
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 16.4
+   }
+  },
+  "jump": {
+   "pelmo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 13.4
+   },
+   "antelao": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13.5
+   },
+   "transfagarasan": {
+    "bandsAbove": 4,
+    "bestMarginDb": 20.1
+   },
+   "bran": {
+    "bandsAbove": 5,
+    "bestMarginDb": 18.8
+   },
+   "jakarta": {
+    "bandsAbove": 2,
+    "bestMarginDb": 10.5
+   },
+   "bromo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 14.7
+   },
+   "bali": {
+    "bandsAbove": 3,
+    "bestMarginDb": 15.5
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 21
+   },
+   "menu": {
+    "bandsAbove": 3,
+    "bestMarginDb": 16.2
+   },
+   "podium": {
+    "bandsAbove": 2,
+    "bestMarginDb": 13.3
+   }
+  },
+  "land": {
+   "pelmo": {
+    "bandsAbove": 7,
+    "bestMarginDb": 41.6
+   },
+   "antelao": {
+    "bandsAbove": 7,
+    "bestMarginDb": 43.8
+   },
+   "transfagarasan": {
+    "bandsAbove": 6,
+    "bestMarginDb": 18.3
+   },
+   "bran": {
+    "bandsAbove": 8,
+    "bestMarginDb": 22.8
+   },
+   "jakarta": {
+    "bandsAbove": 6,
+    "bestMarginDb": 13.3
+   },
+   "bromo": {
+    "bandsAbove": 7,
+    "bestMarginDb": 15.8
+   },
+   "bali": {
+    "bandsAbove": 6,
+    "bestMarginDb": 15.5
+   },
+   "results": {
+    "bandsAbove": 7,
+    "bestMarginDb": 21.3
+   },
+   "menu": {
+    "bandsAbove": 6,
+    "bestMarginDb": 22.7
+   },
+   "podium": {
+    "bandsAbove": 7,
+    "bestMarginDb": 18.5
+   }
+  },
+  "driftStart": {
+   "pelmo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 8
+   },
+   "antelao": {
+    "bandsAbove": 8,
+    "bestMarginDb": 8.8
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 11
+   },
+   "bran": {
+    "bandsAbove": 9,
+    "bestMarginDb": 13.9
+   },
+   "jakarta": {
+    "bandsAbove": 11,
+    "bestMarginDb": 19.6
+   },
+   "bromo": {
+    "bandsAbove": 10,
+    "bestMarginDb": 14
+   },
+   "bali": {
+    "bandsAbove": 9,
+    "bestMarginDb": 13.6
+   },
+   "results": {
+    "bandsAbove": 7,
+    "bestMarginDb": 16.7
+   },
+   "menu": {
+    "bandsAbove": 10,
+    "bestMarginDb": 11.8
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 9
+   }
+  },
+  "tier1": {
+   "pelmo": {
+    "bandsAbove": 1,
+    "bestMarginDb": 14.1
+   },
+   "antelao": {
+    "bandsAbove": 2,
+    "bestMarginDb": 13.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 1,
+    "bestMarginDb": 13.1
+   },
+   "bran": {
+    "bandsAbove": 2,
+    "bestMarginDb": 10.5
+   },
+   "jakarta": {
+    "bandsAbove": 2,
+    "bestMarginDb": 23.4
+   },
+   "bromo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 15.1
+   },
+   "bali": {
+    "bandsAbove": 2,
+    "bestMarginDb": 13
+   },
+   "results": {
+    "bandsAbove": 2,
+    "bestMarginDb": 7.3
+   },
+   "menu": {
+    "bandsAbove": 2,
+    "bestMarginDb": 14
+   },
+   "podium": {
+    "bandsAbove": 2,
+    "bestMarginDb": 7.6
+   }
+  },
+  "tier2": {
+   "pelmo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 18.3
+   },
+   "antelao": {
+    "bandsAbove": 4,
+    "bestMarginDb": 18
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 15.3
+   },
+   "bran": {
+    "bandsAbove": 3,
+    "bestMarginDb": 16.5
+   },
+   "jakarta": {
+    "bandsAbove": 4,
+    "bestMarginDb": 26.7
+   },
+   "bromo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 23
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 18.5
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 15.9
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 19.1
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 16.8
+   }
+  },
+  "tier3": {
+   "pelmo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 18.4
+   },
+   "antelao": {
+    "bandsAbove": 6,
+    "bestMarginDb": 17.9
+   },
+   "transfagarasan": {
+    "bandsAbove": 5,
+    "bestMarginDb": 14.3
+   },
+   "bran": {
+    "bandsAbove": 6,
+    "bestMarginDb": 18.6
+   },
+   "jakarta": {
+    "bandsAbove": 7,
+    "bestMarginDb": 29.4
+   },
+   "bromo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 26.1
+   },
+   "bali": {
+    "bandsAbove": 6,
+    "bestMarginDb": 23.1
+   },
+   "results": {
+    "bandsAbove": 5,
+    "bestMarginDb": 18
+   },
+   "menu": {
+    "bandsAbove": 6,
+    "bestMarginDb": 19.9
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13.3
+   }
+  },
+  "boostPad": {
+   "pelmo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 33.8
+   },
+   "antelao": {
+    "bandsAbove": 6,
+    "bestMarginDb": 36
+   },
+   "transfagarasan": {
+    "bandsAbove": 4,
+    "bestMarginDb": 14.7
+   },
+   "bran": {
+    "bandsAbove": 8,
+    "bestMarginDb": 17.9
+   },
+   "jakarta": {
+    "bandsAbove": 6,
+    "bestMarginDb": 19.3
+   },
+   "bromo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 17.5
+   },
+   "bali": {
+    "bandsAbove": 5,
+    "bestMarginDb": 14.9
+   },
+   "results": {
+    "bandsAbove": 6,
+    "bestMarginDb": 16.6
+   },
+   "menu": {
+    "bandsAbove": 6,
+    "bestMarginDb": 16.4
+   },
+   "podium": {
+    "bandsAbove": 6,
+    "bestMarginDb": 20
+   }
+  },
+  "boostDrift": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 5.5
+   },
+   "antelao": {
+    "bandsAbove": 6,
+    "bestMarginDb": 7.6
+   },
+   "transfagarasan": {
+    "bandsAbove": 4,
+    "bestMarginDb": 5.1
+   },
+   "bran": {
+    "bandsAbove": 6,
+    "bestMarginDb": 13.1
+   },
+   "jakarta": {
+    "bandsAbove": 11,
+    "bestMarginDb": 15.7
+   },
+   "bromo": {
+    "bandsAbove": 10,
+    "bestMarginDb": 9
+   },
+   "bali": {
+    "bandsAbove": 9,
+    "bestMarginDb": 7.1
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 5.4
+   },
+   "menu": {
+    "bandsAbove": 6,
+    "bestMarginDb": 8.1
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 6.1
+   }
+  },
+  "rescue": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 16.6
+   },
+   "antelao": {
+    "bandsAbove": 5,
+    "bestMarginDb": 18.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 1,
+    "bestMarginDb": 12.1
+   },
+   "bran": {
+    "bandsAbove": 2,
+    "bestMarginDb": 12.3
+   },
+   "jakarta": {
+    "bandsAbove": 2,
+    "bestMarginDb": 15.2
+   },
+   "bromo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 14.3
+   },
+   "bali": {
+    "bandsAbove": 1,
+    "bestMarginDb": 14.2
+   },
+   "results": {
+    "bandsAbove": 1,
+    "bestMarginDb": 12.4
+   },
+   "menu": {
+    "bandsAbove": 1,
+    "bestMarginDb": 12
+   },
+   "podium": {
+    "bandsAbove": 2,
+    "bestMarginDb": 13.3
+   }
+  },
+  "overtake": {
+   "pelmo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 10.4
+   },
+   "antelao": {
+    "bandsAbove": 2,
+    "bestMarginDb": 10
+   },
+   "transfagarasan": {
+    "bandsAbove": 2,
+    "bestMarginDb": 9.4
+   },
+   "bran": {
+    "bandsAbove": 2,
+    "bestMarginDb": 6.8
+   },
+   "jakarta": {
+    "bandsAbove": 5,
+    "bestMarginDb": 19.8
+   },
+   "bromo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 11.4
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 9.4
+   },
+   "results": {
+    "bandsAbove": 2,
+    "bestMarginDb": 5.8
+   },
+   "menu": {
+    "bandsAbove": 2,
+    "bestMarginDb": 10.3
+   },
+   "podium": {
+    "bandsAbove": 2,
+    "bestMarginDb": 6.7
+   }
+  },
+  "overtaken": {
+   "pelmo": {
+    "bandsAbove": 1,
+    "bestMarginDb": 3.8
+   },
+   "antelao": {
+    "bandsAbove": 1,
+    "bestMarginDb": 4.6
+   },
+   "transfagarasan": {
+    "bandsAbove": 2,
+    "bestMarginDb": 5.2
+   },
+   "bran": {
+    "bandsAbove": 2,
+    "bestMarginDb": 4.6
+   },
+   "jakarta": {
+    "bandsAbove": 2,
+    "bestMarginDb": 5.8
+   },
+   "bromo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 6.8
+   },
+   "bali": {
+    "bandsAbove": 2,
+    "bestMarginDb": 5.6
+   },
+   "results": {
+    "bandsAbove": 0,
+    "bestMarginDb": 2.6
+   },
+   "menu": {
+    "bandsAbove": 1,
+    "bestMarginDb": 4.2
+   },
+   "podium": {
+    "bandsAbove": 0,
+    "bestMarginDb": 2.2
+   }
+  },
+  "lap": {
+   "pelmo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 16
+   },
+   "antelao": {
+    "bandsAbove": 4,
+    "bestMarginDb": 15.5
+   },
+   "transfagarasan": {
+    "bandsAbove": 4,
+    "bestMarginDb": 14.9
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 12.4
+   },
+   "jakarta": {
+    "bandsAbove": 5,
+    "bestMarginDb": 25.3
+   },
+   "bromo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 17
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 14.9
+   },
+   "results": {
+    "bandsAbove": 4,
+    "bestMarginDb": 9.9
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 15.9
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 9.4
+   }
+  },
+  "lastLap": {
+   "pelmo": {
+    "bandsAbove": 7,
+    "bestMarginDb": 12.2
+   },
+   "antelao": {
+    "bandsAbove": 8,
+    "bestMarginDb": 12.3
+   },
+   "transfagarasan": {
+    "bandsAbove": 6,
+    "bestMarginDb": 10
+   },
+   "bran": {
+    "bandsAbove": 9,
+    "bestMarginDb": 11.8
+   },
+   "jakarta": {
+    "bandsAbove": 9,
+    "bestMarginDb": 25.2
+   },
+   "bromo": {
+    "bandsAbove": 9,
+    "bestMarginDb": 19.6
+   },
+   "bali": {
+    "bandsAbove": 9,
+    "bestMarginDb": 19.2
+   },
+   "results": {
+    "bandsAbove": 5,
+    "bestMarginDb": 11.2
+   },
+   "menu": {
+    "bandsAbove": 9,
+    "bestMarginDb": 13.9
+   },
+   "podium": {
+    "bandsAbove": 5,
+    "bestMarginDb": 8.5
+   }
+  },
+  "finish": {
+   "pelmo": {
+    "bandsAbove": 8,
+    "bestMarginDb": 11.5
+   },
+   "antelao": {
+    "bandsAbove": 10,
+    "bestMarginDb": 13.8
+   },
+   "transfagarasan": {
+    "bandsAbove": 7,
+    "bestMarginDb": 14.2
+   },
+   "bran": {
+    "bandsAbove": 11,
+    "bestMarginDb": 17.1
+   },
+   "jakarta": {
+    "bandsAbove": 12,
+    "bestMarginDb": 24.8
+   },
+   "bromo": {
+    "bandsAbove": 12,
+    "bestMarginDb": 17.5
+   },
+   "bali": {
+    "bandsAbove": 12,
+    "bestMarginDb": 16.2
+   },
+   "results": {
+    "bandsAbove": 8,
+    "bestMarginDb": 9.4
+   },
+   "menu": {
+    "bandsAbove": 10,
+    "bestMarginDb": 13.7
+   },
+   "podium": {
+    "bandsAbove": 8,
+    "bestMarginDb": 10.4
+   }
+  },
+  "countdown": {
+   "pelmo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 10.6
+   },
+   "antelao": {
+    "bandsAbove": 2,
+    "bestMarginDb": 11.4
+   },
+   "transfagarasan": {
+    "bandsAbove": 1,
+    "bestMarginDb": 12
+   },
+   "bran": {
+    "bandsAbove": 1,
+    "bestMarginDb": 11.3
+   },
+   "jakarta": {
+    "bandsAbove": 2,
+    "bestMarginDb": 12.8
+   },
+   "bromo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 13.6
+   },
+   "bali": {
+    "bandsAbove": 2,
+    "bestMarginDb": 12.4
+   },
+   "results": {
+    "bandsAbove": 1,
+    "bestMarginDb": 9.4
+   },
+   "menu": {
+    "bandsAbove": 2,
+    "bestMarginDb": 11
+   },
+   "podium": {
+    "bandsAbove": 1,
+    "bestMarginDb": 9
+   }
+  },
+  "go": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 16.3
+   },
+   "antelao": {
+    "bandsAbove": 4,
+    "bestMarginDb": 15.9
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 15.3
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 12.7
+   },
+   "jakarta": {
+    "bandsAbove": 7,
+    "bestMarginDb": 25.6
+   },
+   "bromo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 17.3
+   },
+   "bali": {
+    "bandsAbove": 5,
+    "bestMarginDb": 15.3
+   },
+   "results": {
+    "bandsAbove": 4,
+    "bestMarginDb": 9.5
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 16.2
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 9.8
+   }
+  },
+  "click": {
+   "pelmo": {
+    "bandsAbove": 1,
+    "bestMarginDb": 3
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 5
+   },
+   "transfagarasan": {
+    "bandsAbove": 1,
+    "bestMarginDb": 5.3
+   },
+   "bran": {
+    "bandsAbove": 2,
+    "bestMarginDb": 4
+   },
+   "jakarta": {
+    "bandsAbove": 4,
+    "bestMarginDb": 15.9
+   },
+   "bromo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 10.7
+   },
+   "bali": {
+    "bandsAbove": 3,
+    "bestMarginDb": 7.8
+   },
+   "results": {
+    "bandsAbove": 0,
+    "bestMarginDb": 2.6
+   },
+   "menu": {
+    "bandsAbove": 2,
+    "bestMarginDb": 4.8
+   },
+   "podium": {
+    "bandsAbove": 1,
+    "bestMarginDb": 3.5
+   }
+  },
+  "move": {
+   "pelmo": {
+    "bandsAbove": 0,
+    "bestMarginDb": 1.9
+   },
+   "antelao": {
+    "bandsAbove": 0,
+    "bestMarginDb": 2.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 1,
+    "bestMarginDb": 3.4
+   },
+   "bran": {
+    "bandsAbove": 0,
+    "bestMarginDb": 2.6
+   },
+   "jakarta": {
+    "bandsAbove": 3,
+    "bestMarginDb": 7.9
+   },
+   "bromo": {
+    "bandsAbove": 1,
+    "bestMarginDb": 5
+   },
+   "bali": {
+    "bandsAbove": 1,
+    "bestMarginDb": 3.7
+   },
+   "results": {
+    "bandsAbove": 0,
+    "bestMarginDb": 0.8
+   },
+   "menu": {
+    "bandsAbove": 0,
+    "bestMarginDb": 2.3
+   },
+   "podium": {
+    "bandsAbove": 0,
+    "bestMarginDb": 1.6
+   }
+  },
+  "back": {
+   "pelmo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 7.3
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 9.4
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 7.1
+   },
+   "bran": {
+    "bandsAbove": 2,
+    "bestMarginDb": 7.1
+   },
+   "jakarta": {
+    "bandsAbove": 4,
+    "bestMarginDb": 10.5
+   },
+   "bromo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 6.9
+   },
+   "bali": {
+    "bandsAbove": 3,
+    "bestMarginDb": 7.4
+   },
+   "results": {
+    "bandsAbove": 2,
+    "bestMarginDb": 9.9
+   },
+   "menu": {
+    "bandsAbove": 2,
+    "bestMarginDb": 6.2
+   },
+   "podium": {
+    "bandsAbove": 2,
+    "bestMarginDb": 3.3
+   }
+  },
+  "confirm": {
+   "pelmo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 15.8
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 15.4
+   },
+   "transfagarasan": {
+    "bandsAbove": 2,
+    "bestMarginDb": 14.8
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 12.3
+   },
+   "jakarta": {
+    "bandsAbove": 4,
+    "bestMarginDb": 25.2
+   },
+   "bromo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 16.9
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 14.8
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 9.1
+   },
+   "menu": {
+    "bandsAbove": 3,
+    "bestMarginDb": 15.8
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 9.3
+   }
+  },
+  "cowbells": {
+   "pelmo": {
+    "bandsAbove": 1,
+    "bestMarginDb": 11
+   },
+   "antelao": {
+    "bandsAbove": 2,
+    "bestMarginDb": 11.2
+   },
+   "transfagarasan": {
+    "bandsAbove": 2,
+    "bestMarginDb": 12.8
+   },
+   "bran": {
+    "bandsAbove": 2,
+    "bestMarginDb": 12.9
+   },
+   "jakarta": {
+    "bandsAbove": 3,
+    "bestMarginDb": 4.6
+   },
+   "bromo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 7.2
+   },
+   "bali": {
+    "bandsAbove": 2,
+    "bestMarginDb": 9
+   },
+   "results": {
+    "bandsAbove": 1,
+    "bestMarginDb": 18.3
+   },
+   "menu": {
+    "bandsAbove": 2,
+    "bestMarginDb": 14.6
+   },
+   "podium": {
+    "bandsAbove": 1,
+    "bestMarginDb": 10.9
+   }
+  },
+  "moo": {
+   "pelmo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 15.6
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 16.4
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 18.7
+   },
+   "bran": {
+    "bandsAbove": 3,
+    "bestMarginDb": 17.9
+   },
+   "jakarta": {
+    "bandsAbove": 4,
+    "bestMarginDb": 11.3
+   },
+   "bromo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 13.3
+   },
+   "bali": {
+    "bandsAbove": 3,
+    "bestMarginDb": 14.7
+   },
+   "results": {
+    "bandsAbove": 4,
+    "bestMarginDb": 24.4
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 19.4
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 16.7
+   }
+  },
+  "sheep": {
+   "pelmo": {
+    "bandsAbove": 8,
+    "bestMarginDb": 11.4
+   },
+   "antelao": {
+    "bandsAbove": 7,
+    "bestMarginDb": 11
+   },
+   "transfagarasan": {
+    "bandsAbove": 7,
+    "bestMarginDb": 10.4
+   },
+   "bran": {
+    "bandsAbove": 8,
+    "bestMarginDb": 8.2
+   },
+   "jakarta": {
+    "bandsAbove": 8,
+    "bestMarginDb": 20.8
+   },
+   "bromo": {
+    "bandsAbove": 10,
+    "bestMarginDb": 13.2
+   },
+   "bali": {
+    "bandsAbove": 9,
+    "bestMarginDb": 12.8
+   },
+   "results": {
+    "bandsAbove": 7,
+    "bestMarginDb": 14.6
+   },
+   "menu": {
+    "bandsAbove": 8,
+    "bestMarginDb": 11.4
+   },
+   "podium": {
+    "bandsAbove": 6,
+    "bestMarginDb": 6.9
+   }
+  },
+  "dog": {
+   "pelmo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 5.8
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 7.4
+   },
+   "transfagarasan": {
+    "bandsAbove": 5,
+    "bestMarginDb": 6.7
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 5.7
+   },
+   "jakarta": {
+    "bandsAbove": 7,
+    "bestMarginDb": 14.9
+   },
+   "bromo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 8.2
+   },
+   "bali": {
+    "bandsAbove": 5,
+    "bestMarginDb": 7.8
+   },
+   "results": {
+    "bandsAbove": 5,
+    "bestMarginDb": 6.6
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 5.3
+   },
+   "podium": {
+    "bandsAbove": 1,
+    "bestMarginDb": 6.6
+   }
+  },
+  "bear": {
+   "pelmo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 13.6
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 13.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 15.3
+   },
+   "bran": {
+    "bandsAbove": 3,
+    "bestMarginDb": 15.5
+   },
+   "jakarta": {
+    "bandsAbove": 5,
+    "bestMarginDb": 8.4
+   },
+   "bromo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 9.8
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 11.5
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 20.8
+   },
+   "menu": {
+    "bandsAbove": 3,
+    "bestMarginDb": 17.1
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13.5
+   }
+  },
+  "monkey": {
+   "pelmo": {
+    "bandsAbove": 1,
+    "bestMarginDb": 6.2
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 7.9
+   },
+   "transfagarasan": {
+    "bandsAbove": 2,
+    "bestMarginDb": 5.9
+   },
+   "bran": {
+    "bandsAbove": 1,
+    "bestMarginDb": 6
+   },
+   "jakarta": {
+    "bandsAbove": 6,
+    "bestMarginDb": 15.9
+   },
+   "bromo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 10.3
+   },
+   "bali": {
+    "bandsAbove": 3,
+    "bestMarginDb": 9.9
+   },
+   "results": {
+    "bandsAbove": 1,
+    "bestMarginDb": 6.1
+   },
+   "menu": {
+    "bandsAbove": 3,
+    "bestMarginDb": 5.8
+   },
+   "podium": {
+    "bandsAbove": 1,
+    "bestMarginDb": 7
+   }
+  },
+  "bats": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13.8
+   },
+   "antelao": {
+    "bandsAbove": 5,
+    "bestMarginDb": 16.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 13.9
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 18.2
+   },
+   "jakarta": {
+    "bandsAbove": 4,
+    "bestMarginDb": 24.5
+   },
+   "bromo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 22.2
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 20.2
+   },
+   "results": {
+    "bandsAbove": 4,
+    "bestMarginDb": 16.2
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 18
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 15.7
+   }
+  },
+  "steam": {
+   "pelmo": {
+    "bandsAbove": 9,
+    "bestMarginDb": 10.7
+   },
+   "antelao": {
+    "bandsAbove": 9,
+    "bestMarginDb": 13.9
+   },
+   "transfagarasan": {
+    "bandsAbove": 6,
+    "bestMarginDb": 11.1
+   },
+   "bran": {
+    "bandsAbove": 9,
+    "bestMarginDb": 16.5
+   },
+   "jakarta": {
+    "bandsAbove": 10,
+    "bestMarginDb": 22.8
+   },
+   "bromo": {
+    "bandsAbove": 9,
+    "bestMarginDb": 19
+   },
+   "bali": {
+    "bandsAbove": 8,
+    "bestMarginDb": 17
+   },
+   "results": {
+    "bandsAbove": 8,
+    "bestMarginDb": 13.2
+   },
+   "menu": {
+    "bandsAbove": 9,
+    "bestMarginDb": 15.1
+   },
+   "podium": {
+    "bandsAbove": 8,
+    "bestMarginDb": 12.5
+   }
+  },
+  "pony": {
+   "pelmo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 8.5
+   },
+   "antelao": {
+    "bandsAbove": 2,
+    "bestMarginDb": 7.4
+   },
+   "transfagarasan": {
+    "bandsAbove": 1,
+    "bestMarginDb": 10.6
+   },
+   "bran": {
+    "bandsAbove": 2,
+    "bestMarginDb": 10.7
+   },
+   "jakarta": {
+    "bandsAbove": 5,
+    "bestMarginDb": 18
+   },
+   "bromo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 14.7
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 11.7
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 8
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 9.1
+   },
+   "podium": {
+    "bandsAbove": 1,
+    "bestMarginDb": 6.8
+   }
+  },
+  "kids": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 15.5
+   },
+   "antelao": {
+    "bandsAbove": 4,
+    "bestMarginDb": 15.2
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 12.5
+   },
+   "bran": {
+    "bandsAbove": 6,
+    "bestMarginDb": 13.7
+   },
+   "jakarta": {
+    "bandsAbove": 6,
+    "bestMarginDb": 23.9
+   },
+   "bromo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 20.3
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 17.6
+   },
+   "results": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13.1
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 16.3
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 14
+   }
+  },
+  "whee": {
+   "pelmo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 18
+   },
+   "antelao": {
+    "bandsAbove": 4,
+    "bestMarginDb": 17.5
+   },
+   "transfagarasan": {
+    "bandsAbove": 1,
+    "bestMarginDb": 13.9
+   },
+   "bran": {
+    "bandsAbove": 8,
+    "bestMarginDb": 18.2
+   },
+   "jakarta": {
+    "bandsAbove": 6,
+    "bestMarginDb": 29
+   },
+   "bromo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 25.7
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 22.8
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 17.6
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 19.5
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 12.7
+   }
+  },
+  "tickClank": {
+   "pelmo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 11.9
+   },
+   "antelao": {
+    "bandsAbove": 2,
+    "bestMarginDb": 14
+   },
+   "transfagarasan": {
+    "bandsAbove": 1,
+    "bestMarginDb": 7.7
+   },
+   "bran": {
+    "bandsAbove": 1,
+    "bestMarginDb": 7.1
+   },
+   "jakarta": {
+    "bandsAbove": 1,
+    "bestMarginDb": 5.9
+   },
+   "bromo": {
+    "bandsAbove": 0,
+    "bestMarginDb": 2.1
+   },
+   "bali": {
+    "bandsAbove": 1,
+    "bestMarginDb": 3.9
+   },
+   "results": {
+    "bandsAbove": 2,
+    "bestMarginDb": 13.5
+   },
+   "menu": {
+    "bandsAbove": 1,
+    "bestMarginDb": 8.6
+   },
+   "podium": {
+    "bandsAbove": 1,
+    "bestMarginDb": 5.8
+   }
+  },
+  "tickChain": {
+   "pelmo": {
+    "bandsAbove": 0,
+    "bestMarginDb": 2.8
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 4.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 1,
+    "bestMarginDb": 3.2
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 10
+   },
+   "jakarta": {
+    "bandsAbove": 5,
+    "bestMarginDb": 7.8
+   },
+   "bromo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 7.3
+   },
+   "bali": {
+    "bandsAbove": 3,
+    "bestMarginDb": 6.1
+   },
+   "results": {
+    "bandsAbove": 2,
+    "bestMarginDb": 4.1
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 6.3
+   },
+   "podium": {
+    "bandsAbove": 2,
+    "bestMarginDb": 3.8
+   }
+  },
+  "tickFlap": {
+   "pelmo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 9.3
+   },
+   "antelao": {
+    "bandsAbove": 8,
+    "bestMarginDb": 11.8
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 9.3
+   },
+   "bran": {
+    "bandsAbove": 7,
+    "bestMarginDb": 17.2
+   },
+   "jakarta": {
+    "bandsAbove": 11,
+    "bestMarginDb": 15.1
+   },
+   "bromo": {
+    "bandsAbove": 9,
+    "bestMarginDb": 11.3
+   },
+   "bali": {
+    "bandsAbove": 7,
+    "bestMarginDb": 9.6
+   },
+   "results": {
+    "bandsAbove": 6,
+    "bestMarginDb": 9.5
+   },
+   "menu": {
+    "bandsAbove": 8,
+    "bestMarginDb": 12.2
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 10.2
+   }
+  },
+  "tickCreak": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 7.7
+   },
+   "antelao": {
+    "bandsAbove": 5,
+    "bestMarginDb": 7.6
+   },
+   "transfagarasan": {
+    "bandsAbove": 4,
+    "bestMarginDb": 5.6
+   },
+   "bran": {
+    "bandsAbove": 6,
+    "bestMarginDb": 5.9
+   },
+   "jakarta": {
+    "bandsAbove": 7,
+    "bestMarginDb": 18.7
+   },
+   "bromo": {
+    "bandsAbove": 7,
+    "bestMarginDb": 13.1
+   },
+   "bali": {
+    "bandsAbove": 5,
+    "bestMarginDb": 12.7
+   },
+   "results": {
+    "bandsAbove": 5,
+    "bestMarginDb": 11
+   },
+   "menu": {
+    "bandsAbove": 7,
+    "bestMarginDb": 8.5
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 6.7
+   }
+  },
+  "tickRattle": {
+   "pelmo": {
+    "bandsAbove": 0,
+    "bestMarginDb": -1.3
+   },
+   "antelao": {
+    "bandsAbove": 0,
+    "bestMarginDb": 0.4
+   },
+   "transfagarasan": {
+    "bandsAbove": 0,
+    "bestMarginDb": -0.5
+   },
+   "bran": {
+    "bandsAbove": 0,
+    "bestMarginDb": -1.5
+   },
+   "jakarta": {
+    "bandsAbove": 4,
+    "bestMarginDb": 10.1
+   },
+   "bromo": {
+    "bandsAbove": 1,
+    "bestMarginDb": 3.4
+   },
+   "bali": {
+    "bandsAbove": 0,
+    "bestMarginDb": 1.5
+   },
+   "results": {
+    "bandsAbove": 0,
+    "bestMarginDb": -1.4
+   },
+   "menu": {
+    "bandsAbove": 0,
+    "bestMarginDb": -1
+   },
+   "podium": {
+    "bandsAbove": 0,
+    "bestMarginDb": -0.5
+   }
+  },
+  "tickChunk": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 31.9
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 34
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 10.2
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13.3
+   },
+   "jakarta": {
+    "bandsAbove": 0,
+    "bestMarginDb": 1.2
+   },
+   "bromo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 5.5
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 5.7
+   },
+   "results": {
+    "bandsAbove": 6,
+    "bestMarginDb": 11.8
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13.2
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 9
+   }
+  },
+  "tickStone": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 20.2
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 22.3
+   },
+   "transfagarasan": {
+    "bandsAbove": 1,
+    "bestMarginDb": 7
+   },
+   "bran": {
+    "bandsAbove": 2,
+    "bestMarginDb": 7.9
+   },
+   "jakarta": {
+    "bandsAbove": 2,
+    "bestMarginDb": 7
+   },
+   "bromo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 5.2
+   },
+   "bali": {
+    "bandsAbove": 1,
+    "bestMarginDb": 3.5
+   },
+   "results": {
+    "bandsAbove": 2,
+    "bestMarginDb": 5
+   },
+   "menu": {
+    "bandsAbove": 2,
+    "bestMarginDb": 4.2
+   },
+   "podium": {
+    "bandsAbove": 2,
+    "bestMarginDb": 7.8
+   }
+  },
+  "biteChomp": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13.1
+   },
+   "antelao": {
+    "bandsAbove": 4,
+    "bestMarginDb": 12.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 2,
+    "bestMarginDb": 12.1
+   },
+   "bran": {
+    "bandsAbove": 3,
+    "bestMarginDb": 9.5
+   },
+   "jakarta": {
+    "bandsAbove": 7,
+    "bestMarginDb": 22.5
+   },
+   "bromo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 14.1
+   },
+   "bali": {
+    "bandsAbove": 6,
+    "bestMarginDb": 12.1
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 7.7
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13
+   },
+   "podium": {
+    "bandsAbove": 2,
+    "bestMarginDb": 7.2
+   }
+  },
+  "panClank": {
+   "pelmo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 9.8
+   },
+   "antelao": {
+    "bandsAbove": 2,
+    "bestMarginDb": 9.5
+   },
+   "transfagarasan": {
+    "bandsAbove": 2,
+    "bestMarginDb": 8.6
+   },
+   "bran": {
+    "bandsAbove": 2,
+    "bestMarginDb": 8
+   },
+   "jakarta": {
+    "bandsAbove": 4,
+    "bestMarginDb": 19.2
+   },
+   "bromo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 14.5
+   },
+   "bali": {
+    "bandsAbove": 3,
+    "bestMarginDb": 10.6
+   },
+   "results": {
+    "bandsAbove": 2,
+    "bestMarginDb": 7.3
+   },
+   "menu": {
+    "bandsAbove": 2,
+    "bestMarginDb": 10.6
+   },
+   "podium": {
+    "bandsAbove": 2,
+    "bestMarginDb": 8.3
+   }
+  },
+  "formaGrab": {
+   "pelmo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 12.8
+   },
+   "antelao": {
+    "bandsAbove": 5,
+    "bestMarginDb": 14.9
+   },
+   "transfagarasan": {
+    "bandsAbove": 2,
+    "bestMarginDb": 11.8
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 9.2
+   },
+   "jakarta": {
+    "bandsAbove": 6,
+    "bestMarginDb": 22.1
+   },
+   "bromo": {
+    "bandsAbove": 6,
+    "bestMarginDb": 13.8
+   },
+   "bali": {
+    "bandsAbove": 6,
+    "bestMarginDb": 11.7
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 9.1
+   },
+   "menu": {
+    "bandsAbove": 5,
+    "bestMarginDb": 12.7
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 10
+   }
+  },
+  "formaDrop": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 48.3
+   },
+   "antelao": {
+    "bandsAbove": 5,
+    "bestMarginDb": 50.5
+   },
+   "transfagarasan": {
+    "bandsAbove": 5,
+    "bestMarginDb": 17.1
+   },
+   "bran": {
+    "bandsAbove": 5,
+    "bestMarginDb": 22.5
+   },
+   "jakarta": {
+    "bandsAbove": 6,
+    "bestMarginDb": 14.3
+   },
+   "bromo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 20.3
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 20.7
+   },
+   "results": {
+    "bandsAbove": 4,
+    "bestMarginDb": 20
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 22.1
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 21.9
+   }
+  },
+  "formaOther": {
+   "pelmo": {
+    "bandsAbove": 1,
+    "bestMarginDb": 9.1
+   },
+   "antelao": {
+    "bandsAbove": 1,
+    "bestMarginDb": 8.1
+   },
+   "transfagarasan": {
+    "bandsAbove": 1,
+    "bestMarginDb": 11.3
+   },
+   "bran": {
+    "bandsAbove": 1,
+    "bestMarginDb": 11.3
+   },
+   "jakarta": {
+    "bandsAbove": 2,
+    "bestMarginDb": 7.3
+   },
+   "bromo": {
+    "bandsAbove": 1,
+    "bestMarginDb": 11.1
+   },
+   "bali": {
+    "bandsAbove": 1,
+    "bestMarginDb": 11.6
+   },
+   "results": {
+    "bandsAbove": 1,
+    "bestMarginDb": 8.6
+   },
+   "menu": {
+    "bandsAbove": 1,
+    "bestMarginDb": 9.7
+   },
+   "podium": {
+    "bandsAbove": 1,
+    "bestMarginDb": 7.5
+   }
+  },
+  "formaLead": {
+   "pelmo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 8.2
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 10.5
+   },
+   "transfagarasan": {
+    "bandsAbove": 2,
+    "bestMarginDb": 10.8
+   },
+   "bran": {
+    "bandsAbove": 3,
+    "bestMarginDb": 9.5
+   },
+   "jakarta": {
+    "bandsAbove": 3,
+    "bestMarginDb": 21.4
+   },
+   "bromo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 14.1
+   },
+   "bali": {
+    "bandsAbove": 3,
+    "bestMarginDb": 12.9
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 6.3
+   },
+   "menu": {
+    "bandsAbove": 3,
+    "bestMarginDb": 10.3
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 7
+   }
+  },
+  "formaTick": {
+   "pelmo": {
+    "bandsAbove": 1,
+    "bestMarginDb": 5.5
+   },
+   "antelao": {
+    "bandsAbove": 1,
+    "bestMarginDb": 7.8
+   },
+   "transfagarasan": {
+    "bandsAbove": 1,
+    "bestMarginDb": 8.2
+   },
+   "bran": {
+    "bandsAbove": 1,
+    "bestMarginDb": 6.9
+   },
+   "jakarta": {
+    "bandsAbove": 2,
+    "bestMarginDb": 18.8
+   },
+   "bromo": {
+    "bandsAbove": 2,
+    "bestMarginDb": 11.5
+   },
+   "bali": {
+    "bandsAbove": 2,
+    "bestMarginDb": 10.3
+   },
+   "results": {
+    "bandsAbove": 1,
+    "bestMarginDb": 3.2
+   },
+   "menu": {
+    "bandsAbove": 1,
+    "bestMarginDb": 7.7
+   },
+   "podium": {
+    "bandsAbove": 1,
+    "bestMarginDb": 4.4
+   }
+  },
+  "formaEnd": {
+   "pelmo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 15
+   },
+   "antelao": {
+    "bandsAbove": 5,
+    "bestMarginDb": 14
+   },
+   "transfagarasan": {
+    "bandsAbove": 4,
+    "bestMarginDb": 17.2
+   },
+   "bran": {
+    "bandsAbove": 4,
+    "bestMarginDb": 17.2
+   },
+   "jakarta": {
+    "bandsAbove": 5,
+    "bestMarginDb": 23.4
+   },
+   "bromo": {
+    "bandsAbove": 5,
+    "bestMarginDb": 17
+   },
+   "bali": {
+    "bandsAbove": 5,
+    "bestMarginDb": 17.5
+   },
+   "results": {
+    "bandsAbove": 4,
+    "bestMarginDb": 14.6
+   },
+   "menu": {
+    "bandsAbove": 5,
+    "bestMarginDb": 15.6
+   },
+   "podium": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13.4
+   }
+  },
+  "bellTing": {
+   "pelmo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 21.2
+   },
+   "antelao": {
+    "bandsAbove": 3,
+    "bestMarginDb": 20.7
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 17.1
+   },
+   "bran": {
+    "bandsAbove": 3,
+    "bestMarginDb": 21.4
+   },
+   "jakarta": {
+    "bandsAbove": 3,
+    "bestMarginDb": 32.2
+   },
+   "bromo": {
+    "bandsAbove": 3,
+    "bestMarginDb": 28.9
+   },
+   "bali": {
+    "bandsAbove": 3,
+    "bestMarginDb": 26
+   },
+   "results": {
+    "bandsAbove": 3,
+    "bestMarginDb": 20.8
+   },
+   "menu": {
+    "bandsAbove": 3,
+    "bestMarginDb": 22.7
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 16
+   }
+  },
+  "whistle": {
+   "pelmo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 11.4
+   },
+   "antelao": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13.1
+   },
+   "transfagarasan": {
+    "bandsAbove": 3,
+    "bestMarginDb": 11
+   },
+   "bran": {
+    "bandsAbove": 5,
+    "bestMarginDb": 11.2
+   },
+   "jakarta": {
+    "bandsAbove": 4,
+    "bestMarginDb": 20.1
+   },
+   "bromo": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13.8
+   },
+   "bali": {
+    "bandsAbove": 4,
+    "bestMarginDb": 13.1
+   },
+   "results": {
+    "bandsAbove": 4,
+    "bestMarginDb": 11.3
+   },
+   "menu": {
+    "bandsAbove": 4,
+    "bestMarginDb": 11
+   },
+   "podium": {
+    "bandsAbove": 3,
+    "bestMarginDb": 12.2
+   }
+  }
+ },
+ "lint": {
+  "antelao": {
+   "name": "antelao",
+   "parts": {
+    "bass": {
+     "n": 100,
+     "low": 40,
+     "high": 52,
+     "mean": 45.8
+    },
+    "counter": {
+     "n": 233,
+     "low": 64,
+     "high": 88,
+     "mean": 75.4
+    },
+    "lead": {
+     "n": 280,
+     "low": 66,
+     "high": 91,
+     "mean": 78
+    },
+    "comp": {
+     "n": 480,
+     "low": 55,
+     "high": 69,
+     "mean": 62.1
+    }
+   },
+   "sections": {
+    "A": {
+     "meanPitch": 79.9,
+     "notes": 62
+    },
+    "B": {
+     "meanPitch": 80.6,
+     "notes": 64
+    },
+    "T": {
+     "meanPitch": 78.4,
+     "notes": 43
+    }
+   },
+   "strongOffChord": 2,
+   "strongTotal": 107,
+   "problems": [
+    "A bar 2: a5 over a chord without it",
+    "A bar 2: e5 over a chord without it"
+   ],
+   "bars": 80,
+   "seconds": 86.74698795180723
+  },
+  "pelmo": {
+   "name": "pelmo",
+   "parts": {
+    "lead": {
+     "n": 244,
+     "low": 66,
+     "high": 88,
+     "mean": 78
+    },
+    "counter": {
+     "n": 238,
+     "low": 66,
+     "high": 93,
+     "mean": 79.1
+    },
+    "bass": {
+     "n": 180,
+     "low": 40,
+     "high": 55,
+     "mean": 46.2
+    },
+    "comp": {
+     "n": 480,
+     "low": 59,
+     "high": 71,
+     "mean": 66
+    }
+   },
+   "sections": {
+    "A": {
+     "meanPitch": 79.8,
+     "notes": 59
+    },
+    "B": {
+     "meanPitch": 80.6,
+     "notes": 55
+    },
+    "T": {
+     "meanPitch": 81.6,
+     "notes": 46
+    }
+   },
+   "strongOffChord": 2,
+   "strongTotal": 48,
+   "problems": [
+    "A bar 2: b5 over a chord without it",
+    "A bar 4: b5 over a chord without it"
+   ],
+   "bars": 80,
+   "seconds": 75
+  },
+  "transfagarasan": {
+   "name": "transfagarasan",
+   "parts": {
+    "bass": {
+     "n": 184,
+     "low": 40,
+     "high": 52,
+     "mean": 47
+    },
+    "arp": {
+     "n": 640,
+     "low": 62,
+     "high": 84,
+     "mean": 73.5
+    },
+    "lead": {
+     "n": 352,
+     "low": 64,
+     "high": 93,
+     "mean": 81.3
+    },
+    "comp": {
+     "n": 792,
+     "low": 57,
+     "high": 69,
+     "mean": 63.8
+    },
+    "counter": {
+     "n": 184,
+     "low": 69,
+     "high": 90,
+     "mean": 80.8
+    },
+    "tambal": {
+     "n": 58,
+     "low": 69,
+     "high": 89,
+     "mean": 80.2
+    }
+   },
+   "sections": {
+    "A": {
+     "meanPitch": 83.9,
+     "notes": 85
+    },
+    "B": {
+     "meanPitch": 80.5,
+     "notes": 50
+    },
+    "C": {
+     "meanPitch": 79.6,
+     "notes": 9
+    }
+   },
+   "strongOffChord": 2,
+   "strongTotal": 40,
+   "problems": [
+    "A bar 2: d#6 over a chord without it",
+    "B bar 6: a5 over a chord without it"
+   ],
+   "bars": 88,
+   "seconds": 70.4
+  },
+  "bran": {
+   "name": "bran",
+   "parts": {
+    "bass": {
+     "n": 288,
+     "low": 37,
+     "high": 55,
+     "mean": 46
+    },
+    "arp": {
+     "n": 480,
+     "low": 57,
+     "high": 79,
+     "mean": 69.7
+    },
+    "lead": {
+     "n": 247,
+     "low": 72,
+     "high": 93,
+     "mean": 83.1
+    },
+    "counter": {
+     "n": 255,
+     "low": 62,
+     "high": 93,
+     "mean": 77.2
+    },
+    "comp": {
+     "n": 528,
+     "low": 57,
+     "high": 67,
+     "mean": 61.5
+    },
+    "tambal": {
+     "n": 41,
+     "low": 73,
+     "high": 93,
+     "mean": 83
+    }
+   },
+   "sections": {
+    "A": {
+     "meanPitch": 85.7,
+     "notes": 57
+    },
+    "B": {
+     "meanPitch": 83.9,
+     "notes": 63
+    },
+    "C": {
+     "meanPitch": 78.6,
+     "notes": 8
+    }
+   },
+   "strongOffChord": 4,
+   "strongTotal": 40,
+   "problems": [
+    "A bar 2: e6 over a chord without it",
+    "A bar 10: g#6 over a chord without it",
+    "B bar 2: e6 over a chord without it",
+    "B bar 6: a5 over a chord without it"
+   ],
+   "bars": 88,
+   "seconds": 105.60000000000001
+  },
+  "bromo": {
+   "name": "bromo",
+   "parts": {
+    "polos": {
+     "n": 736,
+     "low": 68,
+     "high": 92,
+     "mean": 80.2
+    },
+    "bass": {
+     "n": 251,
+     "low": 32,
+     "high": 54,
+     "mean": 43.6
+    },
+    "lead": {
+     "n": 311,
+     "low": 59,
+     "high": 83,
+     "mean": 67.9
+    },
+    "sangsih": {
+     "n": 544,
+     "low": 71,
+     "high": 95,
+     "mean": 83.3
+    },
+    "gender": {
+     "n": 256,
+     "low": 59,
+     "high": 75,
+     "mean": 67.3
+    },
+    "counter": {
+     "n": 100,
+     "low": 59,
+     "high": 78,
+     "mean": 69.8
+    }
+   },
+   "sections": {},
+   "strongOffChord": 0,
+   "strongTotal": 0,
+   "problems": [],
+   "bars": 88,
+   "seconds": 140.8
+  },
+  "bali": {
+   "name": "bali",
+   "parts": {
+    "lead": {
+     "n": 500,
+     "low": 58,
+     "high": 83,
+     "mean": 71.7
+    },
+    "bass": {
+     "n": 266,
+     "low": 34,
+     "high": 58,
+     "mean": 46.9
+    },
+    "counter": {
+     "n": 82,
+     "low": 52,
+     "high": 71,
+     "mean": 62.7
+    },
+    "polos": {
+     "n": 736,
+     "low": 75,
+     "high": 97,
+     "mean": 84
+    },
+    "sangsih": {
+     "n": 544,
+     "low": 76,
+     "high": 99,
+     "mean": 87.1
+    },
+    "gender": {
+     "n": 256,
+     "low": 63,
+     "high": 76,
+     "mean": 69.7
+    }
+   },
+   "sections": {},
+   "strongOffChord": 0,
+   "strongTotal": 0,
+   "problems": [],
+   "bars": 96,
+   "seconds": 138.79518072289156
+  },
+  "jakarta": {
+   "name": "jakarta",
+   "parts": {
+    "bass": {
+     "n": 370,
+     "low": 33,
+     "high": 41,
+     "mean": 36.1
+    },
+    "lead": {
+     "n": 486,
+     "low": 57,
+     "high": 81,
+     "mean": 70.4
+    },
+    "counter": {
+     "n": 200,
+     "low": 53,
+     "high": 73,
+     "mean": 63.4
+    },
+    "polos": {
+     "n": 320,
+     "low": 76,
+     "high": 82,
+     "mean": 79
+    }
+   },
+   "sections": {},
+   "strongOffChord": 0,
+   "strongTotal": 0,
+   "problems": [],
+   "bars": 96,
+   "seconds": 140.4878048780488
+  },
+  "menu": {
+   "name": "menu",
+   "parts": {
+    "bass": {
+     "n": 192,
+     "low": 40,
+     "high": 50,
+     "mean": 45.6
+    },
+    "lead": {
+     "n": 117,
+     "low": 71,
+     "high": 88,
+     "mean": 79.4
+    },
+    "arp": {
+     "n": 192,
+     "low": 69,
+     "high": 79,
+     "mean": 74.7
+    },
+    "comp": {
+     "n": 432,
+     "low": 55,
+     "high": 65,
+     "mean": 59.4
+    },
+    "counter": {
+     "n": 66,
+     "low": 67,
+     "high": 81,
+     "mean": 72.5
+    },
+    "tambal": {
+     "n": 108,
+     "low": 76,
+     "high": 93,
+     "mean": 84.5
+    },
+    "bells": {
+     "n": 42,
+     "low": 74,
+     "high": 88,
+     "mean": 81.7
+    },
+    "polos": {
+     "n": 80,
+     "low": 74,
+     "high": 88,
+     "mean": 80
+    },
+    "sangsih": {
+     "n": 48,
+     "low": 74,
+     "high": 91,
+     "mean": 81.6
+    }
+   },
+   "sections": {
+    "A": {
+     "meanPitch": 79.4,
+     "notes": 39
+    }
+   },
+   "strongOffChord": 1,
+   "strongTotal": 16,
+   "problems": [
+    "A bar 1: a5 over a chord without it"
+   ],
+   "bars": 48,
+   "seconds": 97.62711864406779
+  },
+  "results": {
+   "name": "results",
+   "parts": {
+    "tambal": {
+     "n": 80,
+     "low": 71,
+     "high": 95,
+     "mean": 85.3
+    },
+    "bass": {
+     "n": 16,
+     "low": 40,
+     "high": 50,
+     "mean": 46
+    },
+    "lead": {
+     "n": 22,
+     "low": 74,
+     "high": 95,
+     "mean": 87.3
+    },
+    "comp": {
+     "n": 36,
+     "low": 55,
+     "high": 64,
+     "mean": 59.1
+    },
+    "bells": {
+     "n": 3,
+     "low": 86,
+     "high": 95,
+     "mean": 90.7
+    }
+   },
+   "sections": {
+    "S": {
+     "meanPitch": 87.3,
+     "notes": 22
+    }
+   },
+   "strongOffChord": 0,
+   "strongTotal": 7,
+   "problems": [],
+   "bars": 4,
+   "seconds": 7.2727272727272725
+  },
+  "podium": {
+   "name": "podium",
+   "parts": {
+    "tambal": {
+     "n": 256,
+     "low": 67,
+     "high": 96,
+     "mean": 84.1
+    },
+    "counter": {
+     "n": 31,
+     "low": 67,
+     "high": 79,
+     "mean": 73.7
+    },
+    "tuba": {
+     "n": 32,
+     "low": 38,
+     "high": 48,
+     "mean": 43.6
+    },
+    "lead": {
+     "n": 38,
+     "low": 79,
+     "high": 96,
+     "mean": 86.7
+    },
+    "comp": {
+     "n": 72,
+     "low": 59,
+     "high": 69,
+     "mean": 64
+    },
+    "bells": {
+     "n": 3,
+     "low": 88,
+     "high": 96,
+     "mean": 91.7
+    }
+   },
+   "sections": {
+    "S": {
+     "meanPitch": 86.7,
+     "notes": 38
+    }
+   },
+   "strongOffChord": 0,
+   "strongTotal": 16,
+   "problems": [],
+   "bars": 8,
+   "seconds": 17.142857142857142
+  }
+ },
+ "robust": {
+  "problems": [],
+  "apiKeys": [
+   "dispose",
+   "hush",
+   "lastLap",
+   "music",
+   "onEvents",
+   "say",
+   "setVolume",
+   "unlock",
+   "update",
+   "voice",
+   "voiceBusy",
+   "voiceStats"
+  ]
+ },
+ "names": {
+  "tunes": [
+   "antelao",
+   "pelmo",
+   "transfagarasan",
+   "bran",
+   "bromo",
+   "bali",
+   "jakarta",
+   "menu",
+   "results",
+   "podium"
+  ],
+  "looping": [
+   "antelao",
+   "pelmo",
+   "transfagarasan",
+   "bran",
+   "bromo",
+   "bali",
+   "jakarta",
+   "menu"
+  ],
+  "sfx": [
+   "box",
+   "boxFull",
+   "tick",
+   "itemGet",
+   "razzo",
+   "razzoLoop",
+   "boom",
+   "grappa",
+   "zuica",
+   "hic",
+   "miciReady",
+   "miciThrow",
+   "shield",
+   "uova",
+   "sizzleLoop",
+   "polenta",
+   "formaggio",
+   "durian",
+   "sambal",
+   "cityLoop",
+   "rainLoop",
+   "windLoop",
+   "nightLoop",
+   "splashWater",
+   "splashSnow",
+   "thunder",
+   "flameLoop",
+   "rendang",
+   "frana",
+   "disasterAlarm",
+   "disasterRumble",
+   "disasterDebris",
+   "disasterAvalanche",
+   "disasterRockfall",
+   "disasterQuake",
+   "disasterEruption",
+   "disasterBomb",
+   "disasterCloud",
+   "disasterLahar",
+   "disasterBanjir",
+   "hornBeep",
+   "hornToot",
+   "hornCar",
+   "hornAir",
+   "hornBell",
+   "trafficScatter",
+   "trafficCrash",
+   "crossingBell",
+   "trainPass",
+   "disasterSnow",
+   "disasterTile",
+   "hitSpin",
+   "hitTumble",
+   "wall",
+   "bump",
+   "jump",
+   "land",
+   "driftStart",
+   "tier1",
+   "tier2",
+   "tier3",
+   "boostPad",
+   "boostDrift",
+   "rescue",
+   "overtake",
+   "overtaken",
+   "lap",
+   "lastLap",
+   "finish",
+   "countdown",
+   "go",
+   "click",
+   "move",
+   "back",
+   "confirm",
+   "cowbells",
+   "moo",
+   "sheep",
+   "dog",
+   "bear",
+   "monkey",
+   "bats",
+   "steam",
+   "pony",
+   "kids",
+   "whee",
+   "tickClank",
+   "tickChain",
+   "tickFlap",
+   "tickCreak",
+   "tickRattle",
+   "tickChunk",
+   "tickStone",
+   "biteChomp",
+   "panClank",
+   "formaGrab",
+   "formaDrop",
+   "formaOther",
+   "formaLead",
+   "formaTick",
+   "formaEnd",
+   "bellTing",
+   "whistle"
+  ],
+  "karts": [
+   "tabia",
+   "gatto",
+   "seggiovia",
+   "mocanita",
+   "caruta",
+   "logan",
+   "jeep",
+   "becak",
+   "jukung",
+   "baileys",
+   "fifi"
+  ],
+  "drivers": [
+   "tabia",
+   "gatto",
+   "seggiovia",
+   "mocanita",
+   "caruta",
+   "logan",
+   "jeep",
+   "becak",
+   "jukung",
+   "baileys",
+   "fifi"
+  ]
+ },
+ "live": {
+  "warmMs": 937.5999999977648,
+  "state": "running",
+  "placed": 154,
+  "expected": 116,
+  "minLead": 0.16851542094381244,
+  "beatPerSec": 2.7683923304638687,
+  "tempoBps": 2.7666666666666666,
+  "fastRate": 2.9603333333333315
+ },
+ "change": {
+  "peak": 0.718025803565979,
+  "jumpNear": 0.140467569231987,
+  "jumpAll": 0.12899058312177658,
+  "full": 0.1162127902393649,
+  "quietMusic": 0.000029608352932506234,
+  "quietMaster": 0,
+  "wetDb": {
+   "antelao": -18.7,
+   "transfagarasan": -18.2,
+   "bali": -14.9
+  }
+ },
+ "engineClosest": {
+  "a": "logan",
+  "b": "jeep",
+  "d": 2.6
+ },
+ "sfxErrors": []
+}

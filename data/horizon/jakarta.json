@@ -1,0 +1,25 @@
+{
+ "id": "jakarta",
+ "format": "int16le",
+ "layout": "az,ring",
+ "naz": 1440,
+ "nr": 320,
+ "r0": 1500,
+ "r1": 42000,
+ "unit": 0.25,
+ "center": [
+  -6.1754,
+  106.8272
+ ],
+ "altitude": 12,
+ "northDeg": 0,
+ "min": -28,
+ "max": 670,
+ "source": "Copernicus GLO-30",
+ "tiles": [
+  "Copernicus_DSM_COG_10_S07_00_E106_00_DEM.tif",
+  "Copernicus_DSM_COG_10_S07_00_E107_00_DEM.tif",
+  "Copernicus_DSM_COG_10_S06_00_E106_00_DEM.tif",
+  "Copernicus_DSM_COG_10_S06_00_E107_00_DEM.tif"
+ ]
+}

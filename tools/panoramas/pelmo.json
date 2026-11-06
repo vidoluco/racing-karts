@@ -1,0 +1,410 @@
+{
+ "track": "pelmo",
+ "center": [
+  46.4215,
+  12.195
+ ],
+ "altitude": 1467,
+ "dem": "data/horizon/pelmo",
+ "ppd": 30,
+ "topTan": 0.6,
+ "bottomTan": -0.052,
+ "preset": "winter_dusk",
+ "sun": {
+  "bearing": 220,
+  "elevation": 12
+ },
+ "compress": {
+  "from": 12,
+  "factor": 0.8
+ },
+ "dem_cover": {
+  "treeline": 1950,
+  "slope": 50,
+  "rock_slope": 40,
+  "rock_above": 2500,
+  "scree_above": 2050
+ },
+ "frost": 0.22,
+ "tiles": {
+  "file": "pelmo-pano",
+  "centers": [
+   0,
+   60,
+   120,
+   180,
+   240,
+   300
+  ],
+  "half": 31,
+  "edge": 0,
+  "quality": 84
+ },
+ "photos": [
+  {
+   "id": "pelmo-dem-paint",
+   "file": "north.jpg",
+   "painted": true,
+   "source_photo": "Copernicus GLO-30, tools/panoramas/pelmo-paint.py",
+   "summit": {
+    "name": "Punta Sorapiss",
+    "lat": 46.5069,
+    "lon": 12.2117,
+    "altitude": 3205,
+    "elevation": 15,
+    "compressed": "true 10.3 deg from the track's slope: the real skyline seen from the floor of the valley and raised by one factor, because the valley is deep and walled and over its wooded sides only the upper rock shows"
+   },
+   "width": 96,
+   "crop": [
+    0,
+    0,
+    1,
+    1
+   ],
+   "fall": [
+    6,
+    6
+   ],
+   "fall_pen": 0.6,
+   "clear_dist": 30000,
+   "ridge_file": "tools/panoramas/pelmo-north-ridge.json",
+   "summit_u": 0.78844,
+   "haze": 0.04
+  },
+  {
+   "id": "pelmo-dem-paint",
+   "file": "bosconero.jpg",
+   "painted": true,
+   "source_photo": "Copernicus GLO-30, tools/panoramas/pelmo-paint.py",
+   "summit": {
+    "name": "Sasso di Bosconero",
+    "lat": 46.3366,
+    "lon": 12.2682,
+    "altitude": 2469,
+    "elevation": 15.5,
+    "compressed": "true 5.2 deg from the track's slope: the real skyline seen from the floor of the valley and raised by one factor, because the valley is deep and walled and over its wooded sides only the upper rock shows"
+   },
+   "width": 120,
+   "crop": [
+    0,
+    0,
+    1,
+    1
+   ],
+   "fall": [
+    8,
+    14
+   ],
+   "fall_pen": 0.6,
+   "clear_dist": 30000,
+   "ridge_file": "tools/panoramas/pelmo-bosconero-ridge.json",
+   "summit_u": 0.57694,
+   "haze": 0.04
+  },
+  {
+   "id": "pelmo-dem-paint",
+   "file": "antelao.jpg",
+   "painted": true,
+   "source_photo": "antelao-gemini2/antelao-repaint.jpg, repaint of File:Monte Antelao, 3264 m und San Vito di Cadore.jpg, graded by tools/panoramas/pelmo-paint.py",
+   "summit": {
+    "name": "Antelao",
+    "lat": 46.4519,
+    "lon": 12.2618,
+    "altitude": 3264,
+    "elevation": 22,
+    "compressed": "true 16.3 deg, raised as the Pelmo is: the valley is deep, over its wooded sides only the upper rock shows, and the Antelao must dominate the sky as it does from the Boite; the top of the chase frame is 24.4 deg"
+   },
+   "width": 82,
+   "crop": [
+    0,
+    0,
+    1,
+    0.86
+   ],
+   "fall": [
+    6,
+    10
+   ],
+   "fall_pen": 0.3,
+   "clear_dist": 30000,
+   "ridge_file": "tools/panoramas/pelmo-antelao-ridge.json",
+   "foot": [
+    1,
+    6,
+    0.1
+   ],
+   "haze": 0.0
+  },
+  {
+   "id": "pelmo-winter-gemini",
+   "file": "pelmo-winter.jpg",
+   "painted": true,
+   "source_photo": "pelmo-vodo/PelmoVododiCadore.jpg",
+   "summit": {
+    "name": "Pelmo",
+    "lat": 46.42,
+    "lon": 12.1347,
+    "altitude": 3168,
+    "elevation": 23,
+    "compressed": "true 20.2 deg, raised because over the wooded ridge only the upper rock shows; the top of the chase frame is 24.4 deg"
+   },
+   "width": 96,
+   "crop": [
+    0,
+    0,
+    1,
+    0.9
+   ],
+   "fall": [
+    5,
+    14
+   ],
+   "clear_dist": 11000,
+   "ridge_file": "tools/panoramas/pelmo-ridge.json",
+   "fall_pen": 0.2,
+   "foot": [
+    1,
+    6,
+    0.14
+   ],
+   "haze": 0.02
+  }
+ ],
+ "belts": [
+  {
+   "base": 3.0,
+   "amp": 0.7,
+   "tree": 4,
+   "seed": 21,
+   "air": 0.62,
+   "foot_air": 0.12,
+   "larch": 0.0,
+   "dips": [
+    [
+     268,
+     34,
+     0.4
+    ],
+    [
+     56,
+     26,
+     2.4
+    ]
+   ],
+   "walls": [
+    [
+     222,
+     40,
+     30,
+     7.5
+    ],
+    [
+     320,
+     24,
+     40,
+     6
+    ]
+   ],
+   "wall_power": 0.8,
+   "wall_rough": 1.4,
+   "ink": {
+    "tones": 3,
+    "sx": 120,
+    "sy": 150,
+    "slant": 0.5,
+    "contrast": 0.85,
+    "pen": 0.1,
+    "soft": 0.3,
+    "octaves": 2,
+    "tree_gold": 0
+   }
+  },
+  {
+   "base": 2.2,
+   "amp": 0.55,
+   "tree": 6,
+   "seed": 22,
+   "air": 0.42,
+   "foot_air": 0.1,
+   "larch": 0.0,
+   "dips": [
+    [
+     268,
+     34,
+     0.6
+    ],
+    [
+     56,
+     26,
+     1.4
+    ]
+   ],
+   "clearings": [
+    [
+     251,
+     3.0,
+     5,
+     1.3
+    ],
+    [
+     289,
+     2.8,
+     6,
+     1.2
+    ]
+   ],
+   "walls": [
+    [
+     222,
+     40,
+     30,
+     6.5
+    ],
+    [
+     320,
+     24,
+     40,
+     5
+    ]
+   ],
+   "wall_power": 0.8,
+   "ink": {
+    "tones": 3,
+    "sx": 120,
+    "sy": 150,
+    "slant": 0.5,
+    "contrast": 0.6,
+    "pen": 0.1,
+    "soft": 0.3,
+    "octaves": 2,
+    "tree_gold": 0
+   }
+  },
+  {
+   "base": 1.4,
+   "amp": 0.6,
+   "tree": 11,
+   "seed": 23,
+   "air": 0.22,
+   "foot_air": 0.06,
+   "larch": 0.0,
+   "dips": [
+    [
+     268,
+     34,
+     0.8
+    ],
+    [
+     56,
+     26,
+     0.6
+    ]
+   ],
+   "clearings": [
+    [
+     273,
+     1.6,
+     4,
+     0.7
+    ],
+    [
+     239,
+     2.0,
+     6,
+     0.9
+    ],
+    [
+     150,
+     1.8,
+     6,
+     0.8
+    ]
+   ],
+   "walls": [
+    [
+     222,
+     40,
+     30,
+     4.5
+    ],
+    [
+     320,
+     24,
+     40,
+     3.5
+    ]
+   ],
+   "wall_power": 0.8,
+   "ink": {
+    "tones": 3,
+    "sx": 120,
+    "sy": 150,
+    "slant": 0.5,
+    "contrast": 0.6,
+    "pen": 0.1,
+    "soft": 0.3,
+    "octaves": 2,
+    "tree_gold": 0
+   }
+  }
+ ],
+ "mist": "#7f8cb8",
+ "dem_forest_air": 0.6,
+ "cloud_bank": 0,
+ "preset_over": {
+  "sky_el": [
+   [
+    3.7,
+    "#fdc4a9"
+   ],
+   [
+    5.7,
+    "#fdbdac"
+   ],
+   [
+    9.7,
+    "#f9c3bf"
+   ],
+   [
+    13.6,
+    "#ebb5b7"
+   ],
+   [
+    17.4,
+    "#d0adc6"
+   ],
+   [
+    21,
+    "#b4a5d0"
+   ],
+   [
+    24.5,
+    "#a09fd6"
+   ],
+   [
+    27.1,
+    "#959cd8"
+   ],
+   [
+    33,
+    "#8b96da"
+   ],
+   [
+    48,
+    "#7f8fd8"
+   ]
+  ],
+  "spruce_m": [
+   "#1e2c40",
+   "#2c3d56",
+   "#44587a"
+  ],
+  "forest_air": "#7d8cb8",
+  "foot_air": "#8796c2",
+  "far_air": "#a9aed6",
+  "air": "#c3b3d6",
+  "air_high": "#b0abdb",
+  "ink": "#2a2a58",
+  "glow": "#ffc9a8"
+ }
+}

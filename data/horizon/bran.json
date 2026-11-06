@@ -1,0 +1,23 @@
+{
+ "id": "bran",
+ "format": "int16le",
+ "layout": "az,ring",
+ "naz": 1440,
+ "nr": 320,
+ "r0": 1500,
+ "r1": 42000,
+ "unit": 0.25,
+ "center": [
+  45.505,
+  25.3175
+ ],
+ "altitude": 943,
+ "northDeg": 31,
+ "min": -516,
+ "max": 1552.25,
+ "source": "Copernicus GLO-30",
+ "tiles": [
+  "Copernicus_DSM_COG_10_N45_00_E024_00_DEM.tif",
+  "Copernicus_DSM_COG_10_N45_00_E025_00_DEM.tif"
+ ]
+}

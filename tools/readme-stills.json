@@ -1,0 +1,17 @@
+[
+{"name": "track-antelao", "track": "antelao", "u": 0.031, "kart": "tabia", "rivals": [[10, -3], [15, 3], [23, 0], [31, -3], [41, 3], [53, -2], [66, 2]], "settle": 25, "rivalSpeed": 24, "query": {"disasters": "[]"}},
+{"name": "track-pelmo", "track": "pelmo", "u": 0.031, "kart": "gatto", "rivals": [[10, -3], [15, 3], [23, 0], [31, -3], [41, 3], [53, -2], [66, 2]], "settle": 25, "rivalSpeed": 24, "query": {"disasters": "[]"}},
+{"name": "track-transfagarasan", "track": "transfagarasan", "u": 0.03, "kart": "mocanita", "rivals": [[10, -3], [15, 3], [23, 0], [31, -3], [41, 3], [53, -2], [66, 2]], "settle": 25, "rivalSpeed": 24, "query": {"disasters": "[]"}, "item": "zuica"},
+{"name": "track-bran", "track": "bran", "u": 0.031, "kart": "caruta", "rivals": [[10, -3], [15, 3], [23, 0], [31, -3], [41, 3], [53, -2], [66, 2]], "settle": 25, "rivalSpeed": 24, "query": {"disasters": "[]"}},
+{"name": "track-bromo", "track": "bromo", "u": 0.97, "kart": "jeep", "rivals": [[10, -3], [15, 3], [23, 0], [31, -3], [41, 3], [53, -2], [66, 2]], "settle": 25, "rivalSpeed": 24, "query": {"disasters": "[]"}, "item": "mici", "frames": 30},
+{"name": "track-bali", "track": "bali", "u": 0.156, "kart": "jukung", "rivals": [[10, -3], [15, 3], [23, 0], [31, -3], [41, 3], [53, -2], [66, 2]], "settle": 25, "rivalSpeed": 24, "query": {"disasters": "[]"}},
+{"name": "track-jakarta", "track": "jakarta", "u": 0.22, "kart": "becak", "rivals": [[10, -3], [15, 3], [23, 0], [31, -3], [41, 3], [53, -2], [66, 2]], "settle": 25, "rivalSpeed": 24, "query": {}},
+{"name": "track-batur", "track": "batur", "u": 0.22, "kart": "fifi", "rivals": [[10, -3], [15, 3], [23, 0], [31, -3], [41, 3], [53, -2], [66, 2]], "settle": 25, "rivalSpeed": 24, "query": {"disasters": "[]", "unlock": "all"}},
+{"name": "track-cortina", "track": "cortina", "u": 0.656, "kart": "seggiovia", "rivals": [[10, -3], [15, 3], [23, 0], [31, -3], [41, 3], [53, -2], [66, 2]], "settle": 25, "rivalSpeed": 24, "query": {"disasters": "[]"}},
+{"name": "track-bucarest", "track": "bucarest", "u": 0.975, "kart": "baileys", "rivals": [[10, -3], [15, 3], [23, 0], [31, -3], [41, 3], [53, -2], [66, 2]], "settle": 25, "rivalSpeed": 24, "query": {"unlock": "all"}},
+{"name": "jakarta-traffic", "track": "jakarta", "u": 0.78, "kart": "becak", "rivals": [[10, -3], [15, 3], [23, 0], [31, -3], [41, 3], [53, -2], [66, 2]], "settle": 25, "rivalSpeed": 24, "query": {}},
+{"name": "chaos-eruption", "track": "bromo", "kart": "jeep", "entry": 0, "at": 5.2, "arrive": 6.5, "u": 0},
+{"name": "sky-rain-night", "track": "jakarta", "u": 0.22, "kart": "becak", "rivals": [[10, -3], [15, 3], [23, 0], [31, -3], [41, 3], [53, -2], [66, 2]], "settle": 25, "rivalSpeed": 24, "query": {"weather": "rain", "night": "1"}},
+{"name": "sky-snow", "track": "pelmo", "u": 0.406, "kart": "gatto", "rivals": [[10, -3], [15, 3], [23, 0], [31, -3], [41, 3], [53, -2], [66, 2]], "settle": 25, "rivalSpeed": 24, "query": {"disasters": "[]", "weather": "snow"}},
+{"name": "sky-night", "track": "antelao", "u": 0.97, "kart": "tabia", "rivals": [[10, -3], [15, 3], [23, 0], [31, -3], [41, 3], [53, -2], [66, 2]], "settle": 25, "rivalSpeed": 24, "query": {"disasters": "[]", "night": "1"}}
+]

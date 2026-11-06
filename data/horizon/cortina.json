@@ -1,0 +1,23 @@
+{
+ "id": "cortina",
+ "format": "int16le",
+ "layout": "az,ring",
+ "naz": 1440,
+ "nr": 320,
+ "r0": 1500,
+ "r1": 42000,
+ "unit": 0.25,
+ "center": [
+  46.513,
+  12.09
+ ],
+ "altitude": 1565,
+ "northDeg": 0,
+ "min": -1236.25,
+ "max": 1669.5,
+ "source": "Copernicus GLO-30",
+ "tiles": [
+  "Copernicus_DSM_COG_10_N46_00_E011_00_DEM.tif",
+  "Copernicus_DSM_COG_10_N46_00_E012_00_DEM.tif"
+ ]
+}

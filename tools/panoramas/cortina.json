@@ -1,0 +1,424 @@
+{
+"track": "cortina",
+"center": [
+46.513,
+12.09
+],
+"altitude": 1565,
+"dem": "data/horizon/cortina",
+"ppd": 30,
+"topTan": 0.6,
+"bottomTan": -0.052,
+"preset": "golden",
+"sun": {
+"bearing": 245,
+"elevation": 18
+},
+"compress": {
+"from": 8,
+"factor": 0.75
+},
+"tiles": {
+"file": "cortina-pano",
+"centers": [
+0,
+60,
+120,
+180,
+240,
+300
+],
+"half": 31,
+"edge": 0,
+"quality": 86
+},
+"photos": [
+{
+"id": "pelmo-golden-gemini",
+"file": "pelmo-golden.jpg",
+"painted": true,
+"source_photo": "pelmo-sanvito/PelmoSanVitoDiCadore.JPG",
+"summit": {
+"name": "Pelmo",
+"lat": 46.42,
+"lon": 12.1347,
+"altitude": 3168,
+"elevation": 14,
+"compressed": "true 8.4 deg, raised so that it still stands over the woods of the Boite at the end of Via Roma"
+},
+"width": 30,
+"crop": [
+0,
+0,
+0.875,
+0.9
+],
+"fall": [
+10,
+8
+],
+"clear_dist": 11000,
+"ridge_file": "tools/panoramas/antelao-golden-ridge.json",
+"fall_pen": 0.2,
+"haze": 0.18
+},
+{
+"id": "antelao-gemini2",
+"file": "antelao-repaint.jpg",
+"painted": true,
+"source_photo": "antelao-sanvito/Monte_Antelao,_3264_m_und_San_Vito_di_Cadore.jpg",
+"summit": {
+"name": "Antelao",
+"lat": 46.4519,
+"lon": 12.2618,
+"altitude": 3264,
+"elevation": 12,
+"compressed": "true 6.5 deg, raised so that it stands at the end of the Corso as it does from the town"
+},
+"width": 50,
+"crop": [
+0,
+0,
+1,
+0.84
+],
+"fall": [
+8,
+8
+],
+"clear_dist": 9000,
+"ridge_file": "tools/panoramas/antelao-hero-ridge.json",
+"fall_pen": 0.7,
+"haze": 0.22
+},
+{
+"id": "cortina-tofane-gemini",
+"file": "cortina-tofane-autumn.jpg",
+"painted": true,
+"source_photo": "cortina-faloria7/Faloria_Cortina_d'Ampezzo_7.jpg",
+"summit": {
+"name": "Tofana di Mezzo",
+"lat": 46.5456,
+"lon": 12.0655,
+"altitude": 3244,
+"elevation": 23.5,
+"compressed": "true 22 deg, the top of the chase frame"
+},
+"width": 88,
+"crop": [
+0,
+0,
+1,
+0.6
+],
+"fall": [
+24,
+14
+],
+"clear_dist": 9000,
+"ridge_file": "tools/panoramas/cortina-tofane-ridge.json",
+"fall_pen": 0.5
+},
+{
+"id": "giau-nuvolau-gemini",
+"file": "giau-nuvolau.jpg",
+"painted": true,
+"source_photo": "giau-kilby/Passo_Giau_After_Sunset.jpg",
+"summit": {
+"name": "Ra Gusela",
+"lat": 46.4907,
+"lon": 12.051,
+"altitude": 2595,
+"elevation": 24,
+"compressed": "true 14.7 deg from Ru Curto, the same mountain is 24 deg over the pass itself, and that is what the road sees it as"
+},
+"width": 72,
+"crop": [
+0,
+0,
+1,
+0.84
+],
+"fall": [
+12,
+6
+],
+"clear_dist": 9000,
+"ridge_file": "tools/panoramas/cortina-giau-ridge.json",
+"fall_pen": 0.5
+}
+],
+"belts": [
+{
+"base": 2.4,
+"amp": 0.7,
+"tree": 0,
+"seed": 11,
+"air": 0.6,
+"foot_air": 0.08,
+"larch": 0.1,
+"dips": [
+[
+231,
+34,
+-3.0
+],
+[
+318,
+26,
+-2.0
+]
+],
+"walls": [
+[
+259,
+8,
+18,
+10.5
+],
+[
+292,
+18,
+7,
+10.5
+],
+[
+275,
+30,
+30,
+8
+]
+],
+"wall_power": 0.8,
+"wall_rough": 1.4,
+"ink": {
+"tones": 3,
+"sx": 220,
+"sy": 190,
+"slant": 0.5,
+"contrast": 0.4,
+"pen": 0.12,
+"soft": 0.7,
+"octaves": 2,
+"tree_gold": 0
+}
+},
+{
+"base": 2.1,
+"amp": 0.7,
+"tree": 0,
+"seed": 21,
+"air": 0.42,
+"foot_air": 0.08,
+"larch": 0.2,
+"dips": [
+[
+231,
+34,
+-2.6
+],
+[
+318,
+26,
+-1.2
+]
+],
+"walls": [
+[
+272,
+30,
+30,
+6.2
+]
+],
+"wall_power": 0.8,
+"wall_rough": 1.6,
+"ink": {
+"tones": 3,
+"sx": 220,
+"sy": 190,
+"slant": 0.5,
+"contrast": 0.4,
+"pen": 0.12,
+"soft": 0.7,
+"octaves": 2,
+"tree_gold": 0.25
+}
+},
+{
+"base": 1.7,
+"amp": 0.8,
+"tree": 0,
+"seed": 12,
+"air": 0.24,
+"foot_air": 0.08,
+"larch": 0.3,
+"dips": [
+[
+231,
+30,
+-2.0
+],
+[
+318,
+22,
+0.6
+]
+],
+"walls": [
+[
+278,
+26,
+28,
+4.2
+]
+],
+"wall_power": 0.7,
+"wall_rough": 1.2,
+"ink": {
+"tones": 3,
+"sx": 220,
+"sy": 190,
+"slant": 0.5,
+"contrast": 0.4,
+"pen": 0.12,
+"soft": 0.7,
+"octaves": 2,
+"tree_gold": 0.5
+}
+},
+{
+"base": 1.1,
+"amp": 0.6,
+"tree": 0,
+"seed": 13,
+"air": 0.05,
+"foot_air": 0.05,
+"larch": 0.35,
+"dips": [
+[
+231,
+28,
+-1.2
+]
+],
+"wall_power": 0.7,
+"ink": {
+"tones": 3,
+"sx": 220,
+"sy": 190,
+"slant": 0.5,
+"contrast": 0.4,
+"pen": 0.12,
+"soft": 0.7,
+"octaves": 2,
+"tree_gold": 0.7
+},
+"walls": []
+}
+],
+"mist": "#6d7aa0",
+"preset_over": {
+"sky_el": [
+[
+2,
+"#fbc4b2"
+],
+[
+9.4,
+"#fbc2b5"
+],
+[
+11.3,
+"#eec1bc"
+],
+[
+13.2,
+"#dfbfc6"
+],
+[
+15,
+"#cdbad0"
+],
+[
+16.8,
+"#b9b5d9"
+],
+[
+18.6,
+"#abafdd"
+],
+[
+20.3,
+"#9faae0"
+],
+[
+23.7,
+"#91a5e0"
+],
+[
+45,
+"#7d93de"
+]
+],
+"rock_i": [
+[
+0,
+"#3f4969"
+],
+[
+0.14,
+"#5a5981"
+],
+[
+0.3,
+"#7c6a93"
+],
+[
+0.46,
+"#9c7a9c"
+],
+[
+0.62,
+"#c491a3"
+],
+[
+0.78,
+"#e7a9ae"
+],
+[
+0.9,
+"#fbcbb4"
+],
+[
+1,
+"#fde3cf"
+]
+],
+"spruce_m": [
+"#2c4a5e",
+"#3f6470",
+"#5a8078"
+],
+"larch_m": [
+"#c27b34",
+"#e09a3e",
+"#f4bf58"
+],
+"forest_air": "#6a6f9c",
+"foot_air": "#6d6fa0",
+"far_air": "#8d80b8",
+"air": "#b58bba",
+"air_high": "#c996c4",
+"ink": "#2a1a40",
+"glow": "#ffc2a8"
+},
+"cloud_bank": 0.0,
+"dem_clear": [
+[
+214,
+358,
+1
+]
+]
+}

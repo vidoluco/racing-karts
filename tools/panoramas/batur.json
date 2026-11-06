@@ -1,0 +1,447 @@
+{
+ "track": "batur",
+ "center": [
+  -8.255,
+  115.351
+ ],
+ "altitude": 1031,
+ "dem": "data/horizon/batur",
+ "ppd": 30,
+ "topTan": 0.6,
+ "bottomTan": -0.07,
+ "preset": "bali_sunset",
+ "forest_style": "jungle",
+ "dem_eye": 200,
+ "dem_clear": [
+  [
+   0,
+   180,
+   3
+  ],
+  [
+   180,
+   359.9,
+   3
+  ]
+ ],
+ "dem_cover": {
+  "treeline": 1650,
+  "slope": 40,
+  "rock_slope": 75,
+  "rock_above": 4000,
+  "scree_above": 4000
+ },
+ "cloud_bank": 0,
+ "sun": {
+  "bearing": 250,
+  "elevation": 17
+ },
+ "compress": {
+  "from": 40,
+  "factor": 1
+ },
+ "tiles": {
+  "file": "batur-pano",
+  "centers": [
+   0,
+   60,
+   120,
+   180,
+   240,
+   300
+  ],
+  "half": 31,
+  "edge": 0,
+  "quality": 86
+ },
+ "preset_over": {
+  "sky_el": [
+   [
+    0,
+    "#ffd8a8"
+   ],
+   [
+    6,
+    "#ffd0b0"
+   ],
+   [
+    12.3,
+    "#fec5be"
+   ],
+   [
+    14.4,
+    "#fdc0c3"
+   ],
+   [
+    16.4,
+    "#f8bfc8"
+   ],
+   [
+    18.3,
+    "#edbfce"
+   ],
+   [
+    20.2,
+    "#e1c0d5"
+   ],
+   [
+    22.1,
+    "#d0c0da"
+   ],
+   [
+    23.9,
+    "#bfc0df"
+   ],
+   [
+    27.3,
+    "#a6bde4"
+   ],
+   [
+    30.6,
+    "#98bae6"
+   ],
+   [
+    35,
+    "#92bce6"
+   ],
+   [
+    50,
+    "#7fb0e4"
+   ]
+  ],
+  "forest_i": [
+   "#2c4630",
+   "#4c6c3c",
+   "#86904a"
+  ],
+  "larch_i": [
+   "#70803c",
+   "#a8a044",
+   "#d4b858"
+  ],
+  "spruce_m": [
+   "#2a4230",
+   "#466438",
+   "#7c8a46"
+  ],
+  "larch_m": [
+   "#6c7a3a",
+   "#a09a42",
+   "#ccb054"
+  ],
+  "green_i": [
+   [
+    0,
+    "#2a4230"
+   ],
+   [
+    0.14,
+    "#345038"
+   ],
+   [
+    0.3,
+    "#4a683a"
+   ],
+   [
+    0.46,
+    "#6a8040"
+   ],
+   [
+    0.62,
+    "#8c9444"
+   ],
+   [
+    0.78,
+    "#aca048"
+   ],
+   [
+    0.9,
+    "#ccb054"
+   ],
+   [
+    1,
+    "#e4c870"
+   ]
+  ],
+  "alpine": [
+   [
+    0,
+    "#466438"
+   ],
+   [
+    0.5,
+    "#6c8040"
+   ],
+   [
+    1,
+    "#a09a44"
+   ]
+  ],
+  "air": "#e6bcb8",
+  "belt_air": "#b8a0ac",
+  "foot_air": "#c0a4ac",
+  "far_air": "#c4a4b8",
+  "forest_air": "#b09cac",
+  "mist": "#a89a90"
+ },
+ "photos": [
+  {
+   "id": "batur-gemini-fit",
+   "file": "rim-far.jpg",
+   "painted": true,
+   "source_photo": "Copernicus GLO-30, tools/panoramas/batur-paint.py, tools/panoramas/batur-farrim.py",
+   "summit": {
+    "name": "Caldera rim",
+    "lat": -8.2369,
+    "lon": 115.3773,
+    "altitude": 1717,
+    "elevation": 12.5,
+    "compressed": "only a back layer for the far rim, lying behind the repaint"
+   },
+   "at_bearing": 55.4,
+   "width": 240,
+   "summit_u": 0.48846,
+   "crop": [
+    0,
+    0,
+    1,
+    1
+   ],
+   "ridge_file": "tools/panoramas/batur-rimfar-ridge.json",
+   "fall": [
+    24,
+    14
+   ],
+   "fall_to": 0.5,
+   "clear_dist": 1,
+   "clear_keep": [
+    [
+     0,
+     180
+    ],
+    [
+     180,
+     359.9
+    ]
+   ],
+   "fall_pen": 0
+  },
+  {
+   "id": "agung-gemini",
+   "file": "agung.jpg",
+   "painted": true,
+   "source_photo": "agung-postcard/Indonesian_postcard_(gunung_Agung)_(23559356208).jpg",
+   "summit": {
+    "name": "Gunung Agung",
+    "lat": -8.3415,
+    "lon": 115.5033,
+    "altitude": 3031,
+    "elevation": 14,
+    "compressed": "true 5.9: the great cone as a long lens brings it up over the rim, its whole outline as painted, and kept under Batur"
+   },
+   "width": 88,
+   "summit_u": 0.48619,
+   "crop": [
+    0,
+    0,
+    1,
+    0.62
+   ],
+   "ridge_file": "tools/panoramas/batur-agung-ridge.json",
+   "fall": [
+    5,
+    6
+   ],
+   "fall_to": -1,
+   "clear_dist": 1,
+   "clear_keep": [
+    [
+     0,
+     180
+    ],
+    [
+     180,
+     359.9
+    ]
+   ],
+   "fall_pen": 0
+  },
+  {
+   "id": "batur-gemini-fit",
+   "file": "batur.jpg",
+   "painted": true,
+   "source_photo": "batur-gemini/batur.jpg, from batur-octora/Gunung_Batur_Kintamani_Bali.jpg",
+   "summit": {
+    "name": "Gunung Batur",
+    "lat": -8.2369,
+    "lon": 115.3773,
+    "altitude": 1717,
+    "elevation": 18,
+    "compressed": "true 11 from the floor of the caldera; raised whole with its width, so it keeps its true low broad proportions"
+   },
+   "width": 156.2,
+   "summit_u": 0.45957,
+   "crop": [
+    0,
+    0,
+    1,
+    0.8
+   ],
+   "ridge_file": "tools/panoramas/batur-ridge.json",
+   "fall": [
+    0,
+    0
+   ],
+   "squash": {
+    "foot": 0.947,
+    "at": [
+     [
+      0,
+      1
+     ],
+     [
+      0.62,
+      1
+     ],
+     [
+      0.76,
+      0.64
+     ],
+     [
+      1,
+      0.64
+     ]
+    ]
+   },
+   "clear_dist": 1,
+   "clear_keep": [
+    [
+     0,
+     180
+    ],
+    [
+     180,
+     359.9
+    ]
+   ],
+   "fall_pen": 0.5
+  }
+ ],
+ "belts": [
+  {
+   "base": 0.08,
+   "amp": 0,
+   "seed": 3,
+   "tree": 0,
+   "air": 0,
+   "dips": [
+    [
+     68,
+     110,
+     -12
+    ]
+   ],
+   "flat": {
+    "top": "#f8d4a8",
+    "bottom": "#5f9aa8",
+    "depth": 34,
+    "soft": 1,
+    "alpha": 1,
+    "streak": 0.3
+   }
+  },
+  {
+   "base": -5,
+   "amp": 0.08,
+   "tree": 0,
+   "seed": 22,
+   "air": 0.3,
+   "foot_air": 0,
+   "larch": 0.1,
+   "floor": -5,
+   "walls": [
+    [
+     176,
+     8,
+     30,
+     3.2
+    ],
+    [
+     306,
+     12,
+     34,
+     3.4
+    ]
+   ],
+   "wall_power": 0.9
+  },
+  {
+   "base": 0.9,
+   "amp": 0.42,
+   "tree": 0,
+   "seed": 11,
+   "air": 0.4,
+   "foot_air": 0.1,
+   "larch": 0.14,
+   "floor": -5,
+   "dips": [
+    [
+     238,
+     42,
+     -9
+    ],
+    [
+     62,
+     70,
+     -3.4
+    ]
+   ]
+  },
+  {
+   "base": 0.5,
+   "amp": 0.4,
+   "tree": 0,
+   "seed": 12,
+   "air": 0.2,
+   "foot_air": 0.08,
+   "larch": 0.25,
+   "floor": -5,
+   "dips": [
+    [
+     238,
+     40,
+     -8
+    ],
+    [
+     62,
+     70,
+     -2.8
+    ]
+   ]
+  },
+  {
+   "base": 0.2,
+   "amp": 0.4,
+   "tree": 6,
+   "seed": 13,
+   "air": 0.06,
+   "foot_air": 0.04,
+   "larch": 0.35,
+   "floor": -5,
+   "dips": [
+    [
+     238,
+     38,
+     -7
+    ],
+    [
+     62,
+     70,
+     -2.2
+    ]
+   ]
+  }
+ ],
+ "mist": "#a89a90",
+ "photo_tree": 5
+}

@@ -1,0 +1,367 @@
+{
+ "track": "bali",
+ "center": [
+  -8.41,
+  115.45
+ ],
+ "altitude": 651,
+ "dem": "data/horizon/bali",
+ "ppd": 30,
+ "topTan": 0.6,
+ "bottomTan": -0.052,
+ "preset": "tropical",
+ "forest_style": "jungle",
+ "cumulus": {
+  "seed": 9,
+  "count": 3,
+  "el": [
+   14,
+   22
+  ],
+  "size": [
+   2.5,
+   5
+  ],
+  "puffy": true,
+  "edge": 2.2,
+  "belly": 0.35,
+  "belly_soft": 5,
+  "drop": 1.0,
+  "drop_soft": 0.7,
+  "at": [
+   [
+    318,
+    15,
+    4.5
+   ],
+   [
+    110,
+    18,
+    10
+   ],
+   [
+    150,
+    12,
+    3.5
+   ],
+   [
+    196,
+    15,
+    12
+   ],
+   [
+    240,
+    20,
+    5.5
+   ],
+   [
+    282,
+    13,
+    8
+   ],
+   [
+    62,
+    24,
+    4
+   ]
+  ],
+  "volume": 0.95
+ },
+ "sun": {
+  "bearing": 290,
+  "elevation": 38
+ },
+ "glow_bearing": 180,
+ "compress": {
+  "from": 40,
+  "factor": 1
+ },
+ "tiles": {
+  "file": "bali-pano",
+  "centers": [
+   0,
+   60,
+   120,
+   180,
+   240,
+   300
+  ],
+  "half": 31,
+  "edge": 0,
+  "quality": 90
+ },
+ "photos": [
+  {
+   "id": "agung-gemini",
+   "file": "agung.jpg",
+   "painted": true,
+   "source_photo": "agung-postcard/Indonesian_postcard_(gunung_Agung)_(23559356208).jpg, madras91, CC BY 2.0; the photo's clouds hide the top, so the summit line is inferred in the repaint",
+   "summit": {
+    "name": "Gunung Agung",
+    "lat": -8.3415,
+    "lon": 115.5033,
+    "altitude": 3031,
+    "elevation": 19,
+    "compressed": "true 13.9 deg, the whole cone scaled by 1.37 at its true proportions: the shape from Muncan, but it has to loom over every terrace in a chase frame"
+   },
+   "width": 115,
+   "crop": [
+    0,
+    0,
+    1,
+    0.665
+   ],
+   "fall": [
+    6,
+    6
+   ],
+   "fall_pen": 0.15,
+   "ridge_file": "tools/panoramas/bali-agung-ridge.json",
+   "clear_dist": 11000,
+   "clear_keep": [
+    [
+     325,
+     339
+    ]
+   ],
+   "haze": 0.0
+  }
+ ],
+ "belts": [
+  {
+   "base": 2.0,
+   "amp": 1.0,
+   "tree": 0,
+   "seed": 11,
+   "air": 0.62,
+   "foot_air": 0.4,
+   "dips": [
+    [
+     38,
+     44,
+     -0.1
+    ],
+    [
+     345,
+     20,
+     -2.2
+    ],
+    [
+     80,
+     16,
+     -1.5
+    ],
+    [
+     125,
+     32,
+     -0.9
+    ],
+    [
+     205,
+     58,
+     -1.0
+    ],
+    [
+     292,
+     22,
+     -0.7
+    ]
+   ],
+   "walls": [
+    [
+     340,
+     34,
+     16,
+     3.6
+    ],
+    [
+     97,
+     12,
+     34,
+     3.4
+    ],
+    [
+     172,
+     26,
+     18,
+     1.5
+    ],
+    [
+     224,
+     20,
+     30,
+     2.3
+    ],
+    [
+     262,
+     14,
+     22,
+     1.2
+    ]
+   ],
+   "wall_power": 0.9
+  }
+ ],
+ "mist": "#7f9a84",
+ "front_dem": {
+  "dist": 2500,
+  "except": [
+   [
+    335,
+    360
+   ],
+   [
+    0,
+    100
+   ]
+  ]
+ },
+ "sea": {
+  "color": "#7fc4cc",
+  "far": "#d6ead8",
+  "level": 3
+ },
+ "dem_cover": {
+  "treeline": 2700,
+  "slope": 70,
+  "rock_above": 2900,
+  "scree_above": 2800
+ },
+ "cloud_bank": 0,
+ "dem_lift": [
+  [
+   118,
+   196,
+   10,
+   1.5,
+   3.2,
+   14000
+  ],
+  [
+   196,
+   262,
+   10,
+   1.6,
+   1.0,
+   14000
+  ]
+ ],
+ "preset_over": {
+  "sky_el": [
+   [
+    0,
+    "#d8e8de"
+   ],
+   [
+    3.8,
+    "#d4e8e0"
+   ],
+   [
+    6.2,
+    "#cae7e4"
+   ],
+   [
+    8.6,
+    "#bde4e8"
+   ],
+   [
+    11.1,
+    "#aee0ec"
+   ],
+   [
+    13.5,
+    "#a0dcee"
+   ],
+   [
+    16,
+    "#90d7ef"
+   ],
+   [
+    18.4,
+    "#81d2f1"
+   ],
+   [
+    20.8,
+    "#75cdf1"
+   ],
+   [
+    23.3,
+    "#6dcbf2"
+   ],
+   [
+    28.2,
+    "#66c8f2"
+   ],
+   [
+    38,
+    "#4fb6ec"
+   ],
+   [
+    52,
+    "#3aa2e4"
+   ]
+  ],
+  "rock_i": [
+   [
+    0,
+    "#4a3a4e"
+   ],
+   [
+    0.2,
+    "#5f4b5e"
+   ],
+   [
+    0.4,
+    "#7f6470"
+   ],
+   [
+    0.6,
+    "#a0807c"
+   ],
+   [
+    0.8,
+    "#c49e88"
+   ],
+   [
+    1,
+    "#e8caa4"
+   ]
+  ],
+  "spruce_m": [
+   "#143f1e",
+   "#23602a",
+   "#3f8236"
+  ],
+  "larch_m": [
+   "#2f7a2c",
+   "#5a9e36",
+   "#93c24a"
+  ],
+  "forest_i": [
+   "#143f1e",
+   "#27642c",
+   "#5a9a3a"
+  ],
+  "larch_i": [
+   "#3a8030",
+   "#6aa63c",
+   "#a2c850"
+  ],
+  "forest_air": "#8ea69a",
+  "foot_air": "#9cb2a8",
+  "far_air": "#a6bcbc",
+  "air": "#dcede4",
+  "air_high": "#a4dcef",
+  "air_low": "#d8e8de",
+  "belt_air": "#8fa8a2",
+  "ink": "#2a2a34",
+  "glow": "#fff5d8",
+  "cloud_lit": "#fffdf0",
+  "cloud_shade": "#a4b4ca",
+  "cloud_high": "#fffef6",
+  "mist": "#c6cfba",
+  "haze": "#e6eede",
+  "mist_fog": "#f0f2e0"
+ },
+ "post": "python3 -I tools/panoramas/bali-forest.py assets/backdrops: the painted forest of the repaint along the whole circle, after compose"
+}

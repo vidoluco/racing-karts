@@ -1,0 +1,7 @@
+# Bucharest: the facts behind the track
+
+Route: tools/bucarest-route.json, tools/bucarest-route.mjs, OpenStreetMap ways of 2026-11-06 saved in data/raw/osm-bucarest/, squeezed to 0.56. Heights: Copernicus GLO-30, a low percentile along the road, because the DSM holds the roofs and the crowns. Hand-drawn stretches keep the real street and its real bearing, with the bends of Calea Victoriei drawn out a little, and chicanes at Kiseleff, Aviatorilor (Piata Aviatorilor), Magheru (road works) and Universitate.
+
+Places (lat, lon): Palatul Parlamentului 44.4275, 26.0843. Piata Constitutiei 44.4283, 26.0910. Piata Unirii 44.4265, 26.1025. Palatul CEC on Calea Victoriei. Cercul Militar 44.4351, 26.0971. Piata Revolutiei 44.43805, 26.09722, Memorialul Renasterii 44.43889, 26.09745. Ateneul Roman 44.44137, 26.09736. Palatul Victoria 44.45282, 26.08745. Arcul de Triumf 44.4672, 26.0782. Casa Presei Libere 44.4783, 26.0720. Sky Tower 44.4780, 26.1047.
+
+Rules for this track: no earthquake, people died in them. The hazard is the heating main (RADET), which really bursts and really steams, and here hurts nobody. Churches are never hit. Piata Revolutiei and its memorial: no crates, no pads, no jumps, no stalls, no traffic, no joke. Stray dogs are left out. The Ateneu in the game stands nearer the road than it does in life, in the garden of Piata George Enescu, because in life the hotel stands between it and Calea Victoriei.

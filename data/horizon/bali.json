@@ -1,0 +1,22 @@
+{
+ "id": "bali",
+ "format": "int16le",
+ "layout": "az,ring",
+ "naz": 1440,
+ "nr": 320,
+ "r0": 1500,
+ "r1": 42000,
+ "unit": 0.25,
+ "center": [
+  -8.41,
+  115.45
+ ],
+ "altitude": 651,
+ "northDeg": 37.6,
+ "min": -651,
+ "max": 2354,
+ "source": "Copernicus GLO-30",
+ "tiles": [
+  "Copernicus_DSM_COG_10_S09_00_E115_00_DEM.tif"
+ ]
+}

@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Racing Karts</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='26' fill='%231d1f2b'/><circle cx='32' cy='32' r='13' fill='%23ffd23f' stroke='%231d1f2b' stroke-width='4'/><circle cx='32' cy='32' r='3.5' fill='%231d1f2b'/></svg>">
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #f7d6c8; color: #1d1f2b; }
+  #game { display: block; position: fixed; inset: 0; width: 100vw; height: 100vh; }
+  /* the first moments, before the bundle has run: warm, never a black page */
+  #boot { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none;
+    background: linear-gradient(180deg, #cdbbe8 0%, #f6c6cf 52%, #ffe3b6 100%);
+    font: 700 min(6vw, 96px) "Arial Rounded MT Bold", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+    color: #fff; -webkit-text-stroke: 0.09em #1d1f2b; paint-order: stroke fill; letter-spacing: 0.01em; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="boot">Racing Karts</div>
+<script type="module" src="game.js"></script>
+</body>
+</html>
