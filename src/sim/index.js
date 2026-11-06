@@ -3,7 +3,8 @@
 
 import { AUTO_HOME, DT, DIFFICULTY, FINISHED_CRUISE, FORMA, LEADER_GRACE, kartPhysics } from './tuning.js';
 import { createRng, mixSeed } from './rng.js';
-import { createKart, createPriv, stepKart, collideKarts, wallsFor, startRescue } from './kart.js';
+import { createKart, createPriv, stepKart, collideKarts, settleSolids, wallsFor, startRescue } from './kart.js';
+import { solidsFor } from './solids.js';
 import { createBoxes, hitKart, stepItemsForKart, stepBoxes, stepShots, stepSpills } from './items.js';
 import { createHazards, stepHazards, collideHazards } from './hazards.js';
 import { createDisasters, stepDisasters, fireDisaster } from './disasters.js';
@@ -35,6 +36,7 @@ export function createRace({ track, terrain, seed = 1, laps = 3, players, diffic
   const R = {
     track, terrain, state, seed, difficulty,
     walls: wallsFor(track, terrain),
+    solids: solidsFor(track),
     events: [],
     emit: (e) => { R.events.push(e); },
     priv: [],
@@ -81,11 +83,11 @@ export function createRace({ track, terrain, seed = 1, laps = 3, players, diffic
     R.priv.push(p);
     const diff = pl.difficulty || difficulty;
     p.bot = createBrain(R, k, diff);
-    const hunt = forma ? DIFFICULTY[diff].hunt : null;
-    if (hunt) p.bot.cfg = { ...p.bot.cfg, ...hunt };
+    const row = forma ? DIFFICULTY[diff].hunt : track.long ? DIFFICULTY[diff].long : null; // a level's own numbers for the hunt, or for a long track
+    if (row) p.bot.cfg = { ...p.bot.cfg, ...row };
     if (k.human) { p.capMul = 1; return; }
     const own = p.ph.top, ref = refTop ? (refTop + own) / 2 : own;
-    p.capMul = (hunt?.cap ?? DIFFICULTY[diff].cap) * ref / own;
+    p.capMul = (row?.cap ?? DIFFICULTY[diff].cap) * ref / own;
   });
   const biters = createBiters(R, state.karts);
   if (forma) R.forma = createForma(R, forma);
@@ -137,12 +139,13 @@ export function createRace({ track, terrain, seed = 1, laps = 3, players, diffic
   }
 
   function updateReference() {
-    let sum = 0, c = 0, best = -Infinity;
+    let sum = 0, c = 0, best = -Infinity, worst = Infinity;
     for (const k of state.karts) {
-      if (k.human) { if (k.progress > best) best = k.progress; }
+      if (k.human) { if (k.progress > best) best = k.progress; if (!k.finished && k.progress < worst) worst = k.progress; }
       sum += k.progress; c++;
     }
     R.refProgress = humans.length ? best : sum / c;
+    R.lastProgress = worst < Infinity ? worst : R.refProgress; // the slowest person still racing
     R.fieldMean = sum / c;
   }
 
@@ -173,6 +176,7 @@ export function createRace({ track, terrain, seed = 1, laps = 3, players, diffic
         if (!timeTrial) stepBoxes(R, DT);
         collideHazards(R);
         collideTraffic(R);
+        settleSolids(R);
         stepDisasters(R, DT);
         if (forma) R.forma.step();
         updatePlaces();

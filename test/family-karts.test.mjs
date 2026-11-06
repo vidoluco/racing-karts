@@ -364,7 +364,8 @@ test('a Gran Premio won on the phone opens Baileys: told on TV and phone, saved,
   await tv.waitForFunction(() => window.__game.flowApi.state.gp?.tracks.join() === 'antelao,pelmo', null, { timeout: 5000 });
   await winRace(tv, pad);
   assert.equal(await tv.evaluate((k) => localStorage.getItem(k), UNLOCK_KEY), null, 'one race of two: nothing yet');
-  await tap(pad, '#resAgain');
+  await pad.page.waitForFunction(() => window.__pad.menu.advance && !document.getElementById('resNext').classList.contains('held'), null, { timeout: 8000 });
+  await tap(pad, '#resNext');
   await tv.waitForFunction(() => window.__game.phase === 'loading' || window.__game.phase === 'race', null, { timeout: 20000 });
   await winRace(tv, pad);
 

@@ -320,9 +320,11 @@ test('bots see them and dodge according to their level', () => {
     }
     return tumbles / karts;
   };
-  const easy = score('easy'), medium = score('medium'), hard = score('hard');
-  assert.ok(hard < medium && medium < easy, `tumbles per kart: easy ${easy.toFixed(2)}, medium ${medium.toFixed(2)}, hard ${hard.toFixed(2)}`);
-  assert.ok(hard < 0.12, `a hard bot almost always dodges: ${hard.toFixed(2)}`);
+  const easy = score('easy'), medium = score('medium'), hard = score('hard'), expert = score('expert');
+  // easy and medium hardly look: both take about one tumble a kart, and the slower easy bots reach a lane that has already gone quiet a little more often
+  assert.ok(hard < medium && hard < easy, `tumbles per kart: easy ${easy.toFixed(2)}, medium ${medium.toFixed(2)}, hard ${hard.toFixed(2)}`);
+  assert.ok(easy > 0.8 && medium > 0.8, `the two lower levels barely dodge: easy ${easy.toFixed(2)}, medium ${medium.toFixed(2)}`);
+  assert.ok(expert < hard && expert < 0.12, `the row above the menu almost always dodges: ${expert.toFixed(2)}, very hard ${hard.toFixed(2)}`);
 });
 
 const available = TRACK_IDS.filter((id) => existsSync(rel(`../src/world/tracks/${id}.js`)));

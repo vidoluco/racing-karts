@@ -16,7 +16,7 @@ import { KART_IDS, ROSTER, SECRET_IDS, kartInfo } from './data/karts.js';
 import { createUnlocks } from './game/unlocks.js';
 import { TRACKS, TRACK_IDS, trackInfo, loadTrackDef } from './data/tracks.js';
 import { ITEM_IDS } from './data/items.js';
-import { createFlow, createHudFeed, hudOf, padFx, resultRows, teamScore, RANDOM, SLOTS } from './game/flow.js';
+import { AWAY_CRUISE, awayDrive, createFlow, createHudFeed, hudOf, offlineList, padFx, resultRows, teamScore, RANDOM, SLOTS } from './game/flow.js';
 import { teamInfo, NEUTRAL_COLOR } from './data/teams.js';
 import { weatherKey } from './data/weather.js';
 import { createRecords, createTimeTrial, trackSeed } from './game/timetrial.js';
@@ -38,8 +38,6 @@ const P = {
 
 const FLYOVER_S = 6.5;
 const AFTER_DONE = 2.6;   // s of the finish on the road before the results take the TV
-const TAKEOVER_S = 15;    // s a gone phone's kart coasts, before a bot drives it so that the race can end
-const FREE_SEAT_S = 60;   // the room keeps a seat this long: the same on this side
 const MENU_GUARD = 0.5;   // s after a screen appears during which a held key does not count as a press
 
 let lang = P.lang || detectLang();
@@ -169,8 +167,10 @@ let acc = 0, pending = [], last = 0;
 let doneT = null, goT = 0;
 let colors = [], players = [], viewKarts = [];
 const hudFeed = createHudFeed();
-const awayT = [0, 0, 0, 0];
-const freeTimer = [null, null, null, null];
+const awaySince = [null, null, null, null]; // when each phone left, performance.now()
+let graceMs = 120000;                       // the room says what it really holds a seat for
+const padMode = [null, null, null, null];  // how each phone says it steers, 'stick' or 'gyro', for the telemetry
+let hits = [];                              // per kart of the race in hand, for the telemetry: { wall, building, botS }
 let waiting = 0;
 let menuGuard = 0;
 let scripted = null;
@@ -190,26 +190,24 @@ function humanInputs() {
   const out = [];
   for (const k of race.state.karts) {
     if (!k.human) continue;
+    const priv = race.internals.priv[k.i];
+    if (priv.cruise === AWAY_CRUISE) priv.cruise = 1; // whoever is back has the whole kart, in this very step
     if (game.auto) { tt?.taint(k.i); out[k.i] = race.autopilot(k.i); continue; }
     if (scripted) { const v = scripted(k.i, k); if (v !== undefined) { out[k.i] = v; continue; } }
     const g = input.get(k.slot);
     const seat = flow.seats[k.slot];
-    if (g.source) {
+    if (seat?.source === 'pad' && (g.source !== 'pad' || input.padStale(k.slot))) {
+      // The phone is gone, or has said nothing for a second: left alone the kart would go straight on at full throttle, into a
+      // wall or across the road. The autopilot keeps it moving and the next word from the phone has it back, in the same step.
+      tt?.taint(k.i); // a lap a bot drove is nobody's record
+      if (hits[k.i]) hits[k.i].botS += DT;
+      if (!k.finished) priv.cruise = AWAY_CRUISE;
+      out[k.i] = awayDrive(race.autopilot(k.i));
+    } else if (g.source) {
       out[k.i] = { steer: g.x, throttle: g.source === 'pad' ? stickThrottle(g.x, g.y) : g.y, item: g.item, drift: g.drift };
-      if (awayT[k.slot]) { awayT[k.slot] = 0; ui.screens.hud.setMissing(k.slot, null); }
-    } else if (seat?.source !== 'pad') {
+    } else {
       // a keyboard seat before its first key: the throttle is automatic anyway
       out[k.i] = { steer: 0, throttle: 1, item: false, drift: false };
-    } else {
-      // the phone is gone: it coasts, the TV says who is missing, and then a bot takes it home
-      const before = awayT[k.slot];
-      awayT[k.slot] = before + DT;
-      if (!before) ui.screens.hud.setMissing(k.slot, 'gone');
-      if (awayT[k.slot] >= TAKEOVER_S) {
-        if (before < TAKEOVER_S) ui.screens.hud.setMissing(k.slot, 'bot');
-        tt?.taint(k.i); // a lap a bot drove is nobody's record
-        out[k.i] = race.autopilot(k.i);
-      }
     }
   }
   return out;
@@ -218,7 +216,10 @@ function humanInputs() {
 function stepOnce() {
   capturePrev();
   race.step(humanInputs());
-  for (const e of race.drainEvents()) pending.push(e);
+  for (const e of race.drainEvents()) {
+    pending.push(e);
+    if (e.type === 'wall' && hits[e.kart]) hits[e.kart][race.internals.priv[e.kart].wallSolid ? 'building' : 'wall']++;
+  }
   if (tt) for (const e of tt.step(race.state)) pending.push(e);
 }
 
@@ -229,6 +230,7 @@ function afterSteps(simDt) {
       game.results = resultRows(race.state.karts);
       if (tt) for (const r of game.results) r.tt = tt.result(r.i);
       if (race.state.forma) formaRows(game.results, race.state.forma);
+      telemetryRace(game.results);
       flow.raceDone(game.results);
       pump();
     }
@@ -294,6 +296,7 @@ function tick(now) {
   pump();
   menuInputs(real);
   ui.tick(real);
+  paintOffline();
   if (flow.phase === 'results' && flow.state.resultsT > 0) ui.screens.results.countdown(flow.state.resultsT);
   if (!race || mode === 'off' || mode === 'menu') return;
   if (game.manual) return;
@@ -334,7 +337,7 @@ function pump() {
         if (flow.phase === 'race' && !race?.state.karts.some((k) => k.human && k.slot === e.slot)) ui.toast(ui.t('hud.nextRace', { n: e.slot + 1 }));
         break;
       case 'unlock': input.send(e.slot, { t: 'menu', lock: false }); break;
-      case 'free': input.send(e.slot, { t: 'release' }); break; // the room gives the seat up too, a newcomer may be waiting
+      case 'free': awaySince[e.slot] = null; input.send(e.slot, { t: 'release' }); break; // the room gives the seat up too, a newcomer may be waiting
       case 'spin': sound('move'); break;
       case 'landed': sound('confirm'); break;
       case 'gpWon': {
@@ -346,19 +349,57 @@ function pump() {
       default: break;
     }
   }
-  if (touched) { paintMenu(); syncPhones(); paintRejoin(); }
+  if (touched) { paintMenu(); syncPhones(); paintRejoin(); paintOffline(); paintAdvance(); }
 }
 
 // The QR only lives in the lobby: with a seat missing anywhere else, a phone that changed network must find it here.
 function paintRejoin() {
   const missing = flow.phase !== 'lobby' && flow.seats.some((s) => s.present && s.away && s.source === 'pad');
-  ui.rejoin(missing ? padUrl : null, flow.phase !== 'race' && flow.phase !== 'loading');
+  ui.rejoin(missing ? padUrl : null);
 }
 
-// On the way to the lobby a seat nobody is in is given up: the TV forgot it, the room must too. The room keeps any seat
-// with a phone on it, whatever this says.
+// Who is offline and for how long, over every screen, from the moment a phone drops until it is back.
+function paintOffline() {
+  game.offline = offlineList(flow.seats, awaySince, performance.now(), graceMs);
+  ui.offline(game.offline);
+}
+// Who has pressed Continue on their phone, on the screens that wait for it.
+function paintAdvance() {
+  const on = flow.phase === 'results' || flow.phase === 'podium', state = flow.advanceState();
+  game.presses = on ? state : null;
+  ui.advance(on && state.of.length ? state : null);
+}
+// The card in that player's own view, in a race. Again after each setup: the views are new.
+function paintMissing() {
+  flow.seats.forEach((s, slot) => ui.screens.hud.setMissing(slot, s.present && s.away && s.source === 'pad' ? 'bot' : null));
+}
+
+// The room frees nothing while a game is on: it has to know whether one is.
+const tellRoom = (phase = flow.phase) => { transport.send({ t: 'game', on: phase !== 'lobby', phase }); };
+
+// The evening's numbers, for tools/telemetry-report.mjs. Never in the way of the game: too big or a closed socket, it is lost.
+function telemetry(d) {
+  try {
+    const m = { t: 'tm', d };
+    if (JSON.stringify(m).length <= 4000) transport.send(m);
+  } catch { /* the race goes on */ }
+}
+function telemetryRace(rows) {
+  const gp = flow.state.gp, wx = flow.weather, o = flow.opts;
+  telemetry({
+    e: 'race', track: flow.state.track, mode: o.mode, difficulty: o.difficulty, laps: game.laps, weather: wx?.kind ?? 'clear', night: !!wx?.night,
+    ...(gp ? { gpRace: gp.index + 1, gpOf: gp.tracks.length } : {}),
+    karts: rows.map((r) => ({
+      slot: r.slot, human: r.human, kart: r.kart, place: r.place, time: r.time, bestLap: r.bestLap, wall: hits[r.i]?.wall ?? 0, building: hits[r.i]?.building ?? 0, botS: Math.round(hits[r.i]?.botS ?? 0),
+      ...(r.team ? { team: r.team } : {}), ...(r.human && padMode[r.slot] ? { input: padMode[r.slot] } : {}),
+    })),
+  });
+}
+
+// On the way to the lobby a seat the TV forgot is given up by the room too; one still in its grace stays, for a phone that only
+// blinked. The room keeps any seat with a phone on it, whatever this says.
 function releaseAbsent() {
-  for (let s = 0; s < 4; s++) if (!input.padConnected(s)) input.send(s, { t: 'release' });
+  for (let s = 0; s < 4; s++) if (!input.padConnected(s) && !flow.seats[s].present) input.send(s, { t: 'release' });
 }
 
 // The server restarted: an empty room, and phones that come back in whatever order they reconnect. Seats kept from before
@@ -368,12 +409,13 @@ function onHello(id) {
   const restarted = serverBoot !== null && serverBoot !== id;
   serverBoot = id;
   if (restarted) {
-    for (let s = 0; s < 4; s++) { clearTimeout(freeTimer[s]); ui.screens.hud.setMissing(s, null); awayT[s] = 0; }
+    for (let s = 0; s < 4; s++) { ui.screens.hud.setMissing(s, null); awaySince[s] = null; }
     lastPhase.fill(null);
     flow.reset();
     pump();
     ui.toast(ui.t('err.restart'));
   }
+  tellRoom();
   if (flow.phase === 'lobby') releaseAbsent();
 }
 
@@ -404,7 +446,12 @@ function trackRecords() {
 }
 
 function onPhase(phase) {
+  if (phase === 'pick' && game.phase === 'lobby') {
+    const { difficulty, bots, laps, mode, weather, night } = flow.opts;
+    telemetry({ e: 'session', difficulty, bots, laps, mode, weather: weather ?? 'clear', night: !!night, humans: flow.present().length, lang });
+  }
   game.phase = phase;
+  tellRoom(phase);
   menuGuard = MENU_GUARD;
   if (phase !== 'race' && phase !== 'loading' && paused) setPaused(false);
   switch (phase) {
@@ -460,10 +507,10 @@ function syncPhones() {
 
 input.on((m) => {
   if (m.t === 'join') {
-    clearTimeout(freeTimer[m.slot]);
     flow.join(m.slot, 'pad');
-    awayT[m.slot] = 0;
+    awaySince[m.slot] = null;
     ui.screens.hud.setMissing(m.slot, null);
+    if (m.took) ui.toast(ui.t('off.took', { n: m.slot + 1 }));
     lastPhase[m.slot] = null;
     pump();
     syncPhones();
@@ -471,9 +518,10 @@ input.on((m) => {
     sendHuds(true);
   } else if (m.t === 'leave') {
     flow.leave(m.slot);
-    clearTimeout(freeTimer[m.slot]);
-    freeTimer[m.slot] = setTimeout(() => { flow.free(m.slot); pump(); }, FREE_SEAT_S * 1000);
+    awaySince[m.slot] ??= performance.now();
+    paintMissing();
     pump();
+    paintOffline(); // now, not at the next frame: a TV with a hidden tab draws no frames
   } else if (m.t === 'full') {
     waiting = m.waiting ?? 1;
     paintMenu();
@@ -482,12 +530,15 @@ input.on((m) => {
 });
 
 transport.onMessage((m) => {
-  if (m?.t === 'hello') { onHello(m.boot); return; }
+  if (m?.t === 'hello') { if (m.reserveMs > 0) graceMs = m.reserveMs; onHello(m.boot); return; }
   if (!m || !Number.isInteger(m.slot)) return;
-  if (m.t === 'free') { clearTimeout(freeTimer[m.slot]); flow.free(m.slot); pump(); return; }
+  if (m.t === 'mode') { padMode[m.slot] = m.input; return; }
+  if (m.t === 'expired') { flow.expire(m.slot); pump(); return; }
+  if (m.t === 'free') { flow.free(m.slot); pump(); return; }
   if (m.t === 'pick') { if (flow.pick(m.slot, m.kart, m.ready === true)) pump(); return; }
   if (m.t === 'vote') { if (flow.vote(m.slot, m.track, m.lock === true)) pump(); return; }
   if (m.t === 'team') { if (flow.setTeam(m.slot, m.team)) pump(); return; }
+  if (m.t === 'advance') { if (m.skip ? flow.skipWait(m.slot, m.turn) : flow.advance(m.slot, m.on, m.turn)) pump(); return; }
   if (m.t === 'opt') {
     flow.setOpts(m);
     if (m.go) flow.go();
@@ -536,20 +587,32 @@ const kbPrev = [0, 0, 0, 0].map(() => ({ x: 0, item: false }));
 function menuInputs(dt) {
   menuGuard = Math.max(0, menuGuard - dt);
   const ph = flow.phase;
-  if (!['lobby', 'pick', 'vote', 'results', 'podium'].includes(ph)) return;
+  if (!['lobby', 'pick', 'vote', 'results', 'podium'].includes(ph)) {
+    // during a race nobody reads the slots with no seat: a key touched now must not be waiting for the next lobby
+    for (let s = 0; s < SLOTS; s++) if (!input.padConnected(s) && !flow.seats[s].present) input.get(s);
+    return;
+  }
   for (let s = 0; s < SLOTS; s++) {
     if (input.padConnected(s)) continue;
     const g = input.get(s);
     if (g.source !== 'keyboard') continue;
-    if (!flow.seats[s].present && (ph === 'lobby' || ph === 'pick')) { flow.join(s, 'keyboard'); if (ph === 'pick') flow.pick(s, KART_IDS[s % KART_IDS.length], false); }
+    const ctrl = s === 1 && g.drift; // Player 2's drift is right Ctrl: anything pressed with it held is a shortcut in the menus
+    // A seat is taken by a key pressed now, not by one touched at some point in the evening. Past the lobby, with phones at the
+    // table, a stray key takes nothing: the kart would be nobody's.
+    const pressing = g.x || g.y || g.item || g.drift;
+    const taking = !flow.seats[s].present && pressing && !ctrl && (ph === 'lobby' || (ph === 'pick' && !flow.phones().length));
+    if (taking) { flow.join(s, 'keyboard'); if (ph === 'pick') flow.pick(s, KART_IDS[s % KART_IDS.length], false); }
     const p = kbPrev[s];
     const dir = Math.abs(g.x) > 0.5 ? Math.sign(g.x) : 0;
     const moved = dir && dir !== p.x;
     const pressed = g.item && !p.item;
     p.x = dir; p.item = g.item;
-    if (menuGuard > 0) continue;
+    if (menuGuard > 0 || ctrl) continue;
+    // The seat of a phone that is away is that phone's, kept for its return, not a keyboard seat: with another phone at the table
+    // these keys speak for nobody. With no phone left the keyboard is what remains, and goes on working.
+    if (flow.seats[s].present && flow.seats[s].source === 'pad' && flow.phones().length) continue;
     if (ph === 'lobby' && moved && flow.teamMode && flow.seats[s].present) { flow.setTeam(s, dir < 0 ? 'a' : 'b'); sound('move'); }
-    if (ph === 'lobby' && pressed) flow.go();
+    if (ph === 'lobby' && pressed) { if (!taking || !flow.phones().length) flow.go(); } // with phones in, the press that takes a seat does not also start everyone
     else if (ph === 'pick' && flow.seats[s].present) {
       const seat = flow.seats[s], line = flow.pickable, at = Math.max(0, line.indexOf(seat.kart));
       if (moved && !seat.ready) { flow.pick(s, line[(at + dir + line.length) % line.length], false); sound('move'); }
@@ -558,15 +621,16 @@ function menuInputs(dt) {
       const list = [...available, RANDOM], seat = flow.seats[s], at = Math.max(0, list.indexOf(seat.track));
       if (moved && !seat.lock) { flow.vote(s, list[(at + dir + list.length) % list.length], false); sound('move'); }
       if (pressed) { flow.vote(s, seat.track || list[0], !seat.lock); sound('confirm'); }
-    } else if ((ph === 'results' || ph === 'podium') && pressed) nextFrom(flow.gpMore || flow.opts.mode === 'time' ? 'rematch' : ph === 'results' ? 'podium' : 'rematch');
+    } else if ((ph === 'results' || ph === 'podium') && pressed && (flow.seats[s].present || !flow.phones().length)) nextFrom(flow.advanceKind);
   }
   pump();
 }
 addEventListener('keydown', (e) => {
-  if (e.code === 'Escape' || e.code === 'KeyP') {
+  const shortcut = e.metaKey || e.ctrlKey || e.altKey; // the Mac's, not the game's
+  if (!shortcut && (e.code === 'Escape' || e.code === 'KeyP')) {
     if (flow.phase === 'race' && mode === 'race') setPaused(!paused);
   }
-  if (mode === 'fly') skipFly();
+  if (mode === 'fly' && !shortcut) skipFly();
   unlockAudio();
 });
 addEventListener('pointerdown', () => {
@@ -658,7 +722,7 @@ async function loadRace(id) {
     capturePrev();
     acc = 0;
     hudFeed.reset();
-    awayT.fill(0);
+    hits = players.map(() => ({ wall: 0, building: 0, botS: 0 }));
     goT = P.countdown;
     game.track = id; game.laps = laps; game.views = [...viewKarts]; game.results = null; game.podium = null; game.counts = {};
     game.players = players.map((p) => ({ slot: p.slot, kart: p.kart, human: p.human }));
@@ -671,6 +735,7 @@ async function loadRace(id) {
       gp: gp ? { n: gp.index + 1, of: gp.tracks.length } : null, goT: P.countdown, tt, forma: !!race.state.forma, weather: wx,
       teams: gp?.teams ? { base: gp.teams, score: teamScore } : null,
     });
+    paintMissing();
     await tick(1);
     audio.music(id);
     flow.loaded();

@@ -14,6 +14,8 @@ Everything in the game is original and made for it: art is procedural geometry, 
 
 Facts about the real places are in `docs/references/`, with their sources.
 
+The music is composed for this game in the idiom of each place (Ländler, polka, mazurka, sârbă, geampara, Transylvanian string band, Javanese gamelan, Balinese kebyar, dangdut and gambang kromong): no traditional or copyrighted melody is quoted, and no tune comes from another game.
+
 ## The commentators' voices: not in this repository
 
 The telecronaca is the second exception to "all sound is live". Its voices (`assets/voice/`, made by `tools/make-voices.py`) are synthetic speech, no person recorded these lines; the lines themselves are written for this game. Checked on 05/11/2026:

@@ -273,7 +273,11 @@ test('four phones by touch, four bots: join, karts, vote, three laps, results, p
   assert.deepEqual(top.map((r) => r.place), [1, 2, 3]);
   assert.equal(await pads[0].page.evaluate(() => window.__pad.phase), 'results');
   await sleep(600);
-  await tap(pads[0], '#resAgain');
+  // nobody gets up: each phone presses Continue, and the last press starts it
+  for (const p of pads) {
+    await p.page.waitForFunction(() => window.__pad.menu.advance && !document.getElementById('resNext').classList.contains('held'), null, { timeout: 4000 });
+    await tap(p, '#resNext');
+  }
   await tvIs(tv, 'race', 30000);
   await tv.waitForFunction(() => window.__game.state && window.__game.state.t < 30 && window.__game.results === null, null, { timeout: 8000 });
   assert.equal(await tv.evaluate(() => window.__game.state.karts.filter((k) => k.human).length), 4);
@@ -281,7 +285,7 @@ test('four phones by touch, four bots: join, karts, vote, three laps, results, p
   assert.deepEqual(errors, []);
 });
 
-test('a phone drops out mid-race and returns: the TV says so, the kart coasts, a bot takes over, the phone takes it back', { skip, timeout: 360000 }, async (t) => {
+test('a phone drops out mid-race and returns: the TV says so at once, the autopilot keeps the kart moving, the phone takes it back', { skip, timeout: 360000 }, async (t) => {
   const { tv, errors, pads, open } = await setup(t);
   await open('pad0');
   await lobbyToRace(tv, pads, { difficulty: 'medium', bots: 3, laps: 2 });
@@ -298,15 +302,20 @@ test('a phone drops out mid-race and returns: the TV says so, the kart coasts, a
   await p.ctx.setOffline(true);
   await tv.waitForFunction(() => !window.__game.pads[0], null, { timeout: 9000 });
   await tv.waitForFunction(() => { const e = document.querySelector('.hv .miss'); return e && !e.classList.contains('hide'); }, null, { timeout: 2000 });
-  // with no phone it coasts down...
-  await tv.waitForFunction(() => window.__game.state.karts.find((x) => x.human).speed < 6, null, { timeout: 9000 });
-  // ...and then a bot drives it so that the race can end
-  await tv.waitForFunction(() => { const e = document.querySelector('.hv .miss span'); return e && /drives|guida|bot/i.test(e.textContent); }, null, { timeout: 16000 });
-  await tv.waitForFunction(() => window.__game.state.karts.find((x) => x.human).speed > 15, null, { timeout: 6000 });
+  await tv.waitForFunction(() => /P1 offline, 1:5\d left/.test(document.querySelector('.offline')?.textContent || ''), null, { timeout: 2000 });
+  // no dead kart in the road: a bot drives it from the start, for as long as the phone is away
+  await tv.waitForFunction(() => { const e = document.querySelector('.hv .miss span'); return e && /drives|guida|bot/i.test(e.textContent); }, null, { timeout: 2000 });
+  const slowest = await tv.evaluate(async () => {
+    let least = 1e9;
+    const until = performance.now() + 6000;
+    while (performance.now() < until) { const k = window.__game.state.karts.find((x) => x.human); if (k.hitT <= 0 && k.rescueT <= 0) least = Math.min(least, k.speed); await new Promise(requestAnimationFrame); }
+    return least;
+  });
+  assert.ok(slowest > 8, `it kept moving for 6 s, slowest ${slowest}`);
   await p.ctx.setOffline(false);
   await tv.waitForFunction(() => window.__game.pads[0], null, { timeout: 12000 });
   await p.page.waitForFunction(() => window.__pad.joined && window.__pad.slot === 0 && window.__pad.phase === 'race', null, { timeout: 6000 });
-  await tv.waitForFunction(() => document.querySelector('.hv .miss').classList.contains('hide'), null, { timeout: 3000 });
+  await tv.waitForFunction(() => document.querySelector('.hv .miss').classList.contains('hide') && document.querySelector('.offline').classList.contains('hide'), null, { timeout: 3000 });
   // the host tells a phone that came back everything again
   await p.page.waitForFunction(() => !document.getElementById('hud').classList.contains('hide'), null, { timeout: 3000 });
   p.geo = await p.page.evaluate(() => window.__pad.geometry());

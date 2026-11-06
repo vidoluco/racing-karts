@@ -149,7 +149,7 @@ The commentary's voices are not in the repository (`assets/voice/` is git ignore
 | 4 | four phones | a grid of four |
 | No phone at all | the keyboard, or the mouse in the menus | as many as keys pressed |
 
-A fifth phone waits for a free seat. A phone that leaves keeps its seat for 60 seconds.
+A fifth phone waits for a free seat. A phone that leaves keeps its seat: the TV counts down 2 minutes, and past them the seat still waits until the game is back in the lobby. A new phone that scans the QR takes it.
 
 ## The evening
 
@@ -159,7 +159,7 @@ A fifth phone waits for a free seat. A phone that leaves keeps its seat for 60 s
 | Kart | all the karts on turntables | swipe, confirm |
 | Track | big cards, coin if you disagree | swipe, vote |
 | Race | a flyover, 3, 2, 1, Go | the wheel |
-| After | results, then the podium | rematch, change track |
+| After | results, then the podium, and who has pressed | Continue: when everyone here has pressed, it goes on. Player 1 also has More: don't wait, rematch, change track, lobby |
 
 ## What the phone does
 

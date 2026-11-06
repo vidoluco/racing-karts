@@ -111,7 +111,8 @@ for (const scene of scenes) {
     await sleep(2200);
     await shot(tv, 'results-1');
     await shot(P0.page, 'phone-results');
-    await P0.page.locator('#resAgain').tap();
+    await sleep(900); // past the moment a screen takes no press
+    for (const p of pads) await p.page.locator('#resNext').tap();
     await race();
     await sleep(2200);
     await shot(tv, 'results-final');

@@ -3,8 +3,11 @@ import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { runCheck } from '../tools/audio-check.mjs';
 import { createAudio } from '../src/audio/index.js';
-import { TUNES, LOOPING } from '../src/audio/music/index.js';
+import { createHash } from 'node:crypto';
+import { TUNES, LOOPING, resolveTune } from '../src/audio/music/index.js';
 import { lint, compile } from '../src/audio/score.js';
+import { VOICE_INSTRUMENTS, BUFFER_INSTRUMENTS, PERC_VOICES } from '../src/audio/synth.js';
+import { TRACKS } from '../src/data/tracks.js';
 
 let report;
 before(async () => {
@@ -29,7 +32,7 @@ test('with no audio at all (node, no gesture) the API is harmless', () => {
 });
 
 test('every tune: real length, real form, real range', () => {
-  const needed = ['antelao', 'pelmo', 'transfagarasan', 'bran', 'bromo', 'bali', 'menu', 'results', 'podium'];
+  const needed = ['antelao', 'pelmo', 'cortina', 'transfagarasan', 'bran', 'bucarest', 'bromo', 'bali', 'jakarta', 'menu', 'results', 'podium'];
   for (const name of needed) assert.ok(TUNES[name], `${name} exists`);
   for (const name of LOOPING) {
     const tune = TUNES[name];
@@ -41,6 +44,44 @@ test('every tune: real length, real form, real range', () => {
     assert.ok(lead.high - lead.low >= 12, `${name}: lead spans ${lead.high - lead.low} semitones`);
     assert.ok(l.parts.bass, `${name} has a bass line`);
     assert.ok(Object.keys(l.parts).length >= 4, `${name}: at least four pitched parts`);
+  }
+});
+
+test('Bali is the reference: its score and its band have not moved', () => {
+  const c = compile(TUNES.bali);
+  const sha = createHash('sha256').update(JSON.stringify(c.events) + JSON.stringify(TUNES.bali.parts)).digest('hex').slice(0, 16);
+  assert.equal(sha, '24bf7544e2314456');
+  for (const p of Object.values(TUNES.bali.parts)) assert.ok(['reyong', 'gangsa', 'bell', 'jegogan', 'perc'].includes(p.inst) || p.inst === 'suling', `bali got a new instrument: ${p.inst}`);
+});
+
+test('every track has music, and every part of every tune has an instrument that exists', () => {
+  for (const t of TRACKS) assert.ok(resolveTune(t.id), `${t.id} plays nothing`);
+  const insts = new Set([...VOICE_INSTRUMENTS, ...BUFFER_INSTRUMENTS, 'perc']);
+  for (const [name, tune] of Object.entries(TUNES)) {
+    for (const [part, cfg] of Object.entries(tune.parts)) {
+      assert.ok(insts.has(cfg.inst), `${name}/${part}: no instrument ${cfg.inst}`);
+      for (const v of [cfg.voice, ...Object.values(cfg.map ?? {})]) if (v) assert.ok(PERC_VOICES.includes(v), `${name}/${part}: no voice ${v}`);
+    }
+  }
+});
+
+test('the idioms hold: each tune keeps the form and the band its tradition has', () => {
+  const beatsOf = (name, part) => compile(TUNES[name]).events.filter((e) => e.part === part);
+  const partInst = (name) => new Set(Object.values(TUNES[name].parts).map((p) => p.inst));
+  // Java: the gong lands on the last beat of a four gatra cycle in the lancaran, no Balinese bronze and no paired beating
+  const bromo = TUNES.bromo;
+  for (const e of beatsOf('bromo', 'gong').filter((x) => x.beat < 64)) assert.equal(Math.round(e.beat) % 16, 15, `lancaran gong at beat ${e.beat}`);
+  for (const inst of ['gangsa', 'reyong', 'jegogan']) assert.ok(!partInst('bromo').has(inst), `bromo uses the Balinese ${inst}`);
+  assert.ok(bromo.tempo < TUNES.bali.tempo, 'Java is slower and heavier than Bali');
+  // Bucarest limps in seven: 2 + 2 + 3
+  assert.equal(TUNES.bucarest.beats, 3.5);
+  // Transylvania: the kontra plays major triads and sevenths, whatever the tune above it does; no nai up there
+  for (const sec of Object.values(TUNES.bran.sections)) for (const c of sec.harm.split(/[|\s]+/).filter(Boolean)) assert.match(c, /^[A-G](#|b)?$/, `bran chord ${c}`);
+  assert.ok(!partInst('bran').has('naiPipe'));
+  // a band that plays with its hands: no drum kit in the Alpine or Romanian tunes, none of the old live oscillator voices anywhere but Bali's neighbours
+  for (const name of ['antelao', 'pelmo', 'cortina', 'transfagarasan', 'bran', 'bucarest', 'bromo', 'jakarta', 'menu', 'results', 'podium']) {
+    for (const old of ['accordion', 'squeeze', 'clarinet', 'tuba', 'fiddle', 'kontra', 'nai', 'suling']) assert.ok(!partInst(name).has(old), `${name} still uses the old ${old}`);
+    for (const cfg of Object.values(TUNES[name].parts)) assert.notEqual(cfg.voice, 'kick', `${name} still has the drum machine kick`);
   }
 });
 

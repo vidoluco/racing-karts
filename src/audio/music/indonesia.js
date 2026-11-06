@@ -1,11 +1,6 @@
-// Indonesia: two original pieces for an imagined gamelan with kart energy. Bromo sits in a slendro with a slow beating
-// ombak and a suling over the sand; Bali is a quick kebyar in pelog that changes mode in its second part. The degrees are
-// the kepatihan numbers, the tunings are measured-style unequal scales, not a piano.
+// Bali: an original piece for an imagined gamelan with kart energy, a quick kebyar in pelog that changes mode in its second
+// part. The degrees are the kepatihan numbers, the tunings are measured-style unequal scales, not a piano. Bromo moved to java.js.
 import { kotekan, slowKeys, kempyung } from './lib.js';
-
-// slendro: five nearly equal steps, just uneven enough to stay alive
-const SLENDRO = { base: 277, cents: { 1: 0, 2: 232, 3: 476, 5: 724, 6: 958 } };
-const SL = ["1,", "2,", "3,", "5,", "6,", '1', '2', '3', '5', '6', "1'", "2'", "3'", "5'", "6'", "1''", "2''", "3''"];
 
 const SARON = {
   lead: { inst: 'reyong', gain: 1, pan: 0.05, send: 0.14, jitter: 0.07 },
@@ -22,89 +17,17 @@ const SARON = {
   kick: { inst: 'perc', voice: 'kick', gain: 0.23, send: 0.01, loose: 0.002 },
 };
 
-// ---------- Mare di Sabbia: dawn over the caldera ----------
-const BROMO_A_T = "3 5 | 5 1 | 5 6 | 6 6 | 3 5 | 6 2 | 1 3 | 1 2 | 5 1' | 1' 5 | 5 6 | 1' 3 | 3 6 | 5 5 | 3 2 | 6, 2";
-const BROMO_B_T = "5 1' | 2' 6 | 5 2 | 3 3 | 5 1' | 3' 1' | 6 3 | 2 2 | 3 6 | 1' 1' | 5 2' | 3' 3' | 2' 5 | 3 3 | 2 3 | 6, 6,";
-const aKot = kotekan(BROMO_A_T, SL, 'telu');
-const bKot = kotekan(BROMO_B_T, SL, 'nyog');
+// ---------- Terrazze di Bali: a kebyar that bursts, runs and changes mode ----------
+// saih pitu, seven unequal tones. Selisir uses 1 2 3 5 6, the second part moves to 1 2 4 5 7, a brighter and stranger mode.
+const PELOG = { base: 311, cents: { 1: 0, 2: 122, 3: 274, 4: 538, 5: 676, 6: 788, 7: 1046 } };
+const SELISIR = ["1,", "2,", "3,", "5,", "6,", '1', '2', '3', '5', '6', "1'", "2'", "3'", "5'", "6'", "1''", "2''", "3''"];
+const TEMBUNG = ["1,", "2,", "4,", "5,", "7,", '1', '2', '4', '5', '7', "1'", "2'", "4'", "5'", "7'", "1''", "2''", "4''"];
 
 const STRUCT = {
   gong: '................|................|................|............x...',
   kempur: '................|........x.......|................|................',
   kemong: '....x.......x...|....x...........|....x.......x...|....x...........',
 };
-
-export const bromo = {
-  name: 'bromo', tempo: 150, beats: 4, scale: SLENDRO,
-  parts: SARON,
-  sections: {
-    A: {
-      bars: 16,
-      lead: `6,e 1 2 3 5q 3e 5 | 6q 5e 3 2q 1 | 2e 3 5 6 1'q 6e 5 | >6h 3e 5 6q |
-             6,e 1 2 3 5q 3e 5 | 1'q 6e 5 3q 2 | 3e 5 3 2 1q 2e 3 | >1h 6,e 1 2q |
-             3q 5e 6 1'q 2' | 3'q 2'e 1' 6q 5 | 6e 1' 6 5 3q 5e 6 | >1'h 6e 5 3q |
-             2q 3e 5 6q 1' | 2'e 1' 6 5 6q 5e 3 | 2e 3 5 3 2q 1e 2 | >6,h 6,q 1e 2`,
-      polos: aKot.polos,
-      sangsih: aKot.sangsih,
-      bass: slowKeys(BROMO_A_T, 'h'),
-      perc: {
-        ...STRUCT,
-        kendang: 'd..t.pt.d..t.pk.|d..t.pt.d.tt.pk.',
-        ceng: 'x.x.x.x.x.x.x.x.',
-        kick: 'x...x...x...x...',
-      },
-      fill: { kendang: 'ttppttppdtpkdtpk', ceng: 'x.x.x.x.xxxxxxxx' },
-    },
-    // the sand sea opens: long suling lines, the kotekan drops to a walk, stabs of two keys instead of a chord
-    B: {
-      bars: 16,
-      counter: `5h 6q 1' | 2'h. 1'e 6 | 5q 6 5e 3 2q | 3w |
-                5h 6q 1' | 3'h 2'q 1' | 6q 1'e 6 5q 3 | 2w |
-                3h 5q 6 | 1'h. 2'e 1' | 6q 5e 6 1'q 2' | 3'w |
-                2'q 1' 6 5 | 3h 5e 6 5 3 | 2q 3 5 3 | 6,w`,
-      polos: bKot.polos,
-      sangsih: bKot.sangsih,
-      gender: kempyung(BROMO_B_T.replaceAll("1'", '1').replaceAll("2'", '2').replaceAll("3'", '3'), SL, 'long'),
-      bass: slowKeys(BROMO_B_T, 'push'),
-      perc: {
-        gong: '................|................|................|............x...|................|................|................|............x...',
-        kempur: '................|........x.......',
-        kemong: '........x.......',
-        kendang: 'd.......t..p..t.|d.....t.t..p.kt.',
-        ceng: '....x.......x...',
-        kick: 'x.......x.......',
-      },
-      fill: { kendang: 'dttpdttpkkppttdd', ceng: 'x.x.x.x.xxxxxxxx' },
-    },
-    // the vents: everyone together, sudden stops, the kendang alone in the gaps
-    C: {
-      bars: 8,
-      lead: `1'e 1' rq 2'e 1' rq | 3'e r 3' r 2'e 1' 6 5 | 1'e 1' rq 2'e 1' rq | 5'e r 5' r 3'e 2' 1' 6 |
-             5e 6 1' 2' 3' 5' 3' 2' | 1'q 6 5 3 | 2e 3 5 6 1' 2' 3' 5' | >6'h rh`,
-      bass: "1e 1 rq 2e 1 rq | 3e r 3 r 2e 1 6, 5, | 1e 1 rq 2e 1 rq | 5e r 5 r 3e 2 1 6, | 5h 2h | 1h 5,h | 2h 5h | >6h rh",
-      perc: {
-        gong: 'x...............|................|x...............|................|x...............|................|................|x...............',
-        kempur: '................|........x.......',
-        kendang: '....tpkt....tpkk|.t.t.t.tdtpkdtpk|....tpkt....ttkk|.t.t.t.tdtpkdtpk|d.tpd.tpd.tpd.tp|d.tpd.tpdtpkdtpk|ddttppkkddttppkk|X.......dtpkdtpk',
-        ceng: 'x.x.....x.x.....|................|x.x.....x.x.....|................|x.x.x.x.x.x.x.x.',
-      },
-    },
-  },
-  form: [
-    { s: 'A', label: 'A', dyn: 0.96 },
-    { s: 'B', label: 'B', dyn: 0.88 },
-    { s: 'A', label: "A'" },
-    { s: 'C', label: 'Vents', dyn: 1.06 },
-    { s: 'B', label: "B'", dyn: 0.9 },
-    { s: 'A', label: 'A last', dyn: 1.05 },
-  ],
-};
-
-// ---------- Terrazze di Bali: a kebyar that bursts, runs and changes mode ----------
-// saih pitu, seven unequal tones. Selisir uses 1 2 3 5 6, the second part moves to 1 2 4 5 7, a brighter and stranger mode.
-const PELOG = { base: 311, cents: { 1: 0, 2: 122, 3: 274, 4: 538, 5: 676, 6: 788, 7: 1046 } };
-const SELISIR = ["1,", "2,", "3,", "5,", "6,", '1', '2', '3', '5', '6', "1'", "2'", "3'", "5'", "6'", "1''", "2''", "3''"];
-const TEMBUNG = ["1,", "2,", "4,", "5,", "7,", '1', '2', '4', '5', '7', "1'", "2'", "4'", "5'", "7'", "1''", "2''", "4''"];
 
 const KEBYAR = {
   ...SARON,

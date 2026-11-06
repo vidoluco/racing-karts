@@ -2,6 +2,7 @@
 // thread only places notes. Struck and plucked ones are rendered once per pitch into a buffer, because a physical
 // string or an inharmonic bar is cheap as a loop in JS and impossible as a node graph.
 import { TAU, rng32, hash, samples, clamp, lerp, fade, normalize, mixInto, svf, noise, applyEnv, perc, tone, karplus, hammer, metalVoice, dcBlock } from './dsp.js';
+import { MODELS, MODEL_PERC, MODEL_NAMES } from './models.js';
 
 const CACHE_BYTES = 160 * 1024 * 1024;
 
@@ -241,6 +242,7 @@ const PERC = {
   gong(sr) { return renderGong(sr, 62, { dur: 5.5, decay: 1.5, ombak: 2.4, wah: 0.02, thump: 0.42, modes: [[2.02, 0.42, 0.6, 0.02], [2.71, 0.2, 0.38], [4.13, 0.09, 0.18], [5.36, 0.05, 0.1]] }, 11); },
   kempur(sr) { return renderGong(sr, 168, { dur: 2.6, decay: 0.72, ombak: 3.2, wah: 0.012, thump: 0.28, modes: [[1.98, 0.3, 0.5], [2.71, 0.16, 0.3], [4.2, 0.06, 0.16]] }, 12); },
   kemong(sr) { return renderGong(sr, 470, { dur: 1.2, decay: 0.3, ombak: 4, wah: 0, thump: 0.12, modes: [[2.03, 0.22, 0.5], [3.1, 0.08, 0.3]] }, 13); },
+  ...MODEL_PERC,
 };
 
 function cowbell(sr, rand, f) {
@@ -265,7 +267,7 @@ function kendang(sr, rand, f, decay, slap, dur) {
 
 // ---------- the synth object ----------
 export const VOICE_INSTRUMENTS = ['accordion', 'squeeze', 'clarinet', 'tuba', 'fiddle', 'kontra', 'nai', 'suling'];
-export const BUFFER_INSTRUMENTS = ['tambal', 'bassPluck', 'gangsa', 'reyong', 'jegogan', 'bell'];
+export const BUFFER_INSTRUMENTS = ['tambal', 'bassPluck', 'gangsa', 'reyong', 'jegogan', 'bell', ...MODEL_NAMES];
 export const PERC_VOICES = Object.keys(PERC);
 export const renderPerc = (name, sr) => PERC[name](sr, rng32(hash(name)));
 
@@ -348,6 +350,7 @@ export function createSynth(ctx, mix) {
     if (inst === 'tambal') return store(key, renderTambal(sr, f));
     if (inst === 'bassPluck') return store(key, renderBassPluck(sr, f));
     if (BAR[inst]) return store(key, renderBar(inst, sr, f));
+    if (MODELS[inst]) return store(key, MODELS[inst].render(sr, f));
     return null;
   }
 
@@ -396,7 +399,7 @@ export function createSynth(ctx, mix) {
     const R = ctx.createStereoPanner(); R.pan.value = width; R.connect(input);
     // a bellows never holds still: the whole hand breathes, slower than any note
     let bellows = null;
-    if (inst === 'accordion' || inst === 'squeeze') {
+    if (inst === 'accordion' || inst === 'squeeze' || MODELS[inst]?.bellows) {
       bellows = ctx.createOscillator();
       bellows.frequency.value = cfg.breath ?? 0.31;
       const depth = ctx.createGain();
@@ -636,10 +639,41 @@ export function createSynth(ctx, mix) {
   // How long a struck voice keeps ringing past its written note: gamelan players damp with the other hand.
   const DAMP = { gangsa: [2.1, 0.12], reyong: [2.4, 0.09], jegogan: [3, 0.4], bell: [5, 0.3], tambal: [9, 0.5], bassPluck: [1.15, 0.16] };
 
+  // A modelled sustained note: one buffer, one gain. A slur starts past the attack and fades in, a slide bends the playback rate,
+  // and a note longer than the buffer goes round the stretch of sustain the model left ready for it.
+  function sustained(part, m, ev, when) {
+    const buf = bufferFor(part.inst, ev.f);
+    if (!buf) return;
+    const s = ctx.createBufferSource();
+    s.buffer = buf;
+    const g = ctx.createGain();
+    const gain = ev.vel * 0.8;
+    const off = when + Math.max(m.min, ev.durS * m.hold);
+    if (off > when + buf.duration - 0.03) {
+      if (m.loop) { s.loop = true; s.loopStart = m.loop[0]; s.loopEnd = m.loop[1]; }
+    }
+    const offset = ev.legato ? m.skip : 0;
+    if (ev.legato) {
+      g.gain.setValueAtTime(0, when);
+      g.gain.linearRampToValueAtTime(gain, when + 0.008);
+    } else g.gain.setValueAtTime(gain, when);
+    g.gain.setValueAtTime(gain, off);
+    g.gain.linearRampToValueAtTime(0, off + m.rel);
+    if (ev.slide && m.slide) {
+      s.playbackRate.setValueAtTime(m.slide[0], when);
+      s.playbackRate.exponentialRampToValueAtTime(1, when + m.slide[1]);
+    }
+    s.connect(g).connect(part.input);
+    s.start(when, offset);
+    s.stop(off + m.rel + 0.005);
+  }
+
   // ---------- one note ----------
   function note(part, ev, t) {
     const inst = part.inst;
     const when = Math.max(t, ctx.currentTime);
+    const model = !ev.voice && MODELS[inst];
+    if (model?.hold) { sustained(part, model, ev, when); return; }
     const n = { t: when, dur: ev.durS, f: ev.f, vel: ev.vel, slide: ev.slide };
     const v = VOICES[inst];
     if (v) { v(part, n); return; }
@@ -650,7 +684,7 @@ export function createSynth(ctx, mix) {
     const g = ctx.createGain();
     const gain = ev.vel * (ev.voice ? 0.9 : 0.8);
     g.gain.setValueAtTime(gain, when);
-    const damp = !ev.voice && DAMP[inst];
+    const damp = !ev.voice && (DAMP[inst] ?? model?.damp);
     let end = when + buf.duration;
     if (damp) {
       const off = when + Math.max(damp[1], ev.durS * damp[0]);

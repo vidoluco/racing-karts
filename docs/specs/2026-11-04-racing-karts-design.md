@@ -199,9 +199,11 @@ Bots (`bot.js`): follow the racing line (precomputed by smoothing the centre lin
 
 | Difficulty | Speed cap vs player's kart | Mistakes | Items | Rubber band |
 |---|---|---|---|---|
-| `easy` | 0.91 | often wide, brakes in corners, ignores shortcuts | late, wasteful | gentle: waits for you |
-| `medium` | 0.94 | sometimes | sensible | light |
-| `hard` (Difficilissimo) | 0.965 | almost never, drifts every corner, tier 2+ turbos | held and timed: razzo when close, uova when under pressure, shields with mici | catches up and never waits |
+| `easy` | 0.87 | every few seconds, runs wide, no drifts, ignores shortcuts | late, wasteful | waits for the slowest person, no last lap sprint, never pushes a bot ahead of a person |
+| `medium` | 0.91 (0.93 on a long track) | often wide, brakes in corners, ignores shortcuts | late, wasteful | gentle |
+| `hard` (Difficilissimo) | 0.95 | seldom, drifts most corners | sensible, held and timed | catches up, light at the front |
+
+The row that was `hard` (0.965) left the menu after the players' evening of 06/11/2026 and stays as `expert` for tools and tests. On every level a bot ahead of every person is never sped up. Measured with `tools/ladder.mjs`, drivers in `test/helpers/drivers.mjs`, targets in `test/balance.test.mjs`.
 
 Caps changed on 06/11/2026 from a first guess of 0.84, 0.94, 1.02, measured against scripted drivers: `docs/progress/balance.md`.
 
@@ -514,7 +516,7 @@ Reconnection keeps working as in Summit Descent: a phone that comes back takes i
 4. **Race**: a flyover with the track name, countdown, race. When all humans finish (or 30 s after the leader with only bots left), results.
 5. **Results and podium**: time table, points in Gran Premio (10, 8, 6, 5, 4, 3, 2, 1), a podium scene with the top three karts and the drivers cheering, confetti. Rematch or change track by phone or TV. Gran Premio (asked by the owner 04/11/2026): the players choose how many tracks and which ones, from 2 up to all of them, on the phone or the TV, with quick presets (a region, all, random N); the order is the order picked; cumulative table after each race, a final podium.
 
-On the TV the results lead to the podium by themselves after 9 s, or at a press, unless a Gran Premio has more races. Under the TV's podium of a single race the phones stay on their `results` screen, which is the one that offers rematch and change track; the phone's `podium` screen is the end of a Gran Premio. Gran Premio from the phone: confirming a track adds or removes it from the list (the host answers with `menu {lock:false}`), confirming the `random` card starts it, and a list that is too short is filled with a random draw. A phone gone 15 s has a bot driving its kart until it returns; its seat is given up after 60 s or on the way to the lobby.
+On the TV the results lead to the podium by themselves after 9 s, or at a press, unless a Gran Premio has more races. Under the TV's podium of a single race the phones stay on their `results` screen, which is the one that offers rematch and change track; the phone's `podium` screen is the end of a Gran Premio. Gran Premio from the phone: confirming a track adds or removes it from the list (the host answers with `menu {lock:false}`), confirming the `random` card starts it, and a list that is too short is filled with a random draw. A phone gone has a bot driving its kart until it returns, the TV says who is offline with a 120 s clock, and past that the seat stands until the game is back in the lobby: the same phone returns to it, a new phone takes it.
 
 `window.__game` also has `speed` (fast forward), `counts` (events by type), `rescue(i)`, `draw()`, `skipFlyover()`, `setScript(fn)`, `setAuto(on)`, `drive(i)`, `setPaused(on)`, `next(kind)`, `give`, `teleport`, `spinItem`, and more query params (`players`, `views`, `laps`, `seed`, `lang`, `flyover=0`, `countdown`, `manual=1`, `quality`): see `docs/testing.md`. `tools/shoot-ui.mjs` shoots every TV screen and audits the text on it.
 

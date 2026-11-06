@@ -86,6 +86,7 @@ export function createInput(transport, {
       const p = pads[m.slot];
       if (!p.connected) return;
       Object.assign(p, fresh(), { connected: false });
+      keyboard?.forget?.(m.slot); // the phone had the slot: keys touched meanwhile were never anyone's
     } else if (m.t !== 'full') {
       return;
     }
@@ -125,6 +126,8 @@ export function createInput(transport, {
     on(fn) { listeners.add(fn); return () => listeners.delete(fn); },
     color(slot) { return validSlot(slot) ? pads[slot].color : null; },
     padConnected(slot) { return validSlot(slot) && pads[slot].connected; },
+    // A pad still connected that has not spoken for staleMs: a Wi-Fi stall, or a phone about to be dropped.
+    padStale(slot) { return validSlot(slot) && pads[slot].connected && now() - pads[slot].at > staleMs; },
     dispose() { if (typeof off === 'function') off(); keyboard?.dispose?.(); },
   };
 }

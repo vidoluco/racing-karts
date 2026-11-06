@@ -108,12 +108,14 @@ test('slot 0 gone at the results: the next phone gets working buttons and a real
   await tv.waitForFunction(() => window.__game.phase === 'results', null, { timeout: 200000 });
   const [a, b, c] = pads;
   await Promise.all(pads.map((p) => p.page.waitForFunction(() => window.__pad.screen === 'sResults', null, { timeout: 10000 })));
-  assert.equal(await a.page.locator('#resBtns').isVisible(), true, 'slot 0 has the buttons');
-  assert.equal(await b.page.locator('#resBtns').isVisible(), false, 'with slot 0 here, slot 1 waits');
+  assert.equal(await a.page.locator('#resMoreBtn').isVisible(), true, 'slot 0 has the other ways out');
+  assert.equal(await b.page.locator('#resMoreBtn').isVisible(), false, 'with slot 0 here, slot 1 has Continue alone');
   await a.ctx.close();
-  await b.page.locator('#resBtns').waitFor({ state: 'visible', timeout: 12000 });
-  assert.equal(await c.page.locator('#resBtns').isVisible(), false, 'slot 2 is not the lowest');
-  assert.equal(await c.page.locator('#resWait').isVisible(), true);
+  await b.page.locator('#resMoreBtn').waitFor({ state: 'visible', timeout: 12000 });
+  assert.equal(await c.page.locator('#resMoreBtn').isVisible(), false, 'slot 2 is not the lowest');
+  assert.equal(await c.page.locator('#resNext').isVisible(), true);
+  await b.page.waitForFunction(() => !document.getElementById('resNext').classList.contains('held')); // a new screen takes no choice for its first moment
+  await b.page.locator('#resMoreBtn').tap();
   await b.page.locator('#resTrack').tap();
   await tv.waitForFunction(() => window.__game.phase === 'vote', null, { timeout: 8000 });
   assert.equal(await tv.evaluate(() => window.__game.error), null);

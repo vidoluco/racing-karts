@@ -1,7 +1,9 @@
 // Racing Karts LAN server: serves dist/, the phone pad, a QR code and the WebSocket room.
 // Usage: node server/index.js [--open]   (PORT env overrides 5191, 0 picks a free one, LAN_IP the address the QR points to,
-// DIST the folder it serves instead of dist/)
+// DIST the folder it serves instead of dist/, TLS=0 turns off the https address on the next port, for tilt steering only,
+// TLS_PORT moves it, TLS_DIR moves its certificate)
 import http from 'node:http';
+import https from 'node:https';
 import { readFile, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { networkInterfaces } from 'node:os';
@@ -11,7 +13,10 @@ import { execFile } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { WebSocketServer } from 'ws';
 import QRCode from 'qrcode';
-import { createRoom, validId } from './room.js';
+import { createRoom, validId, GRACE_MS } from './room.js';
+import { createTelemetry } from './telemetry.js';
+import { createLink } from './link.js';
+import { ensureCert } from './tls.js';
 
 export const DEFAULT_PORT = 5191;
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -64,11 +69,15 @@ export const viaVpn = (ifaces, address) => lanAddresses(ifaces).some((f) => f.ad
 
 export function createServer({
   port = DEFAULT_PORT, host = '0.0.0.0', distDir = join(ROOT, 'dist'),
-  reserveMs = 60000, pingMs = 5000, padSilentMs = 4000, netPollMs = 1000, ifaces = networkInterfaces, log = () => {},
+  reserveMs = GRACE_MS, pingMs = 5000, padSilentMs = 4000, netPollMs = 1000, ifaces = networkInterfaces, log = () => {}, telemetryDir = null,
+  tls = null, // { dir, port, bins }: also listen with TLS, for the phones that steer by tilting. Without openssl it stays http only.
 } = {}) {
   const dist = resolve(distDir);
-  const room = createRoom({ reserveMs, log });
+  const telemetry = createTelemetry({ dir: telemetryDir, log });
+  const room = createRoom({ reserveMs, log, telemetry: telemetry.write });
+  const link = createLink({ room, validId, log });
   let boundPort = port;
+  let tlsServer = null, tlsPort = null, certBusy = false;
 
   const urls = () => {
     const ip = lanAddress(ifaces()) || '127.0.0.1';
@@ -91,17 +100,50 @@ export function createServer({
     if (!addr || addr === netAddr) return false;
     const live = new Set(now);
     // A socket that came in on an address the Mac no longer has is dead, even if nothing has said so yet.
-    for (const ws of wss.clients) {
+    for (const ws of pads()) {
       const on = ws._socket?.localAddress?.replace(/^::ffff:/, '');
       if (ws._role !== 'pad' || !netSeen.has(on) || live.has(on)) continue;
-      room.removePad(ws);
+      room.removePad(ws, 'network');
       ws.terminate();
     }
     const freed = room.releaseAway();
     log(`network changed: ${netAddr} -> ${addr}, ${freed} seats freed`);
     netAddr = addr;
     netSeen = live;
+    refreshCert();
     return true;
+  }
+
+  // The https address: the certificate must carry the address phones reach now.
+  const certFor = () => {
+    let list = {};
+    try { list = ifaces(); } catch {}
+    return ensureCert({ dir: tls.dir, must: lanAddress(list), want: addressesOf(list), ...(tls.bins ? { bins: tls.bins } : {}) });
+  };
+  function refreshCert() {
+    if (!tlsServer || certBusy) return;
+    certBusy = true;
+    certFor().then((pem) => {
+      if (pem && tlsServer) tlsServer.setSecureContext({ key: pem.key, cert: pem.cert });
+    }).catch((e) => log(`certificate not renewed: ${e.message}`)).finally(() => { certBusy = false; });
+  }
+  async function startTls() {
+    let pem = null;
+    try { pem = await certFor(); } catch (e) { log(`no certificate: ${e.message}`); return; }
+    if (!pem) { log('no openssl to make a certificate: http only, tilt steering is off'); return; }
+    const srv = https.createServer({ key: pem.key, cert: pem.cert }, onHttp);
+    srv.on('upgrade', onUpgrade);
+    const wanted = tls.port ?? (boundPort ? boundPort + 1 : 0);
+    await new Promise((ok) => {
+      srv.once('error', (e) => { log(`no https on port ${wanted} (${e.code || e.message}): http only, tilt steering is off`); ok(); });
+      srv.listen(wanted, host, () => {
+        srv.removeAllListeners('error');
+        srv.on('error', (e) => log(`https: ${e.message}`));
+        tlsServer = srv;
+        tlsPort = srv.address().port;
+        ok();
+      });
+    });
   }
 
   async function sendFile(res, file, head) {
@@ -132,19 +174,20 @@ export function createServer({
   };
 
   async function onRequest(req, res) {
+    let url;
+    try { url = new URL(req.url, 'http://x'); } catch { res.writeHead(400); return res.end(); }
+    if (link.handle(req, res, url)) return;
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       res.writeHead(405, { Allow: 'GET, HEAD' });
       return res.end();
     }
-    let url;
-    try { url = new URL(req.url, 'http://x'); } catch { res.writeHead(400); return res.end(); }
     const path = url.pathname;
     const head = req.method === 'HEAD';
 
     if (path === '/api/info') {
       checkNetwork();
       const { lanUrl, padUrl } = urls();
-      return json(res, 200, { lanUrl, padUrl, ...room.status() });
+      return json(res, 200, { lanUrl, padUrl, httpPort: boundPort, tlsPort, ...room.status() });
     }
     if (path === '/qr.svg') {
       const u = url.searchParams.get('u') || urls().padUrl;
@@ -184,16 +227,19 @@ export function createServer({
     return sendFile(res, file, head);
   }
 
-  const server = http.createServer((req, res) => {
+  function onHttp(req, res) {
     onRequest(req, res).catch((e) => {
       log(`request error: ${e.message}`);
       if (!res.headersSent) res.writeHead(500);
       res.end();
     });
-  });
+  }
+  const server = http.createServer(onHttp);
 
   const wss = new WebSocketServer({ noServer: true, maxPayload: 8192 });
-  server.on('upgrade', (req, socket, headBuf) => {
+  // a pad on the https address joins the same room through this, or through the link
+  const pads = () => [...wss.clients, ...link.clients.values()];
+  function onUpgrade(req, socket, headBuf) {
     let url;
     try { url = new URL(req.url, 'http://x'); } catch { return socket.destroy(); }
     const role = url.searchParams.get('role');
@@ -214,15 +260,16 @@ export function createServer({
       } else {
         const given = url.searchParams.get('id');
         room.addPad(ws, validId(given) ? given : randomUUID());
-        ws.on('close', () => room.removePad(ws));
+        ws.on('close', (code) => room.removePad(ws, ws._silent ? `silent ${ws._silent} ms` : `closed ${code}`));
       }
     });
-  });
+  }
+  server.on('upgrade', onUpgrade);
 
   // Phones that sleep do not close their socket: ping and drop the silent ones.
   const heartbeat = setInterval(() => {
-    for (const ws of wss.clients) {
-      if (!ws._alive) { ws.terminate(); continue; }
+    for (const ws of pads()) {
+      if (!ws._alive) { ws._silent ||= pingMs; ws.terminate(); continue; }
       ws._alive = false;
       try { ws.ping(); } catch {}
     }
@@ -234,7 +281,7 @@ export function createServer({
   // speaks that keep-alive (a scripted test pad, an older page) is left to the heartbeat above.
   const liveness = setInterval(() => {
     const now = Date.now();
-    for (const ws of wss.clients) if (ws._role === 'pad' && ws._pings && now - ws._rx > padSilentMs) ws.terminate();
+    for (const ws of pads()) if (ws._role === 'pad' && ws._pings && now - ws._rx > padSilentMs) { ws._silent = now - ws._rx; ws.terminate(); }
   }, Math.max(100, Math.min(1000, padSilentMs / 4)));
   liveness.unref();
   const netPoll = setInterval(checkNetwork, netPollMs);
@@ -243,6 +290,7 @@ export function createServer({
   return {
     room,
     get port() { return boundPort; },
+    get tlsPort() { return tlsPort; },
     urls,
     listen() {
       return new Promise((ok, fail) => {
@@ -250,7 +298,7 @@ export function createServer({
         const onOk = () => {
           server.off('error', onErr);
           boundPort = server.address().port;
-          ok(urls());
+          (tls ? startTls() : Promise.resolve()).catch((e) => log(`https: ${e.message}`)).then(() => ok(urls()));
         };
         server.once('error', onErr);
         server.once('listening', onOk);
@@ -262,11 +310,16 @@ export function createServer({
       clearInterval(liveness);
       clearInterval(netPoll);
       room.close();
-      for (const ws of wss.clients) ws.terminate();
+      for (const ws of pads()) ws.terminate();
+      const secure = tlsServer;
+      tlsServer = null;
       return new Promise((ok) => {
         wss.close();
-        server.close(() => ok());
+        let waits = secure ? 2 : 1;
+        const one = () => { if (--waits === 0) ok(); };
+        server.close(one);
         server.closeAllConnections?.();
+        if (secure) { secure.close(one); secure.closeAllConnections?.(); }
       });
     },
   };
@@ -282,7 +335,11 @@ async function main() {
   if (!existsSync(join(distDir, 'index.html'))) console.warn('Warning: dist/index.html not found, run "npm run build" first.');
   if (!existsSync(join(distDir, 'pad.html'))) console.warn('Warning: dist/pad.html not found, run "npm run build" first.');
 
-  const srv = createServer({ port, distDir, log: (m) => console.log(`  ${m}`) });
+  // the evening's numbers, local and gitignored: TELEMETRY=0 turns them off, TELEMETRY_DIR moves them
+  const telemetryDir = process.env.TELEMETRY === '0' ? null : process.env.TELEMETRY_DIR ? resolve(process.env.TELEMETRY_DIR) : join(ROOT, 'telemetry');
+  const tlsPort = process.env.TLS_PORT ? Number(process.env.TLS_PORT) : undefined;
+  const tls = process.env.TLS === '0' ? null : { dir: process.env.TLS_DIR ? resolve(process.env.TLS_DIR) : join(ROOT, 'certs'), port: tlsPort };
+  const srv = createServer({ port, distDir, telemetryDir, tls, log: (m) => console.log(`  ${m}`) });
   let u;
   try {
     u = await srv.listen();
@@ -297,6 +354,7 @@ async function main() {
   console.log(`  game (this Mac): ${u.localUrl}`);
   console.log(`  game (LAN):      ${u.lanUrl}`);
   console.log(`  phone pad:       ${u.padUrl}`);
+  if (srv.tlsPort) console.log(`  tilt steering:   https://${ip || '127.0.0.1'}:${srv.tlsPort}/pad  (the pad goes there by itself when a player asks for it)`);
   if (!ip) console.log('  No LAN address found: phones need the Mac and the phone on the same Wi-Fi.');
   else if (!process.env.LAN_IP && viaVpn(networkInterfaces(), ip)) {
     console.log('  That address is a VPN tunnel: a phone on the Wi-Fi may not reach it. Turn the VPN off, allow LAN');

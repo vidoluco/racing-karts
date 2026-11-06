@@ -535,7 +535,10 @@ test('a team championship through TV and two phones: sides in the lobby, two rac
   assert.equal(padScore, `${r1.teams.find((T) => T.team === 'a').points} : ${r1.teams.find((T) => T.team === 'b').points}`, 'what the phone says');
 
   // ---------- second race, from the phone ----------
-  await tap(p0, '#resAgain');
+  for (const p of [p0, p1]) {
+    await p.page.waitForFunction(() => window.__pad.menu.advance && !document.getElementById('resNext').classList.contains('held'), null, { timeout: 5000 });
+    await tap(p, '#resNext');
+  }
   await tvIs(tv, 'loading');
   await runRace(tv);
   await endRace(tv);

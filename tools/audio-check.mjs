@@ -7,7 +7,9 @@
 //   node tools/audio-check.mjs --only bran,menu    just these tunes (no effects, no engines)
 //   node tools/audio-check.mjs --no-wav            skip writing the audio files
 //   node tools/audio-check.mjs --stems bali        the level of each part against the whole band, then exit
-import { mkdirSync, writeFileSync } from 'node:fs';
+//   node tools/audio-check.mjs --listen            40 s of every tune into docs/audio/listen/, with a page to judge them by ear
+//   AUDIO_OUT=/some/dir                            write the report and the pictures there instead of docs/audio
+import { mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { deflateSync } from 'node:zlib';
@@ -15,7 +17,8 @@ import { launch } from './harness.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
-const OUT = join(ROOT, 'docs/audio');
+const OUT = process.env.AUDIO_OUT || join(ROOT, 'docs/audio');
+const LISTEN = join(ROOT, 'docs/audio/listen');
 export const SR = 44100;
 const AUTOPLAY = ['--autoplay-policy=no-user-gesture-required'];
 
@@ -25,6 +28,7 @@ import { createAudio } from ${JSON.stringify(join(ROOT, 'src/audio/index.js'))};
 import { TUNES, LOOPING } from ${JSON.stringify(join(ROOT, 'src/audio/music/index.js'))};
 import { compile, lint } from ${JSON.stringify(join(ROOT, 'src/audio/score.js'))};
 import { SFX, DRIVERS } from ${JSON.stringify(join(ROOT, 'src/audio/sfx.js'))};
+import { MODEL_NAMES } from ${JSON.stringify(join(ROOT, 'src/audio/models.js'))};
 import { KART_SOUND } from ${JSON.stringify(join(ROOT, 'src/audio/engine.js'))};
 
 const SR = ${SR};
@@ -81,7 +85,7 @@ function everyStep(ctx, seconds, step, fn) {
 window.RK = {
   list() {
     return {
-      tunes: Object.keys(TUNES), looping: LOOPING, sfx: Object.keys(SFX), karts: Object.keys(KART_SOUND), drivers: Object.keys(DRIVERS),
+      tunes: Object.keys(TUNES), looping: LOOPING, sfx: Object.keys(SFX), karts: Object.keys(KART_SOUND), drivers: Object.keys(DRIVERS), models: MODEL_NAMES,
     };
   },
   lintAll() {
@@ -105,6 +109,18 @@ window.RK = {
       notes: score.events.length, renderMs: performance.now() - t0,
       stats: stats(L, R), pcm: pcm16(L, R),
     };
+  },
+  // A stretch of a tune for human ears. The stingers stop by themselves: they get their length and their tail.
+  async excerpt(name, seconds = 40) {
+    const tune = TUNES[name];
+    const score = compile(tune);
+    const len = tune.once ? Math.min(seconds, (score.totalBeats * 60) / tune.tempo + 4) : seconds;
+    const [L, R] = await renderWith(len, async (audio, hooks, ctx) => {
+      audio.music(name);
+      hooks.pump();
+      everyStep(ctx, len, 0.5, () => hooks.pump());
+    });
+    return { name, seconds: len, stats: stats(L, R), pcm: pcm16(L, R) };
   },
   // How loud each part is alone, against the whole band: a mix table for someone who cannot hear the mix.
   async stems(name) {
@@ -158,7 +174,8 @@ window.RK = {
   },
   // One instrument alone, a slow scale over its range then a fast figure: what each one is made of, for the eye.
   async gallery(inst) {
-    const notes = { accordion: 57, squeeze: 52, clarinet: 52, tuba: 36, fiddle: 57, kontra: 52, nai: 67, suling: 67, tambal: 57, bassPluck: 40, gangsa: 62, reyong: 62, jegogan: 40, bell: 72 };
+    const notes = { accordion: 57, squeeze: 52, clarinet: 52, tuba: 36, fiddle: 57, kontra: 52, nai: 67, suling: 67, tambal: 57, bassPluck: 40, gangsa: 62, reyong: 62, jegogan: 40, bell: 72,
+      steirische: 67, steirischeLH: 55, helikon: 36, acordeon: 60, vioara: 62, primas: 62, kontraBow: 52, gordun: 36, rebab: 62, tehyan: 62, klarinette: 60, taragot: 60, fluegel: 58, tenorhorn: 50, trompete: 62, begleit: 55, basstuba: 34, naiPipe: 69, sulingBamboo: 69, cobza: 50, cimbalom: 57, hackbrett: 67, gitarre: 50, mandolin: 62, contrabas: 36, gardon: 38, saron: 62, peking: 74, demung: 50, slenthem: 38, gender: 62, bonang: 62, kromong: 72, gambang: 67, kenong: 67, kempul: 48 };
     const dur = 7;
     const [L, R] = await renderWith(dur, async (audio, hooks) => {
       const r = hooks.rt;
@@ -682,7 +699,7 @@ export async function runCheck({ only = null, wav = true, images = true, log = c
       }
       report.engineClosest = closest;
       // each instrument alone
-      for (const inst of ['accordion', 'squeeze', 'clarinet', 'tuba', 'fiddle', 'kontra', 'nai', 'suling', 'tambal', 'bassPluck', 'gangsa', 'reyong', 'jegogan', 'bell']) {
+      for (const inst of ['accordion', 'squeeze', 'clarinet', 'tuba', 'fiddle', 'kontra', 'nai', 'suling', 'tambal', 'bassPluck', 'gangsa', 'reyong', 'jegogan', 'bell', ...names.models]) {
         const r = await p.page.evaluate((n) => window.RK.gallery(n), inst);
         const { L, R, bytes } = decode(r.pcm);
         const x = mixDown(L, R);
@@ -727,8 +744,59 @@ function fluctuation(x) {
   return { hz: bestHz, depth: +(best / (mean + 1e-9)).toFixed(2) };
 }
 
+// ---------- the page for the people who can hear ----------
+const LISTEN_NOTES = {
+  bali: 'The reference, unchanged: a Balinese kebyar, interlocking kotekan over a gong cycle.',
+  antelao: 'A Ländler from a valley band: button box with helikon basses, a clarinet in thirds, a guitar on two and three, a yodel leap in the tune.',
+  pelmo: 'A Blasmusik polka in the snow: Flügelhorns in thirds, Tenorhorn answering, afterbeat horns, tuba, bass drum and cymbal, sleigh bells.',
+  cortina: 'A mazurka, the brightest of the Alpine three: clarinet and trumpet over a Hackbrett, the weight of each bar on its second beat.',
+  transfagarasan: 'A sârbă from a taraf of lăutari: running fiddle with grace notes and slides, a nai that takes over, țambal, the cobza chopping the offbeats, a bass fiddle.',
+  bran: 'A Transylvanian string band at night: a raw primás fiddle in a minor tune, a viola sawing major chords on the eighths, a bowed bass, a struck gardon in the fast turn.',
+  bucarest: 'A geampara in 7/8 (2+2+3) from the old town: wet accordion, clarinet with bends, țambal, in the Hijaz mode. It should limp on purpose.',
+  bromo: 'A Javanese gamelan, heavier and slower than Bali, no beating between pairs: sarons, bonangs in imbal, kendhang, a big gong, then a rebab, then the hammered sampak.',
+  jakarta: 'A dangdut with a Betawi band sitting in: the gendang dut and dang, suling and tehyan, mandolin tremolo, gambang and kromong, and the horns of a traffic jam.',
+  menu: 'The lobby, same tune as before on real instruments: button box, then țambal, then gamelan bells, over a village band.',
+  results: 'The short flourish at the end of a race.',
+  podium: 'The podium fanfare: button box, tuba, țambal roll, a gong to close.',
+};
+
+function listenPage(rendered) {
+  const row = (n, s) => `<li><h2>${n}</h2><p>${LISTEN_NOTES[n] ?? ''}</p><audio controls preload="none" src="${n}.wav"></audio><small>${s.toFixed(0)} s</small></li>`;
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Racing Karts music</title>
+<style>body{font:16px/1.45 system-ui,sans-serif;margin:0 auto;max-width:44rem;padding:1rem;background:#fff;color:#1a1a1a}h1{font-size:1.4rem}h2{font-size:1.05rem;margin:0}ul{list-style:none;padding:0}li{padding:.8rem 0;border-top:1px solid #ddd}p{margin:.2rem 0 .5rem}audio{width:100%}small{color:#666}@media (prefers-color-scheme:dark){body{background:#161616;color:#eee}li{border-color:#333}small{color:#999}}</style></head>
+<body><h1>Racing Karts music, for judging by ear</h1><p>These were checked by measurement only: nobody has listened to them yet. Bali is the reference the others are aiming at.</p><ul>
+${rendered.map(([n, s]) => row(n, s)).join('\n')}
+</ul></body></html>\n`;
+}
+
+async function runListen(names, seconds = 40) {
+  mkdirSync(LISTEN, { recursive: true });
+  const code = await bundle();
+  const browser = await launch('swiftshader', { extra: AUTOPLAY });
+  try {
+    const page = await (await browser.newContext()).newPage();
+    await page.goto('about:blank');
+    await page.addScriptTag({ content: code });
+    const all = names ?? (await page.evaluate(() => window.RK.list())).tunes;
+    for (const n of all) {
+      const r = await page.evaluate(([x, s]) => window.RK.excerpt(x, s), [n, seconds]);
+      writeWav(join(LISTEN, `${n}.wav`), decode(r.pcm).bytes);
+      console.log(`${n.padEnd(15)} ${r.seconds.toFixed(0)} s  peak ${r.stats.peak.toFixed(3)}  rms ${db(r.stats.rms)} dB`);
+    }
+  } finally { await browser.close(); }
+  // the page lists whatever is there, so rendering a few tunes again keeps the others on it
+  const order = Object.keys(LISTEN_NOTES);
+  const have = readdirSync(LISTEN).filter((f) => f.endsWith('.wav')).map((f) => f.slice(0, -4)).sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  writeFileSync(join(LISTEN, 'index.html'), listenPage(have.map((n) => [n, (statSync(join(LISTEN, `${n}.wav`)).size - 44) / (SR * 4)])));
+}
+
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
   const args = process.argv.slice(2);
+  if (args.includes('--listen')) {
+    const li = args.indexOf('--only');
+    await runListen(li >= 0 ? args[li + 1].split(',') : null);
+    process.exit(0);
+  }
   const oi = args.indexOf('--only');
   const only = oi >= 0 ? args[oi + 1].split(',') : null;
   const si = args.indexOf('--stems');

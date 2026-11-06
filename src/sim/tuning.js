@@ -92,6 +92,8 @@ export const WALL = {
   restitution: 0.15,
 };
 
+export const SOLID = { margin: 1.1, passes: 5, taper: 1.5, across: 0.7, stallM: 8, stallT: 5, pinnedM: 6, pinnedT: 8, see: 0.7 }; // margin: m round a building's footprint that a kart's centre keeps out of, its flank and not its axle meets the wall. taper: m of shoulder per m along, how sharply the barrier comes in to a building's front. stallM, stallT: a bot touching one that has gained less than this many m of road in this many s gets fetched. pinnedM, pinnedT: a person, who has moved less than this many m. across: how square a face must stand to the road to count as a gable end. see: s ahead a bot near the road's edge looks for one
+
 export const RAZZO = { v: 55, ttl: 8, r: 2.7, seek: 26, lateral: 16, near: 30, clear: 4.5, sweepLong: 2400, leadSafe: 3 }; // sweepLong: m the leader's razzo flies on a long track, not 10 km of it; leadSafe: s the leader is untouchable after firing it
 export const MICI_SHOT = { v: 24, minV: 46, ttl: 3.5, r: 2.2 };
 export const FORMAGGIO = { v: 36, ttl: 9, r: 2.8, overtake: 14 };
@@ -132,18 +134,26 @@ export const TIPSY_WOBBLE = 0.62;
 export const STINK_WOBBLE = 0.5;
 export const QUAKE_WOBBLE = 0.34;    // the road moves under you: steering this far off at the height of an earthquake
 
-// One row per difficulty. Measured with docs/progress/gioco-exp/bal.mjs against scripted drivers, see docs/progress/balance.md; caps replace the spec's first guess of 0.84, 0.94, 1.02.
+// One row per level of the menu. Measured with tools/ladder.mjs against scripted people on a phone (test/helpers/drivers.mjs), held by test/balance.test.mjs.
+// easy: someone new to the game gets to the front. Bots look away and run wide, never use an item well, and the band waits for the slowest person (waitLast); finale: 1 is no last lap sprint, so no band ever brings a bot past cap * (1 + back), 0.92 of a person's top speed.
+// medium is the row easy was until the players of 06/11/2026 called it medium to very hard; hard is the row medium was, a little sharper, because a good driver still won 85% against it. The old hard row left the menu and stays as expert, for tools and tests.
 export const DIFFICULTY = {
   easy: {
-    cap: 0.91, corner: 0.55, driftChance: 0.12, minTier: 1, minCorner: 1.2, mistakeEvery: [4, 9], mistakeT: 2, mistakeAmp: 0.62,
-    itemDelay: [6, 15], smart: false, shortcuts: 0, avoid: 0.25, see: 34, crate: 0.35, pack: 0.02, leadEase: 0.02, back: 0.15, front: -0.13, reach: 60,
-    hunt: { cap: 0.97, corner: 0.62 }, // in Caccia alla Forma there is no band to wait for you, and at the easy table's pace a good driver kept the wheel for most of the match
+    cap: 0.87, corner: 0.51, driftChance: 0, minTier: 1, minCorner: 1.2, mistakeEvery: [3, 7], mistakeT: 2.2, mistakeAmp: 0.8,
+    itemDelay: [8, 18], smart: false, shortcuts: 0, avoid: 0.15, see: 24, crate: 0.25, pack: 0, leadEase: 0.03, back: 0.06, front: -0.2, reach: 50, finale: 1, waitLast: true,
+    hunt: { cap: 0.93, corner: 0.58 },
   },
   medium: {
-    cap: 0.94, corner: 0.75, driftChance: 0.5, minTier: 1, minCorner: 1.0, mistakeEvery: [11, 24], mistakeT: 1.4, mistakeAmp: 0.34,
-    itemDelay: [1.2, 3.5], smart: true, shortcuts: 0.35, avoid: 0.7, see: 72, crate: 0.5, pack: 0.03, leadEase: 0.05, back: 0.14, front: -0.2, reach: 55,
+    cap: 0.91, corner: 0.55, driftChance: 0.12, minTier: 1, minCorner: 1.2, mistakeEvery: [4, 9], mistakeT: 2, mistakeAmp: 0.62,
+    itemDelay: [6, 15], smart: false, shortcuts: 0, avoid: 0.25, see: 34, crate: 0.35, pack: 0.02, leadEase: 0.02, back: 0.15, front: -0.13, reach: 60,
+    hunt: { cap: 0.97, corner: 0.62 }, // in Caccia alla Forma there is no band to wait for you, and at this table's pace a good driver kept the wheel for most of the match
+    long: { cap: 0.93 }, // ten minutes of road forgive a casual driver more than three short laps do: podium 59% at 0.91, against 42% on the short tracks
   },
   hard: {
+    cap: 0.95, corner: 0.8, driftChance: 0.75, minTier: 1, minCorner: 1.0, mistakeEvery: [18, 36], mistakeT: 1.1, mistakeAmp: 0.25,
+    itemDelay: [0.8, 2.4], smart: true, shortcuts: 0.6, avoid: 0.85, see: 90, crate: 0.6, pack: 0.03, leadEase: 0.05, back: 0.14, front: -0.2, reach: 55,
+  },
+  expert: {
     cap: 0.965, corner: 0.84, driftChance: 1, minTier: 2, minCorner: 1, mistakeEvery: [45, 90], mistakeT: 0.7, mistakeAmp: 0.1,
     itemDelay: [0.2, 0.7], smart: true, shortcuts: 1, avoid: 1, see: 120, crate: 0.7, pack: 0.05, leadEase: 0.12, back: 0.06, front: 0, reach: 100,
   },

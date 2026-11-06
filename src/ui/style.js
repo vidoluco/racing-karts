@@ -476,13 +476,24 @@ ${seatVars}
 .rk:has(.scr.pick:not(.hide), .scr.vote:not(.hide), .scr.results:not(.hide), .podscr:not(.hide)) .sticker span { display: none; }
 .rk .toasts { position: absolute; left: 50%; top: ${u(18)}; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: ${u(8)}; z-index: 20; }
 .rk .toasts .pill { font-size: ${u(28)}; animation: rk-toast 4s cubic-bezier(0.25, 1.4, 0.5, 1) both; white-space: nowrap; }
+.rk .offline { display: flex; flex-wrap: wrap; justify-content: center; gap: ${u(8)}; width: max-content; max-width: 92vw; }
+.rk .offline .off { padding: ${u(6)} ${u(18)}; border-radius: ${u(999)}; border: ${u(4)} solid var(--seat); background: var(--paper); color: var(--ink); font-size: ${u(26)}; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rk .offline .off.waits { font-weight: 500; }
 .rk .errcard { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: ${u(900)}; padding: ${u(36)} ${u(50)}; text-align: center; z-index: 30; }
 .rk .errcard h2 { margin: 0 0 ${u(10)}; font-size: ${u(58)}; font-weight: 700; }
 .rk .errcard p { margin: 0; font-size: ${u(32)}; font-weight: 500; }
-.rk .rejoin { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: ${u(6)}; width: ${u(360)}; padding: ${u(16)}; text-align: center; z-index: 20; }
-.rk .rejoin.corner { left: auto; top: auto; right: ${u(24)}; bottom: ${u(24)}; transform: none; }
+.rk .readybar { position: absolute; left: 50%; bottom: ${u(198)}; transform: translateX(-50%); z-index: 6; display: flex; align-items: center; gap: ${u(10)}; height: ${u(38)}; padding: 0 ${u(16)}; border-radius: ${u(999)}; border: ${u(3)} solid var(--ink); background: var(--paper); color: var(--ink); font-size: ${u(22)}; font-weight: 500; white-space: nowrap; }
+.rk .readybar i { font-style: normal; font-weight: 700; padding: 0 ${u(10)}; border-radius: ${u(999)}; border: ${u(3)} solid var(--seat); opacity: 0.72; font-variant-numeric: tabular-nums; }
+.rk .readybar i.on { background: var(--seat); opacity: 1; }
+.rk .readybar b { font-weight: 700; font-variant-numeric: tabular-nums; }
+.rk:has(.podscr:not(.hide)) .readybar { bottom: ${u(134)}; }
+.rk .rejoin { position: absolute; display: flex; flex-direction: column; align-items: center; gap: ${u(6)}; width: ${u(360)}; padding: ${u(16)}; text-align: center; z-index: 20; }
+.rk .rejoin.corner { right: ${u(24)}; bottom: ${u(24)}; }
 .rk:has(.vote.gp:not(.hide)) .rejoin.corner { bottom: ${u(136)}; }
 .rk:has(.vote.gp:not(.hide)) .rejoin.corner img { width: ${u(200)}; height: ${u(200)}; }
+.rk:has(.hudscr:not(.hide)) .rejoin.corner { bottom: ${u(218)}; width: ${u(300)}; }
+.rk:has(.hudscr:not(.hide)) .rejoin.corner img { width: ${u(200)}; height: ${u(200)}; }
+.rk:has(.hudscr:not(.hide) .hv:nth-child(3)) .rejoin.corner { bottom: ${u(24)}; }
 .rk .rejoin img { display: block; width: ${u(300)}; height: ${u(300)}; padding: ${u(10)}; background: #fff; border-radius: ${u(18)}; image-rendering: pixelated; }
 .rk .rejoin b { font-size: ${u(26)}; font-weight: 700; line-height: 1.15; }
 .rk .rejoin span { font-size: ${u(22)}; font-weight: 500; }

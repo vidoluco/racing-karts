@@ -6,7 +6,10 @@
 import { webm, mp4 } from 'nosleep.js/src/media.js';
 import { FREDOKA_WOFF2 } from '../src/ui/font-data.js';
 import { SLOT_COLORS } from '../server/room.js';
-import { pickLang, translator, ordinal, LANG_KEY } from './i18n.js';
+import { pickLang, translator, ordinal, LANGS, LANG_KEY } from './i18n.js';
+import { createTilt, screenAngle } from './tilt.js';
+import { openLink } from './link.js';
+import { stickThrottle, STICK_BRAKE_CONE } from '../src/net/input.js';
 import { KARTS, ROSTER } from '../src/data/karts.js';
 import { TRACKS, loadTrackDef } from '../src/data/tracks.js';
 import { ITEMS, ITEM_IDS } from '../src/data/items.js';
@@ -22,6 +25,7 @@ const SILENT_MS = 3500; // no word from the server this long: the socket is dead
 // hang, which is what an address that went away really does.
 const RESCAN_AFTER = 5;
 const RESCAN_MS = 10000;
+const TOOK_MS = 5000; // how long the phone says whose seat it just took: it has to be read, not glanced at
 const ROULETTE_MS = 1200;
 const RANDOM = 'random';
 const trace = Array.isArray(window.__padTrace) ? window.__padTrace : null;
@@ -66,7 +70,17 @@ function store(key, val) {
   return val ?? null;
 }
 const ID_KEY = 'racing-karts.padId';
-let padId = store(ID_KEY);
+const STEER_KEY = 'racing-karts.steer';
+const LINK_KEY = 'racing-karts.link';
+// Arriving from the pad's other address (http and https): each address has its own storage, so the seat's id and the
+// phone's choices come along in the link, once.
+const carried = new URLSearchParams(location.search);
+const carriedId = /^[A-Za-z0-9_-]{1,64}$/.test(carried.get('pad') || '') ? carried.get('pad') : null;
+if (carriedId) store(ID_KEY, carriedId);
+if (carried.get('steer') === 'gyro' || carried.get('steer') === 'stick') store(STEER_KEY, carried.get('steer'));
+if (LANGS.includes(carried.get('lang'))) store(LANG_KEY, carried.get('lang'));
+if (carriedId) history.replaceState(null, '', location.pathname);
+let padId = carriedId || store(ID_KEY);
 if (!padId || !/^[A-Za-z0-9_-]{1,64}$/.test(padId)) padId = store(ID_KEY, uuid());
 
 // ---------- language: per phone, stored choice or the browser language ----------
@@ -103,6 +117,7 @@ let phase = null;
 let screenName = null;
 let menu = {}; // the host's menu fields, merged
 let hud = null;
+let steerBy = 'stick'; // what the TV's telemetry hears on each welcome: 'stick' or 'gyro'
 
 // ---------- view ----------
 function shade(hex, k) {
@@ -244,9 +259,18 @@ setInterval(() => { if (performance.now() - lastTx >= SEND_MS - 4) sendInput(); 
 
 let lostAt = null;
 const pastBlip = () => retry >= RESCAN_AFTER || (lostAt !== null && performance.now() - lostAt > RESCAN_MS);
+// An https page that may not open a WebSocket to a self-signed address (see server/link.js) goes through the link instead.
+let linkOn = location.protocol === 'https:' && store(LINK_KEY) === '1';
+let wssSeen = false;
+function wssRefused() {
+  if (location.protocol !== 'https:' || linkOn || wssSeen) return false;
+  linkOn = true;
+  store(LINK_KEY, '1');
+  return true;
+}
 function connect() {
   clearTimeout(retryTimer);
-  if (ws) return;
+  if (ws || document.visibilityState === 'hidden') return; // nobody is holding it: resume() connects when somebody is
   replaced = false;
   setNet(false);
   if (!joined) {
@@ -254,10 +278,10 @@ function connect() {
     else overlay('pad.connecting', 'pad.sameWifi');
   }
   let sock;
-  try { sock = new WebSocket(wsUrl()); } catch { return reconnectLater(); }
+  try { sock = linkOn ? openLink(padId) : new WebSocket(wsUrl()); } catch { if (wssRefused()) return connect(); return reconnectLater(); }
   ws = sock;
   lastRx = performance.now();
-  sock.onopen = () => { retry = 0; lostAt = null; lastRx = performance.now(); setNet(true); };
+  sock.onopen = () => { retry = 0; lostAt = null; lastRx = performance.now(); if (!linkOn) wssSeen = true; setNet(true); };
   sock.onmessage = (ev) => {
     lastRx = performance.now();
     let m;
@@ -277,11 +301,12 @@ function connect() {
       overlay('pad.elsewhere', 'pad.elsewhereText', { action: true });
       return;
     }
+    if (wssRefused()) return connect();
     reconnectLater();
   };
 }
 function reconnectLater() {
-  if (replaced) return;
+  if (replaced || document.visibilityState === 'hidden') return; // nobody is holding it: resume() connects when somebody is
   const delay = Math.min(5000, 500 * 2 ** retry++) * (0.8 + Math.random() * 0.4);
   lostAt ??= performance.now();
   if (pastBlip()) overlay('pad.rescan', 'pad.rescanText'); // it keeps trying underneath, for a long blip
@@ -304,11 +329,12 @@ setInterval(() => {
   if (ws.readyState === 1) send({ t: 'ping', ts: Date.now() });
   if (performance.now() - lastRx > SILENT_MS) {
     dropSocket();
+    wssRefused();
     reconnectLater();
   }
 }, PING_MS);
 // The Wi-Fi came back: try now instead of at the end of the backoff.
-addEventListener('online', () => { if (!ws && !replaced) { retry = 0; connect(); } });
+addEventListener('online', () => { if (document.visibilityState !== 'hidden' && !ws && !replaced) { retry = 0; connect(); } });
 
 function onMessage(m) {
   switch (m.t) {
@@ -322,6 +348,8 @@ function onMessage(m) {
       overlay(null);
       vibrate(30);
       sendInput();
+      send({ t: 'mode', input: steerBy });
+      if (m.took) toast(t('pad.tookSeat', { n: slot + 1 }), t('pad.tookSeatText'), TOOK_MS);
       break;
     case 'full':
       joined = false;
@@ -354,12 +382,13 @@ function onMessage(m) {
 }
 
 function onPhase(next) {
+  if (next === 'race') raceStarts(phase === 'loading');
   phase = next;
   if (phase === 'lobby') { kartSel.fresh(); trackSel.fresh(); }
   if (phase === 'pick') { kartSel.fresh(); Object.assign(menu, { kart: null, ready: false, others: [] }); }
-  if (phase === 'vote') { trackSel.fresh(); Object.assign(menu, { track: null, lock: false, spin: null, pick: null, landed: false, others: [] }); }
+  if (phase === 'vote') { trackSel.fresh(); Object.assign(menu, { track: null, lock: false, spin: null, pick: null, landed: false, others: [], gp: null }); }
   if (phase !== 'race') { hud = null; held = { item: null, charges: 0 }; stopRoulette(); paintItem(); showHud(); }
-  if (phase !== 'results' && phase !== 'podium') { menu.forma = null; menu.tt = null; menu.score = null; menu.won = null; } // merged fields stay: the next race's results must not show this trial's
+  if (phase !== 'results' && phase !== 'podium') { menu.forma = null; menu.tt = null; menu.score = null; menu.won = null; menu.advance = null; moreOpen = false; } // merged fields stay: the next race's results must not show this trial's
 }
 
 // ---------- hud and effects ----------
@@ -619,6 +648,10 @@ function stickMove(px, py, e) {
   }
   nx = Math.max(-1, Math.min(1, nx));
   ny = Math.max(-1, Math.min(1, ny));
+  if (steerOn()) { // the thumb only brakes and aims: down is the same cone as with the stick, up is up
+    ny = stickThrottle(nx, ny) < 0 ? -1 : Math.max(0, ny);
+    nx = tiltX(ny);
+  }
   if (Math.abs(nx - st.x) > 0.004 || Math.abs(ny - st.y) > 0.004) {
     st.x = nx;
     st.y = ny;
@@ -666,7 +699,8 @@ function stickEnd(e) {
   if (e && e.pointerId !== stickId) return;
   stickId = null;
   stickRest();
-  if (st.x || st.y) { st.x = 0; st.y = 0; paintAim(); touched(e); changed(true); }
+  const x = steerOn() ? tiltX(0) : 0;
+  if (st.x !== x || st.y) { st.x = x; st.y = 0; paintAim(); touched(e); changed(true); }
 }
 stickEl.addEventListener('pointerup', stickEnd);
 stickEl.addEventListener('pointercancel', stickEnd);
@@ -733,6 +767,201 @@ function releaseAll() {
   const was = st.x || st.y || st.b || st.d;
   st.x = 0; st.y = 0; st.b = 0; st.d = 0;
   if (was) sendInput();
+}
+
+// ---------- steering by turning the phone ----------
+// The stick stays for what a thumb does best here: down brakes, up aims. Sensors need a secure page, and the pad's own
+// address is plain http: choosing this moves the phone to the https one, once, with its seat (see the card below).
+const STEER_SILENT_MS = 2000;
+const STEER_FOLLOW_MS = 2500; // the countdown: a player settling into how they hold it, the last of it is straight ahead
+const MOVED_KEY = 'racing-karts.moved';
+const tilt = createTilt();
+const steer = { want: store(STEER_KEY) === 'gyro' ? 'gyro' : 'stick', listening: false, live: false, ever: false, asking: false, since: 0, lastAt: 0, x: 0 };
+const steerOn = () => steer.want === 'gyro' && steer.live;
+const needsPermission = () => typeof window.DeviceOrientationEvent?.requestPermission === 'function';
+// The host brakes only on a stick that points down, x against y (src/net/input.js). A wheel turned far while the thumb
+// brakes must still read as braking, so y says all of it and x gives up the last of the lock for as long as the brake lasts.
+const tiltX = (y) => (y < 0 ? Math.max(-STICK_BRAKE_CONE + 0.01, Math.min(STICK_BRAKE_CONE - 0.01, steer.x)) : steer.x);
+const session = (fn) => { try { return fn(sessionStorage); } catch { return null; } };
+
+function onTilt(e) {
+  if (!Number.isFinite(e.beta) || !Number.isFinite(e.gamma)) return; // a browser with no sensor says so with nulls
+  const now = performance.now();
+  steer.lastAt = now;
+  steer.ever = true;
+  steer.x = tilt.feed(e.beta, e.gamma, { angle: screenAngle(window), portrait: innerHeight > innerWidth, t: now });
+  if (steer.asking) { steer.asking = false; steer.since = now; steerCard(null); } // an iPhone already allowed it in this session
+  if (!steer.live && stickId === null) { steer.live = true; paintSteer(); }
+  if (!steerOn() || screenName) return;
+  const x = tiltX(st.y);
+  if (Math.abs(x - st.x) > 0.004 || (!x && st.x)) {
+    st.x = x;
+    touched(e);
+    changed(false);
+  }
+  if (stickId === null) { // the knob shows the wheel: nobody has to wonder whether the phone hears them
+    const [rx, ry] = restPoint();
+    place(knobEl, rx + x * R * 0.55, ry);
+    eyes(x * R, 0);
+  }
+}
+function startListening() {
+  if (steer.listening && !steer.asking) return;
+  steer.asking = false;
+  steer.listening = true;
+  steer.ever = false;
+  steer.live = false;
+  steer.since = performance.now();
+  addEventListener('deviceorientation', onTilt);
+}
+function stopListening() {
+  removeEventListener('deviceorientation', onTilt);
+  steer.listening = false;
+  steer.asking = false;
+  steer.live = false;
+  if (st.x && stickId === null) { st.x = 0; changed(true); }
+}
+function setWant(v) { steer.want = v; store(STEER_KEY, v); }
+function steerFallback(why) {
+  stopListening();
+  setWant('stick');
+  steerCard(null);
+  paintSteer();
+  layoutStick();
+  toast(t('pad.gyroOff'), t(why), 3500);
+}
+// Never a word from the sensors since asking: they are not there. A silence later on, during a race, is a stick for now
+// and the wheel again at the first sign of life (Android stays quiet while a phone lies perfectly still, so not in the menus).
+setInterval(() => {
+  if (!steer.listening || steer.asking || document.visibilityState !== 'visible') return;
+  const now = performance.now();
+  if (!steer.ever) {
+    if (now - steer.since > STEER_SILENT_MS) steerFallback('pad.gyroSilent');
+  } else if (steer.live && phase === 'race' && now - steer.lastAt > STEER_SILENT_MS) {
+    steer.live = false;
+    if (st.x && stickId === null) { st.x = 0; changed(true); }
+    paintSteer();
+    layoutStick();
+    toast(t('pad.gyroOff'), t('pad.gyroSilent'), 3000);
+  }
+}, 250);
+function raceStarts(fresh) {
+  steer.lastAt = performance.now();
+  if (fresh) tilt.follow(STEER_FOLLOW_MS, steer.lastAt);
+}
+function paintSteer() {
+  const on = steerOn();
+  document.body.classList.toggle('gyro', on);
+  for (const b of $('steerSeg').children) b.classList.toggle('on', b.dataset.steer === steer.want);
+  $('recenter').classList.toggle('hide', !on || !!screenName || !joined);
+  const hint = $('hint'), key = on ? 'pad.hintGyro' : 'pad.hint';
+  if (hint.dataset.i18n !== key) { hint.dataset.i18n = key; hint.textContent = t(key); hint.classList.remove('gone'); }
+  const by = on ? 'gyro' : 'stick';
+  if (by !== steerBy) { steerBy = by; send({ t: 'mode', input: by }); }
+}
+async function askPermission() {
+  try {
+    if ((await DeviceOrientationEvent.requestPermission()) !== 'granted') return steerFallback('pad.gyroDenied');
+  } catch { return steerFallback('pad.gyroDenied'); }
+  setWant('gyro');
+  steerCard(null);
+  startListening();
+  paintSteer();
+}
+async function addressInfo() {
+  const stop = new AbortController();
+  const timer = setTimeout(() => stop.abort(), 1500);
+  try { return await (await fetch('/api/info', { signal: stop.signal })).json(); } catch { return null; } finally { clearTimeout(timer); }
+}
+const carry = (to) => `pad=${encodeURIComponent(padId)}&steer=${to}&lang=${lang}`;
+async function moveToSecure() {
+  const info = await addressInfo();
+  if (!info?.tlsPort) return false;
+  setWant('gyro');
+  session((s) => s.setItem(MOVED_KEY, '1'));
+  location.assign(`https://${location.hostname}:${info.tlsPort}/pad?${carry('gyro')}`);
+  return true;
+}
+// Back on the http page with the https one never reached: the warning was too much, or it would not open. No going round again.
+function cameBack() {
+  if (window.isSecureContext || steer.want !== 'gyro' || !session((s) => s.getItem(MOVED_KEY))) return false;
+  session((s) => s.removeItem(MOVED_KEY));
+  setWant('stick');
+  paintSteer();
+  toast(t('pad.gyroOff'), t('pad.gyroBack'), 3500);
+  return true;
+}
+async function chooseSteer(mode) {
+  vibrate(10, { touch: true });
+  if (mode === 'stick') {
+    stopListening();
+    setWant('stick');
+    paintSteer();
+    layoutStick();
+    // back to the address the QR gives, or the next scan would be sent to https all over again
+    if (location.protocol === 'https:') {
+      const info = await addressInfo();
+      if (info?.httpPort) location.replace(`http://${location.hostname}:${info.httpPort}/pad?${carry('stick')}`);
+    }
+    return;
+  }
+  if (steer.want === 'gyro' && steer.listening) return;
+  if (!window.isSecureContext) return steerCard('move'); // on a plain http page Chrome does not even have the event
+  if (!('DeviceOrientationEvent' in window)) return steerFallback('pad.gyroMissing');
+  if (needsPermission()) return askPermission(); // this tap is the gesture it asks for
+  setWant('gyro');
+  startListening();
+  paintSteer();
+}
+// The one card: what the move to https is about, or the tap an iPhone wants before it gives its sensors.
+let cardKind = null;
+function steerCard(kind) {
+  cardKind = kind;
+  $('steerCard').classList.toggle('hide', !kind);
+  if (!kind) return;
+  $('scTitle').textContent = t(kind === 'move' ? 'pad.moveTitle' : 'pad.permTitle');
+  $('scText').textContent = t(kind === 'move' ? 'pad.moveText' : 'pad.permText');
+  $('scGo').textContent = t(kind === 'move' ? 'pad.moveGo' : 'pad.permGo');
+}
+for (const b of $('steerSeg').children) b.addEventListener('click', () => chooseSteer(b.dataset.steer));
+$('scStay').addEventListener('click', () => { steerCard(null); chooseSteer('stick'); });
+$('scGo').addEventListener('click', async () => {
+  vibrate(14, { touch: true });
+  if (cardKind === 'perm') return askPermission();
+  $('scGo').disabled = true;
+  const moved = await moveToSecure();
+  $('scGo').disabled = false;
+  if (!moved) steerFallback('pad.gyroNoHttps');
+});
+$('recenter').addEventListener('pointerdown', (e) => {
+  e.preventDefault();
+  tilt.recenter();
+  vibrate(14, { touch: true });
+  toast(t('pad.recentered'), '', 700);
+});
+window.addEventListener('pageshow', (e) => { if (e.persisted) cameBack(); });
+// A page that opens with the choice already made.
+async function boot() {
+  if (steer.want === 'gyro' && !window.isSecureContext) {
+    if (!cameBack()) {
+      overlay('pad.connecting', 'pad.sameWifi');
+      if (await moveToSecure()) return;
+      setWant('stick');
+      toast(t('pad.gyroOff'), t('pad.gyroNoHttps'), 3500);
+    }
+  }
+  connect();
+  if (steer.want !== 'gyro') return;
+  if (!('DeviceOrientationEvent' in window)) return steerFallback('pad.gyroMissing');
+  if (!needsPermission()) return startListening();
+  // Safari, and Chrome since 151, give nothing until asked, and a phone that said yes earlier may say it again without a tap.
+  // If not, the card asks for the tap; and an event says it was allowed all along, and takes the card away.
+  startListening();
+  steer.asking = true;
+  let allowed = false;
+  try { allowed = (await DeviceOrientationEvent.requestPermission()) === 'granted'; } catch {}
+  if (allowed) startListening();
+  else if (steer.asking) steerCard('perm');
 }
 
 // ---------- carousels: kart pick and track vote ----------
@@ -1032,6 +1261,7 @@ function paintScreen() {
     if (id) releaseAll();
     else layoutStick();
   }
+  paintSteer();
   if (id === 'sLobby') paintOptions();
   else updateWho();
   if (id === 'sKart') paintKart();
@@ -1092,9 +1322,14 @@ function paintTrack() {
   $('verdict').textContent = landed ? t('pad.verdict', { name: trackName(menu.pick) }) : deciding ? t('pad.roll') : '';
   paintWxVote();
   const btn = $('voteBtn');
-  btn.textContent = trackSel.ready ? t('pad.unvote') : t('pad.vote');
-  btn.classList.toggle('done', trackSel.ready);
+  // composing a Gran Premio: the button adds and takes away, and the way off is its own button
+  const gp = menu.gp, focus = trackCar.focus;
+  btn.textContent = gp ? (focus === RANDOM ? t('pad.gpGo', { n: gp.races }) : t(gp.list.includes(focus) ? 'pad.gpRemove' : 'pad.gpAdd')) : trackSel.ready ? t('pad.unvote') : t('pad.vote');
+  btn.classList.toggle('done', !gp && trackSel.ready);
   btn.disabled = deciding;
+  $('sTrack').classList.toggle('gp', !!gp);
+  $('gpGoBtn').classList.toggle('hide', !gp || deciding || focus === RANDOM);
+  if (gp) $('gpGoBtn').textContent = t('pad.gpGo', { n: gp.races });
 }
 // the sky can still change on the vote, by whoever holds the options
 const WX_LABEL = { clear: 'pad.wxClear', rain: 'pad.wxRain', snow: 'pad.wxSnow', fog: 'pad.wxFog', surprise: 'pad.wxSurprise' }, WX_ORDER = Object.keys(WX_LABEL);
@@ -1119,6 +1354,10 @@ $('wxNight').addEventListener('click', () => {
   vibrate(10, { touch: true });
   send({ t: 'opt', night: !!menu.night });
   paintTrack();
+});
+$('gpGoBtn').addEventListener('click', () => {
+  vibrate([20, 30, 40], { touch: true });
+  send({ t: 'vote', track: RANDOM, lock: true }); // to the host's rules the random card has always meant "enough, off we go"
 });
 $('voteBtn').addEventListener('click', () => {
   if (menu.spin || menu.pick) return;
@@ -1156,21 +1395,65 @@ function paintResults() {
     $('resTeam').querySelector('span')?.remove();
     if (menu.won) { const s = document.createElement('span'); s.textContent = menu.won === menu.team ? t('pad.teamWon') : t('pad.teamLost', { team: teamName(menu.won, lang) }); $('resTeam').append(s); }
   }
-  const edit = canEdit();
-  $('resBtns').classList.toggle('hide', !edit);
-  $('resWait').classList.toggle('hide', edit);
-  const podium = phase === 'podium';
-  $('resAgain').textContent = podium ? t('pad.toLobby') : t('pad.rematch');
-  $('resTrack').classList.toggle('hide', podium);
+  paintAdvance();
 }
-$('resAgain').addEventListener('click', () => {
-  vibrate(25, { touch: true });
-  send({ t: 'opt', next: phase === 'podium' ? 'lobby' : 'rematch' });
+// One big Continue for every phone, and what it will lead to. Whoever holds the options has the other ways out, behind a second
+// tap. A screen that has just appeared takes no press for a moment: a thumb still racing lands right where the button comes up.
+const ADVANCE_HOLD = 800;
+let advanceTurn = null;
+let advanceFrom = 0;
+let advanceTimer = 0;
+let moreOpen = false;
+const advanceHeld = () => performance.now() < advanceFrom;
+function paintAdvance() {
+  const a = menu.advance, edit = canEdit();
+  if (a && a.turn !== advanceTurn) {
+    advanceTurn = a.turn;
+    advanceFrom = performance.now() + ADVANCE_HOLD;
+    moreOpen = false; // the choices were for the screen before: "do not wait" under the same finger would mean something else now
+    clearTimeout(advanceTimer);
+    advanceTimer = setTimeout(() => { if (screenName === 'sResults') paintAdvance(); }, ADVANCE_HOLD + 20);
+  }
+  const open = !!a && edit && moreOpen;
+  $('resGo').classList.toggle('hide', !a || open);
+  $('resInfo').classList.toggle('hide', open);
+  $('resMoreBtn').classList.toggle('hide', !a || !edit || open);
+  $('resBtns').classList.toggle('hide', !open);
+  if (!a) return;
+  const btn = $('resNext');
+  btn.textContent = t(a.mine ? 'pad.advanceUndo' : 'pad.advance');
+  btn.classList.toggle('done', !!a.mine);
+  btn.classList.toggle('held', advanceHeld());
+  const what = a.kind === 'podium' ? t('pad.advancePodium') : a.next ? t('pad.advanceRace', { name: trackName(a.next) }) : t('pad.advanceAgain');
+  const many = a.of > 1;
+  $('resWait').textContent = a.mine && many ? t('pad.advanceWait', { n: a.ready, of: a.of }) : many && a.ready ? `${what}, ${t('pad.advanceCount', { n: a.ready, of: a.of })}` : what;
+  $('resSkip').classList.toggle('hide', !many);
+  $('resAgain').classList.toggle('hide', !a.more);
+  $('resTrack').classList.toggle('hide', !a.more);
+}
+$('resNext').addEventListener('click', () => {
+  const a = menu.advance;
+  if (!a || advanceHeld()) return;
+  a.mine = !a.mine;
+  a.ready = Math.max(0, a.ready + (a.mine ? 1 : -1)); // the host's echo is a moment away: this finger should not have to wait for it
+  vibrate(a.mine ? [20, 30, 40] : 12, { touch: true });
+  send({ t: 'advance', on: a.mine, turn: a.turn });
+  paintAdvance();
 });
-$('resTrack').addEventListener('click', () => {
+$('resMoreBtn').addEventListener('click', () => { moreOpen = true; vibrate(10, { touch: true }); paintAdvance(); });
+$('resClose').addEventListener('click', () => { moreOpen = false; vibrate(10, { touch: true }); paintAdvance(); });
+$('resSkip').addEventListener('click', () => {
+  if (!menu.advance || advanceHeld()) return;
   vibrate(25, { touch: true });
-  send({ t: 'opt', next: 'track' });
+  send({ t: 'advance', on: true, skip: true, turn: menu.advance.turn });
 });
+for (const [id, next] of [['resAgain', 'rematch'], ['resTrack', 'track'], ['resLobby', 'lobby']]) {
+  $(id).addEventListener('click', () => {
+    if (advanceHeld()) return;
+    vibrate(25, { touch: true });
+    send({ t: 'opt', next });
+  });
+}
 
 // ---------- page hygiene: no zoom, no scroll, screen awake ----------
 for (const ev of ['gesturestart', 'gesturechange', 'dblclick', 'contextmenu', 'selectstart']) {
@@ -1225,9 +1508,10 @@ async function keepAwake() {
   try { await sleepVideo.play(); awake = 'video'; } catch { awake = null; }
 }
 // A tap is a user gesture only once the finger lifts: the screen lock, full screen and landscape wait for that.
-function activate() {
+function activate(e) {
   keepAwake();
-  if (gestured) return;
+  // full screen uses up the tap's user gesture, and the sensors' permission asks for that very gesture
+  if (gestured || e?.target?.closest?.('#steerCard, #steerSeg')) return;
   gestured = true;
   const el = document.documentElement;
   try { el.requestFullscreen?.({ navigationUI: 'hide' })?.catch?.(() => {}); } catch {}
@@ -1235,18 +1519,28 @@ function activate() {
 }
 document.addEventListener('pointerup', activate, true);
 document.addEventListener('touchend', activate, true);
+// Back from a lock or another app, with no reload: a socket that heard nothing all that time is gone even if it says open.
+// How long it was away does not matter here: the seat waits, and the backoff and the "scan again" clock start over.
+function resume() {
+  if (document.visibilityState === 'hidden' || replaced) return;
+  retry = 0;
+  lostAt = null;
+  steer.since = steer.lastAt = performance.now();
+  if (ws && performance.now() - lastRx > PING_MS * 2) dropSocket();
+  if (!ws) connect();
+}
+// Leaving the browser: say so while it can still be said, so that the TV knows at once and not only when the silence runs out.
+function park() {
+  releaseAll();
+  clearTimeout(retryTimer);
+  dropSocket(); // any socket: one still connecting or in the queue would sit down as online in the pocket, and the TV would wait for it
+}
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    keepAwake();
-    if (replaced) return;
-    // Back from a lock or another app: a socket that heard nothing all that time is gone even if it says open.
-    if (ws && performance.now() - lastRx > PING_MS * 2) dropSocket();
-    if (!ws) { retry = 0; connect(); }
-  } else {
-    releaseAll();
-  }
+  if (document.visibilityState === 'visible') { keepAwake(); resume(); } else park();
 });
-window.addEventListener('pagehide', releaseAll);
+window.addEventListener('pagehide', park);
+window.addEventListener('pageshow', resume); // back from the browser's page cache, which may not say visibilitychange
+window.addEventListener('focus', resume);
 
 $('ovBtn').addEventListener('click', () => { replaced = false; retry = 0; connect(); });
 $('lang').addEventListener('pointerdown', (e) => e.stopPropagation());
@@ -1277,6 +1571,7 @@ window.__pad = {
   state: st, geometry,
   get slot() { return slot; }, get joined() { return joined; }, get lang() { return lang; }, get phase() { return phase; },
   get pulses() { return pulses; }, get awake() { return awake; }, get screen() { return screenName; }, get menu() { return menu; },
+  get steer() { return { want: steer.want, on: steerOn(), listening: steer.listening, x: steer.x, degrees: tilt.degrees, centre: tilt.centre, frame: tilt.frame, link: linkOn, card: cardKind }; },
   get item() { return { held: held.item, charges: held.charges, rolling: !!rolling, name: $('itemName').textContent }; },
   get carousel() {
     if (screenName === 'sKart') return carouselApi(kartCar, kartSel, 'readyBtn');
@@ -1286,4 +1581,5 @@ window.__pad = {
 };
 applyLang();
 layoutStick();
-connect();
+paintSteer();
+boot();

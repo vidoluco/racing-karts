@@ -39,7 +39,8 @@ const shuffled = (list, rng) => {
   }
   return a;
 };
-const freshSeat = () => ({ present: false, away: false, source: null, kart: null, ready: false, track: null, lock: false, team: null });
+// away: its phone is gone right now. expired: gone longer than the grace; during a game the seat still stands, see free().
+const freshSeat = () => ({ present: false, away: false, expired: false, source: null, kart: null, ready: false, track: null, lock: false, team: null, go: false });
 
 export function createFlow({ karts, tracks, regions = {}, rng = Math.random, rules = FLOW, opts = {}, secret = [] } = {}) {
   let trackIds = [...tracks];
@@ -59,13 +60,25 @@ export function createFlow({ karts, tracks, regions = {}, rng = Math.random, rul
     raceNo: 0,
     readyT: null,
     resultsT: 0,
+    turn: 0,        // counts the screens: a press from a screen that has gone by does not count on the next one
   };
   const out = [];
   const emit = (e) => { out.push(e); };
 
   const present = () => S.seats.map((s, i) => (s.present ? i : -1)).filter((i) => i >= 0);
   const active = () => S.seats.map((s, i) => (s.present && !s.away ? i : -1)).filter((i) => i >= 0);
-  const setPhase = (phase) => { if (S.phase !== phase) { S.phase = phase; emit({ type: 'phase', phase }); } };
+  const setPhase = (phase) => { if (S.phase !== phase) { S.phase = phase; S.turn++; for (const s of S.seats) s.go = false; emit({ type: 'phase', phase }); } };
+  // The phones that are here. A screen waits for these: a keyboard seat is waited for only with no phone at the table, or
+  // a key pressed once on the Mac would have everyone get up from the sofa.
+  const phones = () => S.seats.map((s, i) => (s.present && !s.away && s.source === 'pad' ? i : -1)).filter((i) => i >= 0);
+  const waited = () => (phones().length ? phones() : active());
+  const atTheEnd = () => S.phase === 'results' || S.phase === 'podium';
+  const moveOn = () => (api.advanceKind === 'podium' ? api.toPodium() : api.next(api.advanceKind));
+  // Everyone here has pressed Continue. Nobody here: nobody is pressing either, and the screen stays.
+  function checkAdvance() {
+    const who = phones();
+    return atTheEnd() && who.length > 0 && who.every((i) => S.seats[i].go) && moveOn();
+  }
   const clearVote = () => { Object.assign(S.vote, { phase: 'open', t: 0, pick: null, spin: null, landed: false, winner: -1, candidates: [], steps: 0, from: 0, length: 0 }); };
   const clearBallots = () => { for (const s of S.seats) { s.track = null; s.lock = false; } };
   const clearPicks = () => { for (const s of S.seats) { s.kart = null; s.ready = false; } };
@@ -157,7 +170,7 @@ export function createFlow({ karts, tracks, regions = {}, rng = Math.random, rul
     startRoll(cands);
   }
   function voteReady() {
-    const a = active();
+    const a = waited();
     return a.length > 0 && a.every((i) => S.seats[i].lock);
   }
 
@@ -198,8 +211,10 @@ export function createFlow({ karts, tracks, regions = {}, rng = Math.random, rul
   // Bots take the karts nobody chose first, in a shuffled order. Humans start in the back half, not dead last: a good
   // driver from last on the grid against the hardest bots rarely gets back through the pack.
   function buildField() {
-    // a phone gone before the start does not race; with every phone gone, the seats still make a field
-    const seated = active().length ? active() : present();
+    // A phone gone a moment ago races: the autopilot has its kart and it takes it back on return. One past its grace sits this
+    // one out, with its seat still there for the next; with every phone gone, the seats still make a field.
+    const inGrace = present().filter((i) => !S.seats[i].expired);
+    const seated = inGrace.length ? inGrace : present();
     balanceTeams();
     const teams = teamMode();
     const humans = seated.map((slot) => ({ slot, human: true, kart: S.seats[slot].kart || karts[slot % karts.length], ...(teams ? { team: S.seats[slot].team } : {}) }));
@@ -217,6 +232,18 @@ export function createFlow({ karts, tracks, regions = {}, rng = Math.random, rul
     }
     const at = Math.max(0, bots.length - 2);
     return [...bots.slice(0, at), ...humans, ...bots.slice(at)];
+  }
+  // A Gran Premio keeps its field, but someone who sat the first race out and is here now takes a bot's place, on their side.
+  function admitLate(field) {
+    for (const slot of active()) {
+      if (field.some((p) => p.human && p.slot === slot)) continue;
+      const seat = S.seats[slot], teams = teamMode();
+      let at = field.findLastIndex((p) => !p.human && (!teams || p.team === seat.team));
+      if (at < 0) at = field.findLastIndex((p) => !p.human);
+      if (at < 0 && field.length >= FIELD) continue;
+      const entry = { slot, human: true, kart: seat.kart || karts[slot % karts.length], ...(teams ? { team: seat.team } : {}) };
+      if (at < 0) field.push(entry); else field[at] = entry;
+    }
   }
   const keyOf = (p) => (p.human ? `p${p.slot}` : `b${p.kart}`);
   // Between Gran Premio races the grid follows the table upside down: the last of the table starts in front.
@@ -239,6 +266,10 @@ export function createFlow({ karts, tracks, regions = {}, rng = Math.random, rul
     get weather() { return S.raceWeather ?? null; }, // { kind, night } of the race being run, null for a plain one
     present,
     active,
+    // Who is here right now: a screen waiting for people waits for these and nobody else.
+    online: active,
+    phones,
+    isOnline: (slot) => !!S.seats[slot]?.present && !S.seats[slot].away,
     get humans() { return present().length; },
     // tools: straight to the loading screen of a track, with the seats as they are
     quick(track) { S.track = track; S.raceWeather = skyOfRace(); S.results = null; S.phase = 'loading'; if (teamMode()) S.gp = newGp([track]); },
@@ -262,7 +293,7 @@ export function createFlow({ karts, tracks, regions = {}, rng = Math.random, rul
       const s = S.seats[slot];
       if (!s) return false;
       const back = s.present;
-      s.present = true; s.away = false; s.source = source;
+      s.present = true; s.away = false; s.expired = false; s.source = source;
       balanceTeams();
       emit({ type: back ? 'back' : 'join', slot });
       return true;
@@ -273,16 +304,27 @@ export function createFlow({ karts, tracks, regions = {}, rng = Math.random, rul
       const s = S.seats[slot];
       if (!s || !s.present) return false;
       s.away = true;
+      s.go = false; // only a phone that is here counts, and one that left is not waited for
       emit({ type: 'leave', slot });
+      checkAdvance();
       if (S.phase === 'pick' && S.readyT === null) api.checkPicks();
       if (S.phase === 'vote' && !gpMode() && voteReady()) closeVote();
       return true;
     },
-    // Its reservation ran out, or it never raced: the seat is empty again.
+    // The grace ran out. Nothing changes for the game: the kart, the side and the points wait for that phone or a new one.
+    expire(slot) {
+      const s = S.seats[slot];
+      if (!s?.present || !s.away) return false;
+      s.expired = true;
+      emit({ type: 'expired', slot });
+      return true;
+    },
+    // Only the lobby really empties a seat. Everywhere else a kart, a results row or a line of the table has its name on it,
+    // and a Gran Premio's next race would hand the kart to nobody, so the seat stands until the game comes back here.
     free(slot) {
       const s = S.seats[slot];
       if (!s || !s.present) return false;
-      if (S.phase === 'race' || S.phase === 'loading') return false; // a kart is out there: results still need the name
+      if (S.phase !== 'lobby') return false;
       S.seats[slot] = freshSeat();
       emit({ type: 'free', slot });
       return true;
@@ -345,7 +387,8 @@ export function createFlow({ karts, tracks, regions = {}, rng = Math.random, rul
       return api.pick(slot, kart, true);
     },
     checkPicks() {
-      const a = active();
+      // with every phone gone the seats count, or a click on the TV could never move this screen on
+      const a = waited().length ? waited() : present();
       const all = a.length > 0 && a.every((i) => S.seats[i].ready && S.seats[i].kart);
       S.readyT = all ? (S.readyT ?? 0) : null;
       return all;
@@ -417,7 +460,7 @@ export function createFlow({ karts, tracks, regions = {}, rng = Math.random, rul
     // ---------- the race ----------
     // The players for createRace, in grid order, built once per race. A Gran Premio keeps its field across the races.
     field() {
-      if (S.gp?.field) return (S.field = gpGrid(S.gp.field));
+      if (S.gp?.field) { admitLate(S.gp.field); return (S.field = gpGrid(S.gp.field)); }
       const field = buildField();
       if (S.gp) S.gp.field = field;
       S.field = field;
@@ -496,8 +539,8 @@ export function createFlow({ karts, tracks, regions = {}, rng = Math.random, rul
       if (kind === 'lobby') {
         S.gp = null; S.list = []; S.track = null; S.results = null; S.field = null; S.resultsT = 0;
         clearPicks(); clearBallots(); clearVote();
-        // a phone that left and never came back gives its seat up here
-        S.seats.forEach((s, i) => { if (s.present && s.away) S.seats[i] = freshSeat(); });
+        // a phone past its grace gives its seat up here; one that only blinked keeps it until its grace ends
+        S.seats.forEach((s, i) => { if (s.present && s.expired) S.seats[i] = freshSeat(); });
         setPhase('lobby');
         return true;
       }
@@ -512,6 +555,25 @@ export function createFlow({ karts, tracks, regions = {}, rng = Math.random, rul
       if (kind === 'track') { enterVote(); return true; }
       return false;
     },
+    // What the green way forward is right now: the next race of a championship, the podium that comes by itself anyway, and
+    // from there, or from a time trial's table, the same again. The keyboard, the phones and "skip the wait" all take this one.
+    get advanceKind() { return S.phase === 'results' && !api.gpMore && S.opts.mode !== 'time' ? 'podium' : 'rematch'; },
+    // A phone says it is done with this screen (on) or takes it back. turn: the screen it saw.
+    advance(slot, on = true, turn = S.turn) {
+      const s = S.seats[slot];
+      if (!atTheEnd() || turn !== S.turn || !s?.present || s.away || s.source !== 'pad' || s.go === !!on) return false;
+      s.go = !!on;
+      emit({ type: 'advance', slot });
+      checkAdvance();
+      return true;
+    },
+    // Whoever holds the options need not wait for the rest.
+    skipWait(slot, turn = S.turn) {
+      if (!atTheEnd() || turn !== S.turn || slot !== api.authority()) return false;
+      return moveOn();
+    },
+    // Who has pressed, of whom: for the TV.
+    advanceState() { const of = phones(); return { ready: of.filter((i) => S.seats[i].go), of }; },
     // Back out of a race in progress (the pause menu).
     quit() {
       if (S.phase !== 'race' && S.phase !== 'loading') return false;
@@ -550,14 +612,16 @@ export function createFlow({ karts, tracks, regions = {}, rng = Math.random, rul
         case 'pick': return { karts: pickable(), kart: seat.kart, ready: seat.ready, others: others('kart', 'ready'), ...side };
         case 'vote': {
           const v = S.vote;
-          return { tracks: [...trackIds], track: seat.track, lock: seat.lock, others: others('track', 'lock'), spin: v.phase === 'roll' && !v.landed ? v.spin : null, pick: v.phase !== 'open' ? v.pick : null, landed: !!v.landed, ...side, ...(S.opts.mode === 'time' ? {} : { weather: S.opts.weather ?? 'clear', night: !!S.opts.night }) };
+          return { tracks: [...trackIds], track: seat.track, lock: seat.lock, others: others('track', 'lock'), spin: v.phase === 'roll' && !v.landed ? v.spin : null, pick: v.phase !== 'open' ? v.pick : null, landed: !!v.landed, ...side, ...(gpMode() ? { gp: { list: [...S.list], races: S.list.length >= gpMin() && S.list.length ? S.list.length : Math.min(trackIds.length, Math.max(gpMin(), rules.gpRandom)) } } : {}), ...(S.opts.mode === 'time' ? {} : { weather: S.opts.weather ?? 'clear', night: !!S.opts.night }) };
         }
         case 'results':
         case 'podium': {
           const row = (rows || S.results?.rows || []).find((r) => r.slot === slot);
           const table = api.teamTable();
           const score = table.length ? { team: row?.team ?? seat.team, score: Object.fromEntries(table.map((T) => [T.team, T.points])), won: S.gp.finished ? table[0].team : null } : {};
-          return { place: row?.place ?? 0, time: row?.time ?? null, edit: slot === api.authority(), ...(row?.tt ? { tt: row.tt } : {}), ...(row?.forma ? { forma: row.forma } : {}),...(S.unlocked !== undefined ? { unlocked: S.unlocked } : {}), ...score };
+          const here = phones();
+          const advance = { turn: S.turn, mine: !!seat.go, ready: here.filter((i) => S.seats[i].go).length, of: here.length, kind: api.advanceKind, more: !api.gpMore, ...(api.nextTrack ? { next: api.nextTrack } : {}) };
+          return { place: row?.place ?? 0, time: row?.time ?? null, edit: slot === api.authority(), advance, ...(row?.tt ? { tt: row.tt } : {}), ...(row?.forma ? { forma: row.forma } : {}),...(S.unlocked !== undefined ? { unlocked: S.unlocked } : {}), ...score };
         }
         default: return {};
       }
@@ -637,6 +701,23 @@ export function createHudFeed({ every = 0.2 } = {}) {
       return true;
     },
   };
+}
+
+// What the autopilot does with the kart of a player whose phone is away: the bot's brain keeps it on the road and moving, a
+// little under race pace, with no turbo and no item: those stay for the player, and it is not there to win their race for them.
+export const AWAY_CRUISE = 0.86; // of the kart's top speed
+export const awayDrive = (a) => ({ steer: a.steer, throttle: a.throttle, item: false, drift: false });
+
+// The seats the TV has to say are offline: [{ slot, left }], left in whole seconds, null once past the grace.
+// since[slot]: when it left, on the same clock as now.
+export function offlineList(seats, since, now, graceMs) {
+  const out = [];
+  seats.forEach((s, slot) => {
+    if (!s.present || !s.away || s.source !== 'pad') return;
+    const left = s.expired ? 0 : Math.ceil((graceMs - (now - (since[slot] ?? now))) / 1000);
+    out.push({ slot, left: left > 0 ? left : null });
+  });
+  return out;
 }
 
 // The sim's karts as results rows; a kart still out on the road gets no time.

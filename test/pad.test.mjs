@@ -308,6 +308,46 @@ test('four real pad pages join with four colours, the fifth waits and takes a fr
   await ctx.close();
 });
 
+test('a page out of the browser holds no seat as online, not while connecting and not from the queue', { skip: !hasBrowser && 'no chromium' }, async (t) => {
+  const { srv, h } = await room(t, { reserveMs: 500 });
+  h.send({ t: 'game', on: true, phase: 'results' }); // a seat past its grace stands, as at the results where it was seen
+  const slots = () => srv.room.status().slots;
+  const setVisible = (page, ...states) => page.evaluate((list) => { for (const v of list) { Object.defineProperty(document, 'visibilityState', { value: v, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); } }, states);
+  const p = await phone(srv);
+  await setVisible(p.page, 'hidden');
+  await p.page.waitForFunction(() => !window.__pad.joined);
+  // a quick flick through the apps: back and away again in one breath, so it leaves in the middle of the handshake
+  await setVisible(p.page, 'visible', 'hidden');
+  await sleep(600);
+  assert.deepEqual(await p.page.evaluate(() => [document.visibilityState, window.__pad.joined]), ['hidden', false]);
+  assert.equal(slots()[0].connected, false, 'the TV is told it is offline, and no screen waits for it');
+  await setVisible(p.page, 'visible');
+  await p.page.waitForFunction(() => window.__pad.joined && window.__pad.slot === 0, null, { timeout: 3000 });
+  assert.equal(slots()[0].connected, true);
+
+  // the queue: it steps out when the page goes, a seat running out does not go to a pocket, and on return it has that seat
+  const others = [];
+  for (const id of ['two', 'three', 'four']) others.push(await pad(srv, id));
+  const fifth = await (await browser.newContext({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true, locale: 'en-US' })).newPage();
+  t.after(() => fifth.context().close());
+  await fifth.goto(`${srv.base}/pad`);
+  await fifth.waitForFunction((s) => document.getElementById('ovTitle').textContent === s, en['pad.full']);
+  assert.equal(srv.room.status().waiting, 1);
+  await setVisible(fifth, 'hidden');
+  for (let i = 0; i < 40 && srv.room.status().waiting; i++) await sleep(25);
+  assert.equal(srv.room.status().waiting, 0, 'out of the queue while away');
+  await others[2].close();
+  await sleep(800);
+  assert.equal(await fifth.evaluate(() => window.__pad.joined), false, 'the seat that ran out was not given to a hidden page');
+  assert.equal(slots()[3].connected, false);
+  await setVisible(fifth, 'visible');
+  await fifth.waitForFunction(() => window.__pad.joined && window.__pad.slot === 3, null, { timeout: 3000 });
+  assert.equal(slots()[3].connected, true);
+  assert.match(await fifth.textContent('#toastBig'), /You took Player 4's seat/);
+  assert.deepEqual(p.errors, []);
+  await p.ctx.close();
+});
+
 test('a dead connection: the phone says so, reconnects by itself and keeps its slot; pings keep it alive', { skip: !hasBrowser && 'no chromium' }, async (t) => {
   const { srv, h } = await room(t);
   const first = await phone(srv);
@@ -577,28 +617,90 @@ test('track vote: carousel, random card, lock, the verdict follows the coin', { 
   await p.ctx.close();
 });
 
-test('results: slot 0 chooses what comes next, a guest waits, the podium goes back to the lobby', { skip: !hasBrowser && 'no chromium' }, async (t) => {
+test('results: everyone has one big Continue, a second press undoes it; the other ways out are Player 1\'s, behind a second tap and far from it', { skip: !hasBrowser && 'no chromium' }, async (t) => {
   const { srv, h } = await room(t);
   const a = await phone(srv);
   const b = await phone(srv);
+  const adv = (over = {}) => ({ turn: 5, mine: false, ready: 0, of: 2, kind: 'rematch', more: true, next: 'bran', ...over });
   for (const s of [0, 1]) {
     h.send({ t: 'phase', slot: s, phase: 'results' });
-    h.send({ t: 'menu', slot: s, place: s + 1, time: 125.25 });
+    h.send({ t: 'menu', slot: s, place: s + 1, time: 125.25, edit: s === 0, advance: adv() });
   }
   await a.page.waitForFunction(() => window.__pad.screen === 'sResults' && document.getElementById('resPlace').textContent);
   await b.page.waitForFunction(() => window.__pad.screen === 'sResults' && document.getElementById('resPlace').textContent);
   assert.equal(await a.page.textContent('#resPlace'), '1st');
   assert.match(await a.page.textContent('#resTime'), /2:05\.[23]/);
-  assert.equal(await b.page.locator('#resBtns').isVisible(), false);
-  assert.equal(await b.page.locator('#resWait').isVisible(), true);
+  for (const p of [a, b]) {
+    assert.equal(await p.page.textContent('#resNext'), 'Continue');
+    assert.match(await p.page.textContent('#resWait'), /^Next race: /);
+  }
+  assert.equal(await b.page.locator('#resMoreBtn').isVisible(), false, 'a guest has only the big button');
+  assert.equal(await a.page.locator('#resMoreBtn').isVisible(), true);
+  assert.equal(await a.page.locator('#resBtns').isVisible(), false);
+  // a thumb still racing when the screen came up: the first tap counts for nothing. A new screen, and the tap in the very moment
+  // it is seen held: on a busy machine the steps above take longer than the hold itself
+  h.send({ t: 'menu', slot: 1, advance: adv({ turn: 4 }) });
+  await b.page.waitForFunction(() => {
+    const btn = document.getElementById('resNext');
+    if (window.__pad.menu.advance.turn !== 4 || !btn.classList.contains('held')) return false;
+    btn.click();
+    return true;
+  }, null, { polling: 5 });
+  assert.equal(await h.none('advance', 150), true, 'a press in the first moment is dropped');
+  h.send({ t: 'menu', slot: 1, advance: adv() });
+  await b.page.waitForFunction(() => window.__pad.menu.advance.turn === 5 && !document.getElementById('resNext').classList.contains('held'));
+  await tapEl(b, '#resNext');
+  assert.deepEqual(await h.next('advance', 2000), { t: 'advance', slot: 1, on: true, turn: 5 });
+  assert.equal(await b.page.textContent('#resNext'), 'Undo');
+  h.send({ t: 'menu', slot: 1, advance: adv({ mine: true, ready: 1 }) });
+  await b.page.waitForFunction(() => /Waiting for the others: 1 of 2/.test(document.getElementById('resWait').textContent));
+  h.send({ t: 'menu', slot: 0, advance: adv({ ready: 1 }) });
+  await a.page.waitForFunction(() => /1 of 2 ready/.test(document.getElementById('resWait').textContent));
+  await tapEl(b, '#resNext');
+  assert.deepEqual(await h.next('advance', 2000), { t: 'advance', slot: 1, on: false, turn: 5 });
+  // Player 1's second tap: the big button is gone while the choices are open
+  await tapEl(a, '#resMoreBtn');
+  assert.equal(await a.page.locator('#resNext').isVisible(), false);
+  await tapEl(a, '#resSkip');
+  assert.deepEqual(await h.next('advance', 2000), { t: 'advance', slot: 0, on: true, skip: true, turn: 5 });
   await tapEl(a, '#resAgain');
   assert.deepEqual(await h.next('opt', 2000), { t: 'opt', slot: 0, next: 'rematch' });
   await tapEl(a, '#resTrack');
   assert.deepEqual(await h.next('opt', 2000), { t: 'opt', slot: 0, next: 'track' });
-  h.send({ t: 'phase', slot: 0, phase: 'podium' });
-  await a.page.waitForFunction(() => document.getElementById('resAgain').textContent === 'Back to the lobby');
-  await tapEl(a, '#resAgain');
+  await tapEl(a, '#resLobby');
   assert.deepEqual(await h.next('opt', 2000), { t: 'opt', slot: 0, next: 'lobby' });
+  await tapEl(a, '#resClose');
+  assert.equal(await a.page.locator('#resNext').isVisible(), true);
+  // alone there is nobody to skip; a championship under way has neither a rematch nor another track to offer
+  await tapEl(a, '#resMoreBtn');
+  h.send({ t: 'menu', slot: 0, advance: adv({ of: 1, more: false }) });
+  await a.page.waitForFunction(() => !document.getElementById('resSkip').checkVisibility());
+  assert.equal(await a.page.locator('#resAgain').isVisible(), false);
+  assert.equal(await a.page.locator('#resTrack').isVisible(), false);
+  assert.equal(await a.page.locator('#resLobby').isVisible(), true);
+  // the next screen coming under a thumb (a skip tapped twice, the podium by itself): the choices of the screen before close, and
+  // the new one holds for its moment, the choices as much as the big button
+  h.send({ t: 'menu', slot: 0, advance: adv({ turn: 6 }) });
+  const atOnce = await a.page.waitForFunction(() => {
+    const next = document.getElementById('resNext'), panel = document.getElementById('resBtns');
+    if (window.__pad.menu.advance.turn !== 6 || !next.classList.contains('held')) return false;
+    const seen = { next: next.checkVisibility(), panel: panel.checkVisibility() };
+    document.getElementById('resMoreBtn').click();
+    for (const id of ['resSkip', 'resAgain', 'resTrack', 'resLobby']) document.getElementById(id).click();
+    return { ...seen, reopened: panel.checkVisibility() };
+  }, null, { polling: 5 });
+  assert.deepEqual(await atOnce.jsonValue(), { next: true, panel: false, reopened: true }, 'nothing of the screen before stays under the finger; the choices may open, but take nothing yet');
+  assert.equal(await h.none('advance', 150), true, 'a skip in the first moment is dropped');
+  assert.equal(await h.none('opt', 50), true, 'and so is a way out');
+  await a.page.waitForFunction(() => !document.getElementById('resNext').classList.contains('held'));
+  await tapEl(a, '#resSkip');
+  assert.deepEqual(await h.next('advance', 2000), { t: 'advance', slot: 0, on: true, skip: true, turn: 6 });
+  await tapEl(a, '#resClose');
+  h.send({ t: 'phase', slot: 0, phase: 'podium' });
+  h.send({ t: 'menu', slot: 0, edit: true, advance: adv({ turn: 8, kind: 'rematch', next: undefined }) });
+  await a.page.waitForFunction(() => window.__pad.menu.advance.turn === 8 && document.getElementById('resNext').checkVisibility() && document.getElementById('resNext').classList.contains('held'));
+  assert.match(await a.page.textContent('#resWait'), /^Playing it again/);
+  assert.deepEqual(a.errors, []);
   await a.ctx.close();
   await b.ctx.close();
 });
@@ -626,7 +728,7 @@ const LAYOUT = () => {
       if (r.width && r.height) boxes.push({ sel, l: r.left, t: r.top, r: r.right, b: r.bottom });
     }
   };
-  for (const sel of ['#wxVote', '#top .chip', '#lang', '#net', '#item', '#drift', '#base', '#hud', '#hint', '#hintDrift', '#hintItem', '#upTag', '#optCard', '#goBtn', '#goWait', '#readyBtn', '#voteBtn', '.ttl', '#resPlace', '#resTime', '#resBtns button', '#resWait', '.kc.on', '.tc.on', '.dots']) box(sel);
+  for (const sel of ['#wxVote', '#top .chip', '#lang', '#net', '#item', '#drift', '#base', '#hud', '#hint', '#hintDrift', '#hintItem', '#upTag', '#optCard', '#goBtn', '#goWait', '#steerBox', '#recenter', '#readyBtn', '#voteBtn', '.ttl', '#resPlace', '#resTime', '#resTeam', '#resUnlock', '#resNext', '#resMoreBtn', '#resBtns button', '#resWait', '#gpGoBtn', '.kc.on', '.tc.on', '.dots']) box(sel);
   const off = boxes.filter((b) => b.l < -0.5 || b.t < -0.5 || b.r > innerWidth + 0.5 || b.b > innerHeight + 0.5).map((b) => b.sel);
   const overlaps = [];
   for (let i = 0; i < boxes.length; i++) {
@@ -768,9 +870,28 @@ test('every screen fits: text at least 13 px, no overlap, nothing off screen, bo
       assert.ok(await page.evaluate(() => { const w = document.getElementById('wxVote'); return w.checkVisibility() && document.getElementById('wxCycle').checkVisibility() && document.getElementById('wxNight').checkVisibility(); }), `${name} ${locale}: the sky buttons show`);
       say({ t: 'menu', spin: 'transfagarasan', pick: 'transfagarasan', landed: true });
       await check('track-verdict');
+      say({ t: 'menu', edit: true, weather: 'clear', night: false, spin: null, pick: null, landed: false, gp: { list: ['bali'], races: 3 } });
+      await check('track-gp');
+      assert.ok(await page.evaluate(() => document.getElementById('gpGoBtn').checkVisibility()), `${name} ${locale}: a Gran Premio can start from here`);
+      say({ t: 'menu', edit: false });
+      await check('track-gp-guest');
       say({ t: 'phase', phase: 'results' });
-      say({ t: 'menu', place: 2, time: 187.4, edit: true });
+      const advance = { turn: 7, mine: false, ready: 1, of: 2, kind: 'rematch', more: true, next: 'transfagarasan' };
+      say({ t: 'menu', place: 2, time: 187.4, edit: true, advance });
       await check('results');
+      // the big button and the corner one: a thumb on one does not touch the other
+      const gap = await page.evaluate(() => { const a = document.getElementById('resNext').getBoundingClientRect(), b = document.getElementById('resMoreBtn').getBoundingClientRect(); return Math.max(a.left - b.right, b.left - a.right, a.top - b.bottom, b.top - a.bottom); });
+      assert.ok(gap >= 24, `${name} ${locale}: ${gap} px between Continue and More`);
+      // everything the screen can hold at once: a team score at the end and a family kart won
+      say({ t: 'menu', team: 'a', score: { a: 18, b: 14 }, won: 'a', unlocked: 'baileys' });
+      await check('results-full');
+      say({ t: 'menu', team: null, score: null, won: null, unlocked: null, advance: { ...advance, mine: true } });
+      await check('results-waiting');
+      assert.ok(await page.evaluate(() => { document.getElementById('resMoreBtn').click(); return document.getElementById('resLobby').checkVisibility(); }), `${name} ${locale}: the choices open`);
+      await check('results-more');
+      await page.evaluate(() => document.getElementById('resClose').click());
+      say({ t: 'menu', edit: false });
+      await check('results-guest');
       assert.deepEqual(errors, []);
       await ctx.close();
       await Promise.all(others.map((o) => o.close()));

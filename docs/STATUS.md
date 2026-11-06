@@ -17,9 +17,9 @@ Playable, and still being finished. All of this was checked by automated tests i
 
 | Measure | Result |
 |---|---|
-| Easy, casual driver | wins about 60% of races, by under a second |
-| Medium, casual driver | average place about 5 |
-| Hard, very good driver | wins about a quarter |
+| Easy | casual driver wins 96%, podium 100%, a beginner podium 78% |
+| Medium | casual driver podium about 44%, a good driver wins 94% |
+| Very hard | casual driver podium 11%, a good driver wins 58% |
 | Karts | none above 18% of wins at medium |
 
 ## Known problems

@@ -26,9 +26,10 @@ export function freePort() {
 }
 
 // `node server/index.js` on a free port; resolves once it prints its URLs. log gets every line it prints.
-export async function startServerProcess({ port, dist, log = () => {} } = {}) {
+// tls: also its https address on the next port (off by default: tests start many of these, and it takes a free neighbour).
+export async function startServerProcess({ port, dist, log = () => {}, tls = false, tlsDir = null } = {}) {
   port ||= await freePort();
-  const proc = spawn(process.execPath, ['server/index.js'], { cwd: ROOT, env: { ...process.env, PORT: String(port), ...(dist ? { DIST: dist } : {}) }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const proc = spawn(process.execPath, ['server/index.js'], { cwd: ROOT, env: { TELEMETRY: '0', ...process.env, TLS: tls ? '1' : '0', PORT: String(port), ...(dist ? { DIST: dist } : {}), ...(tlsDir ? { TLS_DIR: tlsDir } : {}) }, stdio: ['ignore', 'pipe', 'pipe'] });
   const out = [];
   const onLine = (b) => { for (const l of b.toString().split('\n')) if (l.trim()) { out.push(l); log(l); } };
   proc.stdout.on('data', onLine);
