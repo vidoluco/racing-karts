@@ -488,8 +488,11 @@ test('from the lobby to the podium by phone, on a short clock: the wheel on the 
   await tv.evaluate(() => window.__game.next('lobby'));
   await tvIs('lobby', 8000);
   await padIs('lobby');
-  await sleep(300);
+  // back from the podium the phone's options take no tap for a moment, so that a double tap on the results never lands on one:
+  // a tap in that moment is dropped, the mode stays Forma and the laps row stays off and takes no tap at all
+  await phone.page.waitForFunction(() => window.__pad.lobbyHeld === false, null, { timeout: 5000 });
   await tap('.seg[data-key="mode"] button[data-v="race"]');
+  await tv.waitForFunction(() => window.__game.flowApi.opts.mode === 'race', null, { timeout: 5000 });
   await tap('.seg[data-key="laps"] button[data-v="2"]');
   await tv.waitForFunction(() => window.__game.flowApi.opts.mode === 'race' && window.__game.flowApi.opts.laps === 2, null, { timeout: 5000 });
   await toTheRoad();

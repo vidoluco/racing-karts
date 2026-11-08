@@ -92,6 +92,8 @@ test('sanitizers keep only what the contract allows', () => {
   assert.deepEqual(sanitizeOpt({ t: 'opt', bots: -3 }), { bots: 0 });
   assert.deepEqual(sanitizeOpt({ t: 'opt', difficulty: 'nightmare', laps: 4, bots: 1.5, go: true }), { go: true });
   assert.deepEqual(sanitizeOpt({ t: 'opt', next: 'rematch' }), { next: 'rematch' });
+  assert.deepEqual(sanitizeOpt({ t: 'opt', next: 'lobby', turn: 7 }), { next: 'lobby', turn: 7 });
+  assert.deepEqual(sanitizeOpt({ t: 'opt', bots: 2, turn: 7 }), { bots: 2 }, 'a turn travels with a way on only');
   assert.equal(sanitizeOpt({ t: 'opt', difficulty: 'nightmare', next: 'quit', go: 1, laps: '3' }), null);
 });
 
@@ -131,33 +133,39 @@ test('opt: anyone before the first pick, then slot 0 only, and again after the h
   assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 1, laps: 5 });
 });
 
-test('slot 0 gone at the results: the lowest connected slot decides for the room, the others still do not', async (t) => {
+// After a race every phone has the ways on (rematch, change track, lobby): the players asked to steer it from their phones. What
+// stays with the lowest phone connected is the race options, once karts are picked.
+test('slot 0 gone at the results: the lowest connected slot holds the race options, and every phone has the ways on all along', async (t) => {
   const srv = await startServer({ reserveMs: 80 });
   t.after(() => srv.close());
   const h = await host(srv);
   const [a, b, c] = await fourPads(srv);
   a.send({ t: 'pick', kart: 'tabia' });
   await h.next('pick');
+  b.send({ t: 'opt', bots: 2 });
+  assert.ok(await h.none('opt'), 'slot 0 is here: slot 1 has no say on the options');
   b.send({ t: 'opt', next: 'rematch' });
-  assert.ok(await h.none('opt'), 'slot 0 is here: slot 1 has no say');
+  assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 1, next: 'rematch' }, 'but it has the way on');
   await a.close();
   await h.next((m) => m.t === 'leave' && m.slot === 0);
   // while its seat is held too: a phone that is not there decides nothing
-  b.send({ t: 'opt', next: 'rematch' });
-  assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 1, next: 'rematch' });
+  b.send({ t: 'opt', bots: 2 });
+  assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 1, bots: 2 });
   assert.deepEqual(await h.next('free'), { t: 'free', slot: 0 }, 'the reservation ran out, and the TV hears it');
   assert.equal(srv.room.status().slots[0], null);
-  b.send({ t: 'opt', next: 'lobby' });
-  assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 1, next: 'lobby' });
-  c.send({ t: 'opt', next: 'rematch' });
-  assert.ok(await h.none('opt'), 'slot 2 is not the lowest: nothing');
-  // slot 0's phone returns as a new one, and takes the seat and the say
+  c.send({ t: 'opt', bots: 4 });
+  assert.ok(await h.none('opt'), 'slot 2 is not the lowest: no options');
+  c.send({ t: 'opt', next: 'lobby', turn: 9 });
+  assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 2, next: 'lobby', turn: 9 }, 'and the way on all the same');
+  // slot 0's phone returns as a new one, and takes the seat and the options
   const again = await pad(srv, 'again');
   assert.equal((await again.next('welcome')).slot, 0);
-  b.send({ t: 'opt', next: 'lobby' });
+  b.send({ t: 'opt', bots: 1 });
   assert.ok(await h.none('opt'));
-  again.send({ t: 'opt', next: 'lobby' });
-  assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 0, next: 'lobby' });
+  again.send({ t: 'opt', bots: 1 });
+  assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 0, bots: 1 });
+  b.send({ t: 'opt', next: 'track' });
+  assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 1, next: 'track' });
 });
 
 test('release: the TV gives up a held seat and the first in the queue takes it; a seat with a phone on it is never released', async (t) => {

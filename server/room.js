@@ -44,7 +44,7 @@ const DIFFICULTIES = ['easy', 'medium', 'hard'];
 const LAPS = [2, 3, 5];
 const MODES = ['race', 'gp', 'time', 'teams', 'forma'];
 const NEXTS = ['rematch', 'track', 'lobby'];
-const VOICES = ['off', 'it', 'ro', 'id'];
+const VOICES = ['off', 'it', 'ro', 'id', 'en'];
 const WEATHERS = ['clear', 'rain', 'snow', 'fog', 'surprise'];
 
 // Keeps the fields that are valid, as a phone may send one at a time; null when none is.
@@ -59,11 +59,11 @@ export function sanitizeOpt(m) {
   if (WEATHERS.includes(m.weather)) out.weather = m.weather;
   if (typeof m.night === 'boolean') out.night = m.night;
   if (m.go === true) out.go = true;
-  if (NEXTS.includes(m.next)) out.next = m.next;
+  if (NEXTS.includes(m.next)) { out.next = m.next; if (Number.isSafeInteger(m.turn)) out.turn = m.turn; } // turn: the screen the phone saw
   return Object.keys(out).length ? out : null;
 }
 
-// "I am done with this screen", or taking it back; skip: the authority does not wait for the rest. turn: the screen it saw.
+// "I am done with this screen", or taking it back; skip: this phone does not wait for the rest. turn: the screen it saw.
 export function sanitizeAdvance(m) {
   if (!m || m.t !== 'advance') return null;
   return { on: m.on === true, ...(m.skip === true ? { skip: true } : {}), ...(Number.isSafeInteger(m.turn) ? { turn: m.turn } : {}) };
@@ -78,7 +78,7 @@ export function createRoom({ reserveMs = GRACE_MS, log = () => {}, telemetry = (
   const slots = [null, null, null, null];
   const waiting = []; // pads that got {t:'full'}: [{ id, ws }]
   let host = null;
-  let picked = false; // someone picked a kart since the lobby: from now on the options are the authority's
+  let picked = false; // someone picked a kart since the lobby: from now on the race options are the authority's (not the ways on)
   let session = false; // the TV says a game is on (anything but the lobby): a seat is then never freed
   let phase = 'lobby'; // only for what the telemetry writes next to a drop
   const boot = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`; // the TV tells a restarted server by this
@@ -298,9 +298,12 @@ export function createRoom({ reserveMs = GRACE_MS, log = () => {}, telemetry = (
       return;
     }
     if (m.t === 'opt') {
-      if (slot !== authority() && picked) return;
       const opt = sanitizeOpt(m);
-      if (opt) toHost({ t: 'opt', slot, ...opt });
+      if (!opt) return;
+      // Once karts are picked the race options are the authority's; the ways on after a race (rematch, change track, lobby)
+      // are every phone's, so nobody has to get up for the computer.
+      const out = slot === authority() || !picked ? opt : opt.next ? { next: opt.next, ...(opt.turn !== undefined ? { turn: opt.turn } : {}) } : null;
+      if (out) toHost({ t: 'opt', slot, ...out });
       return;
     }
     const input = sanitizeInput(m);

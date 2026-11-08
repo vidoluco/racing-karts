@@ -17,9 +17,9 @@ Playable, and still being finished. All of this was checked by automated tests i
 
 | Measure | Result |
 |---|---|
-| Easy | casual driver wins 96%, podium 100%, a beginner podium 78% |
-| Medium | casual driver podium about 44%, a good driver wins 94% |
-| Very hard | casual driver podium 11%, a good driver wins 58% |
+| Easy | a driver as clumsy as the gyro player of 07/11/2026 podium 84%, never last; a casual driver wins 100% |
+| Medium | a driver as slow as the stick player of 07/11/2026 podium 33%, a casual one 64%, a good driver wins 96% |
+| Very hard | casual driver podium 10%, a good driver wins 56% |
 | Karts | none above 18% of wins at medium |
 
 ## Known problems

@@ -12,6 +12,10 @@ import { KART_IDS } from '../../src/data/karts.js';
 export const PHONE = {
   casual: { late: 0.22, look: [5, 0.27], gain: 3.2, dead: 0.03, rate: 7, lane: 0.55, lapseEvery: [6, 11], lapseT: [0.35, 0.8], item: [2, 8] },
   beginner: { late: 0.24, look: [5, 0.27], gain: 3.2, dead: 0.03, rate: 7, lane: 0.6, lapseEvery: [5, 10], lapseT: [0.4, 0.9], item: [3, 12] },
+  // the stick player of 07/11/2026: Batur on medium in 364 s with 6 wall and building hits, 3rd. This model takes about 374 s with 7.
+  stick: { late: 0.225, look: [5, 0.27], gain: 3.2, dead: 0.03, rate: 7, lane: 0.55, lapseEvery: [6, 11], lapseT: [0.35, 0.8], item: [2, 8] },
+  // the gyro player of 07/11/2026: Batur on medium in 391 s with 33 wall and building hits, last. This model takes about 410 s with 25, a little worse on purpose.
+  struggler: { late: 0.25, look: [5, 0.27], gain: 3.2, dead: 0.03, rate: 7, lane: 0.62, lapseEvery: [5, 10], lapseT: [0.4, 0.9], item: [3, 12] },
 };
 
 export function phoneDriver(track, seed, i, kind = 'casual') {
@@ -58,7 +62,7 @@ export function ladderRace(W, level, kinds, seed, { laps = 2, teams = false, at 
   const s = race.state, K = s.karts, L = W.track.length;
   const drive = K.map((k) => (k.human && players[k.i].difficulty !== 'ace' ? phoneDriver(W.track, seed, k.i, kinds[players[k.i].slot]) : null));
   const m = { walls: 0, hits: 0, rescues: 0, botRescues: 0, auto: 0 }, before = K.map((k) => k.progress), slowest = K.map(() => Infinity);
-  let bursts = K.map(() => 0), lastPlaceSteps = 0, off = 0, offN = 0, topShare = 0;
+  let bursts = K.map(() => 0), lastPlaceSteps = 0, off = 0, offN = 0, topShare = 0, botSpread = null;
   for (let f = 0; f < 60 * 1500 && s.phase !== 'done'; f++) {
     const inp = [];
     K.forEach((k, i) => { if (k.human) inp[i] = drive[i] && !k.finished && !k.autoHome ? drive[i](k) : race.autopilot(i); });
@@ -77,6 +81,8 @@ export function ladderRace(W, level, kinds, seed, { laps = 2, teams = false, at 
       if (k.offroad || Math.abs(k.d) > W.track.samples.w[k.trackI] / 2 - 1.2) off++;
       topShare = Math.max(topShare, race.internals.priv[k.i].rubber);
     }
+    // how strung out the bots are when the first of them gets home: m from it to the last bot
+    if (botSpread === null && K.some((k) => !k.human && k.finished)) { const pr = K.filter((k) => !k.human).map((k) => k.progress); botSpread = (Math.max(...pr) - Math.min(...pr)) * L; }
     // the slowest 5 s of each bot: over 100 m if it is alive at all
     if (f % 300 === 299) K.forEach((k, i) => { if (!k.finished) slowest[i] = Math.min(slowest[i], (k.progress - before[i]) * L / 5); before[i] = k.progress; });
   }
@@ -90,7 +96,7 @@ export function ladderRace(W, level, kinds, seed, { laps = 2, teams = false, at 
     time: best.finishT, winT: times[0], last: people.some((k) => k.place === K.length), behindLastBot: Math.max(...people.map((k) => (k.finishT || 0) - lastBotT)),
     gap: (best.finishT || NaN) - times[0], lap: humLaps.length ? Math.min(...humLaps) : NaN, botLap: botLaps.length ? Math.min(...botLaps) : NaN,
     walls: m.walls, hits: m.hits, rescues: m.rescues, botRescues: m.botRescues, auto: m.auto, margin: best.place === 1 ? times[1] - times[0] : NaN, lastShare: lastPlaceSteps / Math.max(1, s.t * 60), botOff: off / Math.max(1, offN),
-    slowestBot: Math.min(...slowest.filter((_, i) => !K[i].human)), band: topShare,
+    slowestBot: Math.min(...slowest.filter((_, i) => !K[i].human)), band: topShare, botSpread: botSpread ?? NaN,
   };
 }
 

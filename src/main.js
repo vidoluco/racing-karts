@@ -16,7 +16,7 @@ import { KART_IDS, ROSTER, SECRET_IDS, kartInfo } from './data/karts.js';
 import { createUnlocks } from './game/unlocks.js';
 import { TRACKS, TRACK_IDS, trackInfo, loadTrackDef } from './data/tracks.js';
 import { ITEM_IDS } from './data/items.js';
-import { AWAY_CRUISE, awayDrive, createFlow, createHudFeed, hudOf, offlineList, padFx, resultRows, teamScore, RANDOM, SLOTS } from './game/flow.js';
+import { AWAY_CRUISE, awayDrive, createFlow, createHoldFeed, createHudFeed, holdsWheel, hudOf, offlineList, padFx, resultRows, teamScore, RANDOM, SLOTS } from './game/flow.js';
 import { teamInfo, NEUTRAL_COLOR } from './data/teams.js';
 import { weatherKey } from './data/weather.js';
 import { createRecords, createTimeTrial, trackSeed } from './game/timetrial.js';
@@ -167,6 +167,7 @@ let acc = 0, pending = [], last = 0;
 let doneT = null, goT = 0;
 let colors = [], players = [], viewKarts = [];
 const hudFeed = createHudFeed();
+const holdFeed = createHoldFeed();
 const awaySince = [null, null, null, null]; // when each phone left, performance.now()
 let graceMs = 120000;                       // the room says what it really holds a seat for
 const padMode = [null, null, null, null];  // how each phone says it steers, 'stick' or 'gyro', for the telemetry
@@ -273,6 +274,12 @@ function sendHuds(force = false) {
   }
 }
 
+function sendHold() {
+  const on = holdsWheel(mode === 'fly', race.state);
+  if (!holdFeed.due(on, performance.now() / 1000)) return;
+  for (const k of race.state.karts) if (k.human && k.slot >= 0 && input.padConnected(k.slot)) input.send(k.slot, { t: 'hold', on });
+}
+
 // ---------- the loop ----------
 function loop(now) {
   requestAnimationFrame(loop);
@@ -302,6 +309,7 @@ function tick(now) {
   if (game.manual) return;
   if (mode === 'fly') {
     pollSkip();
+    sendHold();
     R.frame(prev, race.state, 1, real, []);
     return;
   }
@@ -314,6 +322,7 @@ function tick(now) {
   if (n === most) acc = 0;
   afterSteps(n * DT);
   if (!race) return;
+  sendHold();
   const ev = pending;
   pending = [];
   deliver(ev, real);
@@ -542,14 +551,14 @@ transport.onMessage((m) => {
   if (m.t === 'opt') {
     flow.setOpts(m);
     if (m.go) flow.go();
-    if (m.next) nextFrom(m.next);
+    if (m.next) nextFrom(m.next, m.turn); // any phone, after a race: the turn is the screen it saw
     pump();
   }
 });
 
-function nextFrom(kind) {
+function nextFrom(kind, turn) {
   if (kind === 'podium') { flow.toPodium(); return; }
-  flow.next(kind);
+  flow.next(kind, turn);
 }
 
 // ---------- TV: mouse ----------
@@ -722,6 +731,7 @@ async function loadRace(id) {
     capturePrev();
     acc = 0;
     hudFeed.reset();
+    holdFeed.reset();
     hits = players.map(() => ({ wall: 0, building: 0, botS: 0 }));
     goT = P.countdown;
     game.track = id; game.laps = laps; game.views = [...viewKarts]; game.results = null; game.podium = null; game.counts = {};

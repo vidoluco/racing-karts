@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { clamp, lerp, smooth, linear, hash3, vnoise } from './math.js';
 import { toon } from './toon.js';
-import { paint, merge, roundedBox, place, tube, cylinder } from './shapes.js';
+import { paint, merge, roundedBox, place, tube, cylinder, VAULT } from './shapes.js';
 import { concreteDeck } from './concrete-deck.js';
 
 const COLS = [-1.32, -1.16, -1.03, -1.0, -0.82, -0.45, 0, 0.45, 0.82, 1.0, 1.03, 1.16, 1.32]; // of half width past 1 the ribbon is shoulder
@@ -582,7 +582,7 @@ function archedDeck(track, st, world, batch, look) {
 // The gallery: a vault over the road inside a mound of earth, stone portals at each end, warm lamps down the middle.
 function gallery(track, st, world, batch, look, mat) {
   const S = track.samples, n = track.n, count = ((st.i1 - st.i0 + n) % n) + 1, at = (q) => (st.i0 + q + n) % n;
-  const ARC = 12, H = 8.2, stone = linear(look.stone.color), inner = stone.map((v) => v * 0.3), lawn = linear(look.terrain.meadow), grass = linear(look.road.moundColor ?? look.terrain.meadowD); // look.road.moundColor: the hill over a gallery, default the dark meadow
+  const ARC = 12, H = VAULT.h, stone = linear(look.stone.color), inner = stone.map((v) => v * 0.3), lawn = linear(look.terrain.meadow), grass = linear(look.road.moundColor ?? look.terrain.meadowD); // look.road.moundColor: the hill over a gallery, default the dark meadow
   // the hill's own colour by height over the ground: its foot is the field it stands in, no line where they meet
   const earth = (over, tone = 1) => { const f = smooth(0.5, 7, over); return [0, 1, 2].map((k) => lerp(lawn[k], grass[k], f) * tone); };
   // look.road.moundRock: a colour, bare rock in patches over the hill, where the hill stands for a buttress of a treeless wall; default none
@@ -593,7 +593,7 @@ function gallery(track, st, world, batch, look, mat) {
   const stride = 2;
   const rowsInner = [], rowsOuter = [], hillExtra = [];
   for (let q = 0; q <= count - 1; q = q === count - 1 ? count : Math.min(q + stride, count - 1)) {
-    const i = at(q), hw = S.w[i] / 2 + 1.1, cy = S.y[i] - 0.2, row = [];
+    const i = at(q), hw = S.w[i] / 2 + VAULT.side, cy = S.y[i] - 0.2, row = [];
     for (let a = 0; a <= ARC; a++) {
       const th = (a / ARC) * Math.PI, c = Math.cos(th), s = Math.sin(th), xl = c * hw;
       const x = S.x[i] + S.nx[i] * xl, y = cy + Math.pow(s, 0.8) * H, z = S.z[i] + S.nz[i] * xl;

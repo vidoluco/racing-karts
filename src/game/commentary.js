@@ -59,7 +59,7 @@ export function createCommentary({ lang, seed = 1, duration = null } = {}) {
   const lastLine = new Map();
   const log = [];             // [t, seconds] of speech, for the talk budget
   const places = {};
-  let queue = [], t = 0, until = 0, current = null, lastFamily = new Map(), lastPool = new Map(), used = new Map();
+  let queue = [], t = 0, until = 0, current = null, lastFamily = new Map(), lastPool = new Map(), used = new Map(), told = new Map(); // told: pool -> times said this evening
   let track = null, views = [], karts = [], leadTimes = [], lastLapSaid = false, lastSpeaker = 'b', idleWait = 18, lastAny = 0, mode = 'race';
   const stats = { said: 0, dropped: 0, seconds: 0, byPool: {} };
 
@@ -125,6 +125,7 @@ export function createCommentary({ lang, seed = 1, duration = null } = {}) {
     current = { pri: item.pri, end: until };
     lastFamily.set(family, now);
     lastPool.set(item.pool, now);
+    told.set(item.pool, (told.get(item.pool) ?? 0) + 1);
     (used.get(family) ?? used.set(family, []).get(family)).push(now);
     log.push([now, total]);
     while (log.length && log[0][0] < now - TALK_WINDOW) log.shift();
@@ -293,6 +294,9 @@ export function createCommentary({ lang, seed = 1, duration = null } = {}) {
             // what has been heard a lot lately gets less and less likely
             const uses = (used.get(fam) ?? []).filter((x) => x > now - 150).length;
             if (uses && rnd() > 1 / (1 + uses * 0.35)) { queue.splice(i, 1); stats.dropped++; i--; continue; }
+            // a small thing already told in every one of its words this evening comes back less and less: with each bot its own pace, the same few karts keep using the same item
+            const over = (told.get(q.pool) ?? 0) - POOLS[q.pool][lang].length;
+            if (over >= 0 && rnd() > 1 / (2 + over)) { queue.splice(i, 1); stats.dropped++; i--; continue; }
           }
           queue.splice(i, 1);
           return say(q, now, false);

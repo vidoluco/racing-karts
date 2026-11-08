@@ -322,7 +322,12 @@ export function plan({ track, terrain, world }) {
   const keep = world.keepOut;
   world.buildings = [];
   const site = (kind, u, d, opts = {}) => {
-    const p = P(u), x = p.x + p.nx * d + p.tx * (opts.along || 0), z = p.z + p.nz * d + p.tz * (opts.along || 0);
+    const p = P(u), at = (dd) => [p.x + p.nx * dd + p.tx * (opts.along || 0), p.z + p.nz * dd + p.tz * (opts.along || 0)];
+    // a building whose site falls by another stretch of the road, where the road loops back past it, moves the least it can along its own
+    // line until its middle is opts.clear m from any road's edge: two cabins once stood in the road at u 0.54, and the farmyard's barn in
+    // the second road of its bend
+    if (opts.clear) for (let k = 0, d0 = d; k < 80 && terrain.roadDistAt(...at(d)) < opts.clear; k++) d = d0 + (k % 2 ? -1 : 1) * Math.ceil((k + 1) / 2) * 0.5;
+    const [x, z] = at(d);
     // a model's +z faces the road, unless it says otherwise
     const yaw = Math.atan2(-p.nx * Math.sign(d), -p.nz * Math.sign(d)) + (opts.turn || 0);
     world.buildings.push({ kind, x, z, yaw, u, d, ...opts });
@@ -355,11 +360,11 @@ export function plan({ track, terrain, world }) {
   site('gellner', 0.512, -54, { r: 34, turn: Math.PI * 0.06 });
   site('villa', 0.482, -24, { r: 9, seed: 2, turn: -0.3 });
   site('villa', 0.535, 28, { r: 9, seed: 4, turn: 0.6 });
-  site('cabin', 0.503, 44, { r: 6, turn: 0.7 });
-  site('cabin', 0.508, 38, { r: 6, turn: -0.2 });
-  site('cabin', 0.475, -30, { r: 6, turn: 0.9 });
+  site('cabin', 0.503, 44, { r: 6, turn: 0.7, clear: 6 });
+  site('cabin', 0.515, 46, { r: 6, turn: -0.2, clear: 6 }); // u 0.508, 38 m: cleared of the road it fell on its neighbour's spot, one roof through the other
+  site('cabin', 0.475, -30, { r: 6, turn: 0.9, clear: 6 });
   // the farmyard bend, in the middle of the two roads
-  site('tabia', 0.862, -29, { seed: 8, r: 15, big: true, turn: 0.6 });
+  site('tabia', 0.862, -29, { seed: 8, r: 15, big: true, turn: 0.6, clear: 10 });
   site('tabia', 0.79, 22, { seed: 9, r: 9, turn: -0.3 });
   site('tabia', 0.76, -24, { seed: 10, r: 9, turn: 0.3, balcony: false });
   site('tabia', 0.31, 22, { seed: 11, r: 9, turn: 0.3 });

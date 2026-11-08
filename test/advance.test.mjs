@@ -1,5 +1,5 @@
 // No phase needs the computer once a phone is in. The rules in node: every mode through every screen, undo, a phone going
-// offline, Player 1 skipping the wait, a solo player, keyboard seats, the keyboard that took a seat by itself. Then the real TV
+// offline, any phone skipping the wait, a solo player, keyboard seats, the keyboard that took a seat by itself. Then the real TV
 // page on the CPU rasteriser with two real phone pages: a whole team championship without touching the TV.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
@@ -11,7 +11,7 @@ import { createFlow, FLOW, RANDOM } from '../src/game/flow.js';
 import { createKeyboard } from '../src/net/keyboard.js';
 import { createInput } from '../src/net/input.js';
 import { sanitizeAdvance } from '../server/room.js';
-import { launch, headlessShell, ROOT } from '../tools/harness.mjs';
+import { launch, headlessShell, ROOT, buildDist, startServerProcess } from '../tools/harness.mjs';
 import { startServer, host, pad } from '../server/testing.js';
 
 const KARTS = ['tabia', 'gatto', 'seggiovia', 'mocanita', 'caruta', 'logan', 'jeep', 'becak', 'jukung'];
@@ -211,16 +211,59 @@ describe('a phone going offline', () => {
   });
 });
 
-describe('Player 1', () => {
-  test('may skip the wait; nobody else may; it moves to the next phone when that one leaves', () => {
+// The players asked for it with two phones in hand: "il controllo deve essere dai telefoni", every phone, not only Player 1's.
+describe('every phone after a race', () => {
+  test('any phone at the table may skip the wait, a guest too; a phone that is away may not, nor the keyboard', () => {
     const f = toResults('gp', [0, 1, 2]);
-    assert.equal(f.skipWait(1), false);
-    assert.equal(f.skipWait(2), false);
+    f.leave(2);
+    assert.equal(f.skipWait(2), false, 'away: it is not looking at this screen');
     assert.equal(f.phase, 'results');
-    f.leave(0);
-    assert.equal(f.skipWait(1), true);
+    assert.equal(f.skipWait(1), true, 'Player 1 is here, and Player 2 need not wait for anyone either');
     assert.equal(f.phase, 'loading');
     assert.equal(f.state.track, 'pelmo');
+    const k = make();
+    k.join(0); k.join(1, 'keyboard');
+    k.setOpts({ mode: 'race', bots: 3 });
+    k.go(); k.pick(0, KARTS[0], true); k.pick(1, KARTS[1], true);
+    k.step(FLOW.allReady + 0.01);
+    k.vote(0, 'bali', true); k.vote(1, 'bali', true);
+    k.step(FLOW.agree + 0.01);
+    raceThrough(k);
+    assert.equal(k.skipWait(1), false, 'a keyboard seat speaks through the TV keys, not this way');
+  });
+  for (const mode of ['race', 'gp', 'time', 'teams', 'forma']) {
+    test(`${mode}: a guest phone takes each way on, on results and on the podium`, () => {
+      // rematch
+      let f = toResults(mode);
+      const { turn } = f.menuFor(1).advance;
+      assert.equal(f.next('rematch', turn), true);
+      assert.equal(f.phase, 'loading');
+      // change track: in a championship under way it is the next race, as the phone's button is hidden there anyway
+      f = toResults(mode);
+      assert.equal(f.next('track', f.menuFor(1).advance.turn), true);
+      assert.equal(f.phase, f.gpMore ? 'loading' : 'vote');
+      // back to the lobby
+      f = toResults(mode);
+      assert.equal(f.next('lobby', f.menuFor(1).advance.turn), true);
+      assert.equal(f.phase, 'lobby');
+      // from the podium, where there is one
+      f = toResults(mode);
+      if (f.advanceKind === 'podium') {
+        f.toPodium();
+        assert.equal(f.menuFor(1).advance.more, true);
+        assert.equal(f.next('track', f.menuFor(1).advance.turn), true);
+        assert.equal(f.phase, 'vote');
+      }
+    });
+  }
+  test('a way on chosen on a screen gone by does not count on the next one', () => {
+    const f = toResults('race');
+    const { turn } = f.menuFor(1).advance;
+    f.toPodium();
+    assert.equal(f.next('lobby', turn), false, 'the results it saw are gone');
+    assert.equal(f.phase, 'podium');
+    assert.equal(f.next('lobby', f.menuFor(1).advance.turn), true, 'the positive case, on the screen it sees');
+    assert.equal(f.phase, 'lobby');
   });
   test('a skip from a screen gone by does not skip the next one', () => {
     const f = toResults('race');
@@ -229,9 +272,10 @@ describe('Player 1', () => {
     assert.equal(f.skipWait(0, turn), false);
     assert.equal(f.phase, 'podium');
   });
-  test('the ways out stay on that phone alone, and rematch and change track only where the mode has them', () => {
+  test('the race options stay with the lowest phone, the ways out are everyone\'s, and rematch and change track only where the mode has them', () => {
     const f = toResults('gp');
     assert.deepEqual([f.menuFor(0).edit, f.menuFor(1).edit], [true, false]);
+    assert.deepEqual(f.menuFor(1).advance, f.menuFor(0).advance, 'the guest is offered the same');
     assert.equal(f.menuFor(0).advance.more, false, 'in a championship under way both would mean the next race');
     assert.equal(toResults('race').menuFor(0).advance.more, true);
     assert.equal(toResults('time').menuFor(0).advance.more, true);
@@ -430,7 +474,7 @@ describe('the room', () => {
     assert.deepEqual(sanitizeAdvance({ t: 'advance', on: true, skip: true }), { on: true, skip: true });
     assert.equal(sanitizeAdvance({ t: 'opt' }), null);
   });
-  test('a guest\'s press reaches the TV after the picks, where its options no longer do: this is why people had to get up', async (t) => {
+  test('a guest\'s press and its ways on reach the TV after the picks, where its race options no longer do', async (t) => {
     const srv = await startServer();
     t.after(() => srv.close());
     const h = await host(srv);
@@ -438,8 +482,12 @@ describe('the room', () => {
     await a.next('welcome'); await b.next('welcome');
     b.send({ t: 'pick', kart: 'tabia', ready: true });
     await h.next('pick');
-    b.send({ t: 'opt', next: 'rematch' });
-    assert.equal(await h.none('opt', 150), true, 'the old way forward was slot 0\'s alone');
+    b.send({ t: 'opt', bots: 2, laps: 5 });
+    assert.equal(await h.none('opt', 150), true, 'the race options are still slot 0\'s');
+    for (const next of ['rematch', 'track', 'lobby']) {
+      b.send({ t: 'opt', next, turn: 3, bots: 2 });
+      assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 1, next, turn: 3 }, `${next}, without the options riding along`);
+    }
     b.send({ t: 'advance', on: true, turn: 3 });
     assert.deepEqual(await h.next('advance'), { t: 'advance', slot: 1, on: true, turn: 3 });
     a.send({ t: 'advance', on: true, skip: true, turn: 3 });
@@ -509,7 +557,7 @@ test('a whole team championship on the real TV page, nobody touching the TV: Con
   assert.equal(await tv.evaluate(() => window.__game.phase), 'results', 'nor does it move everyone on');
   assert.match(await p1.textContent('#resWait'), /Next race: /);
   assert.match(await bar(), /P1.*P2.*0 of 2 ready/);
-  assert.equal(await p2.locator('#resMoreBtn').isVisible(), false, 'only Player 1 has the ways out');
+  assert.equal(await p2.locator('#resMoreBtn').isVisible(), true, 'every phone has the ways out');
   assert.equal(await p1.locator('#resMoreBtn').isVisible(), true);
   assert.equal(await p1.locator('#resBtns').isVisible(), false, 'behind a second tap');
 
@@ -747,5 +795,95 @@ test('the keyboard alone on the real TV page: it takes a seat, goes through ever
   assert.equal(await tv.evaluate(() => document.querySelector('.readybar').classList.contains('hide')), true, 'no phones: nothing to count');
   await pressUntil(() => window.__game.phase === 'podium');
   await pressUntil(() => window.__game.phase === 'loading' || window.__game.phase === 'race');
+  assert.deepEqual(errors, []);
+});
+
+// What the players asked for with an iPhone and an Android in hand: "dopo una gara deve anche permettermi di uscire dal telefono".
+// Two phone pages and nobody at the TV: not a key, not a click on it. Player 2, who does not hold the options, takes the evening
+// on from the results: More, Change track, a new race on another track, then More, Back to the lobby.
+test('two phones and nobody at the TV: race, results, Player 2\'s More, Change track, a new race, then Player 2 back to the lobby', { skip: !headlessShell() && 'no browser', timeout: 280000 }, async (t) => {
+  const dist = mkdtempSync(join(tmpdir(), 'rk-guest-ways-'));
+  await buildDist(dist);
+  const srv = await startServerProcess({ dist });
+  const browser = await launch('swiftshader');
+  t.after(async () => { await browser.close(); await srv.close(); rmSync(dist, { recursive: true, force: true }); });
+  const tv = await (await browser.newContext({ viewport: { width: 640, height: 360 }, locale: 'en-US' })).newPage();
+  const errors = [];
+  tv.on('pageerror', (e) => errors.push(e.message));
+  await tv.goto(`${srv.base}/?lang=en&manual=1&flyover=0&countdown=0`);
+  await tv.waitForFunction(() => window.__game?.ready || window.__game?.error, null, { timeout: 60000 });
+  // the race runs stepped and unpainted; the TV page counts every key and pointer it gets, to show there were none
+  await tv.evaluate(() => {
+    window.__game.renderer.frame = () => {};
+    window.__touched = 0;
+    for (const ev of ['keydown', 'pointerdown', 'mousedown', 'click']) addEventListener(ev, () => { window.__touched++; }, true);
+  });
+  const phaseIs = (...want) => tv.waitForFunction((list) => list.includes(window.__game.phase), want, { timeout: 120000, polling: 50 });
+  const open = async (width, height) => {
+    const page = await (await browser.newContext({ viewport: { width, height }, hasTouch: true, isMobile: true, locale: 'en-US' })).newPage();
+    page.on('pageerror', (e) => errors.push(e.message));
+    await page.goto(`${srv.base}/pad`);
+    await page.waitForFunction(() => window.__pad?.joined, null, { timeout: 15000 });
+    return page;
+  };
+  const p1 = await open(844, 390); // an iPhone on its side
+  const p2 = await open(915, 412); // an Android on its side
+  await tv.waitForFunction(() => window.__game.seats.filter((s) => s.present).length === 2, null, { timeout: 15000 });
+  assert.deepEqual([await p1.evaluate(() => window.__pad.slot), await p2.evaluate(() => window.__pad.slot)], [0, 1]);
+  const phones = [p1, p2];
+
+  // lobby: Player 1 sets two laps and no bots, Player 2 starts
+  await p1.locator('.seg[data-key="laps"] button[data-v="2"]').tap();
+  for (let n = 0; n < 7; n++) { await p1.locator('.step button[data-d="-1"]').tap(); }
+  await tv.waitForFunction(() => window.__game.flowApi.opts.laps === 2 && window.__game.flowApi.opts.bots === 0, null, { polling: 50 });
+  await p2.locator('#goBtn').tap();
+  await phaseIs('pick');
+  for (const p of phones) { await p.waitForFunction(() => window.__pad.screen === 'sKart', null, { polling: 50 }); await p.waitForTimeout(150); await p.locator('#readyBtn').tap(); }
+  const vote = async (other) => {
+    await phaseIs('vote');
+    for (const p of phones) {
+      await p.waitForFunction(() => window.__pad.screen === 'sTrack' && window.__pad.carousel, null, { polling: 50 });
+      await p.waitForTimeout(400); // the cards settle before a finger aims at one
+      if (other) {
+        // the card next to the one in front: another road than the one just raced
+        const id = await p.evaluate((was) => { const c = window.__pad.carousel; const i = c.ids.indexOf(c.focus); const next = c.ids[(i + 1) % c.ids.length]; return next === was ? c.ids[(i + 2) % c.ids.length] : next; }, other);
+        if (await p.evaluate((id) => window.__pad.carousel.focus !== id, id)) {
+          const r = await p.evaluate((id) => window.__pad.carousel.rect(id), id);
+          await p.touchscreen.tap(r.x - r.w / 2 + 8, r.y);
+          await p.waitForFunction((id) => window.__pad.carousel.focus === id, id, { polling: 50, timeout: 5000 });
+        }
+      }
+      await p.locator('#voteBtn').tap();
+    }
+    await phaseIs('race');
+    return tv.evaluate(() => window.__game.track);
+  };
+  const finish = async () => {
+    await tv.evaluate(() => { const g = window.__game; g.setAuto(true); g.advance(40000); });
+    await phaseIs('results');
+    for (const p of phones) await p.waitForFunction(() => window.__pad.screen === 'sResults' && window.__pad.menu.advance && !document.getElementById('resNext').classList.contains('held'), null, { polling: 50, timeout: 20000 });
+  };
+  const first = await vote(null);
+  await finish();
+  assert.equal(await tv.evaluate(() => window.__game.flowApi.authority()), 0, 'Player 1 is at the table and holds the options');
+  assert.equal(await p2.evaluate(() => window.__pad.menu.edit), false, 'Player 2 does not');
+  assert.equal(await p2.locator('#resMoreBtn').isVisible(), true, 'and still has the ways out');
+  assert.match(await p2.textContent('#resMoreBtn'), /More choices.*Rematch, track, lobby/);
+
+  // Player 2: More, then Change track
+  await p2.locator('#resMoreBtn').tap();
+  assert.equal(await p2.locator('#resNext').isVisible(), false, 'the big button is out of the way while the choices are open');
+  await p2.locator('#resTrack').tap();
+  const second = await vote(first);
+  assert.notEqual(second, first, `a new race on another track: ${first}, then ${second}`);
+  t.diagnostic(`first race ${first}, after Player 2's Change track ${second}`);
+  await finish();
+
+  // Player 2: More, then Back to the lobby, one tap with no championship to lose
+  await p2.locator('#resMoreBtn').tap();
+  await p2.locator('#resLobby').tap();
+  await phaseIs('lobby');
+  for (const p of phones) await p.waitForFunction(() => window.__pad.screen === 'sLobby', null, { polling: 50, timeout: 10000 });
+  assert.equal(await tv.evaluate(() => window.__touched), 0, 'nobody touched the TV: no key, no click');
   assert.deepEqual(errors, []);
 });

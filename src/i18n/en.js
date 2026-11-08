@@ -76,6 +76,8 @@ export const en = {
   'res.teamsTable': 'Team championship',
   'res.rematchTeams': 'Same championship, same sides',
   'pod.teamsTitle': 'Team {team} wins!',
+  'pod.teamFirst': '1st team',
+  'pod.teamSecond': '2nd team',
   'tt.title': 'Time trial',
   'tt.hint': 'Your ghost drives your best lap: {time}. Your turn to beat it!',
   'tt.fly': 'Alone against your ghost',

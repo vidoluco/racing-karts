@@ -62,25 +62,40 @@ export function wallsFor(track, terrain) {
   }
   // A building ends the shoulder at its front, as a church does: nobody gets round behind one and wedges in a yard with the road on the far side of it
   const solids = solidsFor(track);
+  let byL = null, byR = null;
   if (solids) {
+    const L0 = L.slice(), R0 = Rt.slice();
+    // by a shortcut's mouth the barrier stays where it was: a bot leaves the road early for it, and the box alone stands in its way. Only the
+    // mouths: along the stretch between them the main road is a street like any other, and its houses end the shoulder too
+    const mouth = new Uint8Array(n), M = Math.round(0.012 * n);
+    for (const sc of track.shortcuts) for (const u of [sc.from, sc.to]) for (let o = -M; o <= M; o++) mouth[((Math.round(u * n) + o) % n + n) % n] = 1;
     for (let i = 0; i < n; i++) {
-      if (S.struct[i] || nearSc[i]) continue; // by a shortcut's mouth the barrier stays where it was: a bot leaves the road early for it, and the box alone stands in its way
-      const hw = S.w[i] / 2;
+      if (S.struct[i] || mouth[i]) continue;
+      const j = (i + 1) % n, hw = S.w[i] / 2;
       for (const side of [1, -1]) {
         const A = side > 0 ? L : Rt;
-        for (let t = hw + 0.5; t < A[i]; t += 0.5) {
-          const x = S.x[i] + S.nx[i] * side * t, z = S.z[i] + S.nz[i] * side * t;
-          if (solidPush(solids, x, terrain.heightAt(x, z), z)) { A[i] = Math.max(hw + 0.5, t - 0.5); break; }
+        // from inside the road's edge: a front that stands on the edge holds a kart's centre a margin in, and the barrier ends where that
+        // margin begins, so a kart slides along it and never meets the front square on, as at a tunnel's mouth beside its rock. At the
+        // sample and half way to the next, so that a pier standing between two samples is seen too
+        for (const f of [0, 0.5]) {
+          const ox = S.x[i] + (S.x[j] - S.x[i]) * f, oz = S.z[i] + (S.z[j] - S.z[i]) * f, nx = S.nx[i] + (S.nx[j] - S.nx[i]) * f, nz = S.nz[i] + (S.nz[j] - S.nz[i]) * f, nl = Math.hypot(nx, nz) || 1;
+          for (let t = hw - SOLID.edgeIn; t < A[i]; t += 0.25) {
+            const x = ox + nx / nl * side * t, z = oz + nz / nl * side * t;
+            if (solidPush(solids, x, t <= hw ? track.heightAt(i + f, side * t) : terrain.heightAt(x, z), z)) { A[i] = Math.max(hw - SOLID.edgeIn, t - 0.25); if (f) A[j] = Math.min(A[j], A[i]); break; }
+          }
         }
       }
     }
     const steep = SOLID.taper * track.step;
     for (const A of [L, Rt]) for (let pass = 0; pass < 2; pass++) {
-      for (let i = 0; i < n; i++) { const b = A[(i - 1 + n) % n] + steep; if (b < A[i] && !S.struct[i] && !nearSc[i]) A[i] = b; }
-      for (let i = n - 1; i >= 0; i--) { const b = A[(i + 1) % n] + steep; if (b < A[i] && !S.struct[i] && !nearSc[i]) A[i] = b; }
+      for (let i = 0; i < n; i++) { const b = A[(i - 1 + n) % n] + steep; if (b < A[i] && !S.struct[i] && !mouth[i]) A[i] = b; }
+      for (let i = n - 1; i >= 0; i--) { const b = A[(i + 1) % n] + steep; if (b < A[i] && !S.struct[i] && !mouth[i]) A[i] = b; }
     }
+    // where a building brought the barrier in, at its front or on the shoulder leading to it, a kart against it has met the building, and counts so
+    byL = new Uint8Array(n); byR = new Uint8Array(n);
+    for (let i = 0; i < n; i++) { byL[i] = L[i] < L0[i] - 0.01 ? 1 : 0; byR[i] = Rt[i] < R0[i] - 0.01 ? 1 : 0; }
   }
-  w = { terrain, left: L, right: Rt };
+  w = { terrain, left: L, right: Rt, solidLeft: byL, solidRight: byR };
   wallCache.set(track, w);
   return w;
 }
@@ -151,8 +166,8 @@ export function wallPush(R, x, z, f) {
     const q = sc.nearest(x, z);
     if (Math.abs(q.d) <= sc.samples.w[q.i] / 2 + 2) return null;
   }
-  const s = loc.d >= 0 ? -1 : 1;
-  return { pen, nx: S.nx[i] * s, nz: S.nz[i] * s, tx: S.tx[i], tz: S.tz[i], f: loc.f };
+  const s = loc.d >= 0 ? -1 : 1, by = loc.d >= 0 ? W.solidLeft : W.solidRight;
+  return { pen, nx: S.nx[i] * s, nz: S.nz[i] * s, tx: S.tx[i], tz: S.tz[i], f: loc.f, solid: !!R.solids && !!by?.[i] }; // solid: the barrier at a building's front, in a race that has its buildings
 }
 
 export function startRescue(R, k, p) {
@@ -264,7 +279,7 @@ function applyWall(R, k, p, dt) {
   if (!w) return;
   k.x += w.nx * w.pen; k.z += w.nz * w.pen;
   p.solidAt = R.state.t; // a barrier and a building can hold a kart between them: for the fetch, it counts as a touch
-  bounce(R, k, p, dt, w.nx, w.nz, w.tx, w.tz);
+  bounce(R, k, p, dt, w.nx, w.nz, w.tx, w.tz, w.solid);
 }
 
 // Off a wall or a building, (nx, nz) pointing back out: (rtx, rtz) is the road's way, for when the kart comes square on.

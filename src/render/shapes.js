@@ -208,3 +208,49 @@ export function gable(w, l, h, rh, over = 0.4) {
 }
 
 export const shapes = { box, roundedBox, capsule, sphere, cylinder, cone, torus, lathe, tube, place, paint, merge, quad, gable };
+
+// The arch of a tunnel's gallery (road.js): half the road and this much more each side, this high over the road, its side a sine to the power 0.8.
+export const VAULT = { side: 1.1, h: 8.2 };
+
+// The bore stays open: a vertex of rock inside the arch of a tunnel's gallery, or inside the same arch past a mouth, goes out to the arch. The
+// rock meets the vault, and no kart drives through stone that stood in the road. hint: a sample near the mouth, so the road found is this one.
+// The arch is the gallery's own, 8.2 m high and not a circle as wide as the road: a crag kept only out of the circle still stood inside the vault.
+export function keepBore(g, track, hint) {
+  const P = g.attributes.position, S = track.samples, GROW = 0.5; // GROW: past the arch, also where the vault's flat panels cut inside its curve
+  // how high the arch at sample i stands d m off the road's axis, grown by m all round; below 0 past its side
+  const arch = (i, d, m) => { const hw = S.w[i] / 2 + VAULT.side + m, f = 1 - (d / hw) ** 2; return f > 0 ? (VAULT.h + m) * f ** 0.4 : -1; };
+  for (let k = 0; k < P.count; k++) {
+    const x = P.getX(k), y = P.getY(k), z = P.getZ(k), L = track.nearest(x, z, hint), i = L.i, hw = S.w[i] / 2 + VAULT.side + GROW, cy = S.y[i] - 0.2, dy = y - cy;
+    if (dy < -16) continue;
+    let d2 = L.d, y2 = y;
+    if (dy < 0) {
+      // below the road too: an edge from under it to over it would cross the bore. Out to the side
+      if (Math.abs(L.d) >= hw) continue;
+      d2 = L.d < 0 ? -hw : hw;
+    } else {
+      if (dy >= arch(i, L.d, GROW)) continue;
+      // out along the line from the foot of the axis, to where it meets the arch
+      const d0 = L.d, h0 = Math.max(dy, 0.05);
+      let lo = 1, hi = 2;
+      while (h0 * hi < arch(i, d0 * hi, GROW)) hi *= 2;
+      for (let n = 0; n < 24; n++) { const mid = (lo + hi) / 2; if (h0 * mid < arch(i, d0 * mid, GROW)) lo = mid; else hi = mid; }
+      d2 = d0 * hi; y2 = cy + h0 * hi;
+    }
+    P.setXYZ(k, x + S.nx[i] * (d2 - L.d), y2, z + S.nz[i] * (d2 - L.d));
+  }
+  // a face that still spans the bore, from a vertex under the road to one past the far wall, goes: the vault hides where it was
+  const I = g.index, inBore = (x, y, z) => { const L = track.nearest(x, z, hint), dy = y - S.y[L.i] + 0.2; return dy > 0.05 && dy < arch(L.i, L.d, -0.05); };
+  // points across each face, not only its middle: a thin sliver from one wall to the other has none of its few points in the bore
+  const AT = [];
+  for (let p = 0; p <= 5; p++) for (let q = 0; p + q <= 5; q++) if (p + q > 0 && p < 5 && q < 5) AT.push([p / 5, q / 5]);
+  if (I) for (let t = 0; t + 2 < I.count; t += 3) {
+    const a = I.getX(t), b = I.getX(t + 1), c = I.getX(t + 2);
+    for (const [u, v] of AT) {
+      const w = 1 - u - v, x = P.getX(a) * w + P.getX(b) * u + P.getX(c) * v, y = P.getY(a) * w + P.getY(b) * u + P.getY(c) * v, z = P.getZ(a) * w + P.getZ(b) * u + P.getZ(c) * v;
+      if (inBore(x, y, z)) { I.setX(t + 1, a); I.setX(t + 2, a); break; }
+    }
+  }
+  P.needsUpdate = true;
+  if (I) I.needsUpdate = true;
+  return g;
+}

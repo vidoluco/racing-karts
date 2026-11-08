@@ -1,6 +1,6 @@
 // The difficulty ladder, measured: scripted people on a phone (test/helpers/drivers.mjs) against 7 bots, stepped, no browser.
 // node tools/ladder.mjs [--levels easy,medium,hard] [--drivers casual,beginner,good] [--tracks all|a,b] [--races 8] [--laps 2] [--seed 7000] [--two] [--teams] [--over '{"easy":{"cap":0.8}}']
-// --two: two people on the grid, the second a beginner; --at n: n bots ahead of the people at the start (7 is the Gran Premio's leader); --over: try numbers without editing tuning.js.
+// bSprM: m from the first bot to the last when the first gets home. --two: two people on the grid, the second a beginner; --at n: n bots ahead of the people at the start (7 is the Gran Premio's leader); --over: try numbers without editing tuning.js.
 import { buildTrack } from '../src/world/track.js';
 import { buildTerrain } from '../src/world/terrain.js';
 import { loadTrackDef, TRACK_IDS } from '../src/data/tracks.js';
@@ -22,10 +22,10 @@ async function world(id) {
 }
 const pc = (a, fn) => `${Math.round(a.filter(fn).length / a.length * 100)}%`.padStart(5);
 const n1 = (x, w = 6) => (Number.isFinite(x) ? x.toFixed(1) : '-').padStart(w);
-const row = (name, a) => `${name.padEnd(16)}${pc(a, (m) => m.won)}${pc(a, (m) => m.place <= 3)}${n1(mean(a.map((m) => m.place)))}${n1(mean(a.map((m) => m.worst)))}${pc(a, (m) => m.last)}${n1(mean(a.map((m) => m.gap).filter(Number.isFinite)))}${n1(mean(a.map((m) => m.lap).filter(Number.isFinite)), 7)}${n1(mean(a.map((m) => m.botLap).filter(Number.isFinite)), 7)}${pc(a, (m) => m.botLap < m.lap)}${n1(mean(a.map((m) => m.walls)))}${n1(mean(a.map((m) => m.hits)))}${n1(mean(a.map((m) => m.botRescues)), 5)}${String(a.filter((m) => m.auto).length).padStart(4)}${n1(mean(a.map((m) => m.margin).filter(Number.isFinite)))}${n1(mean(a.map((m) => m.botOff)) * 100, 5)}${n1(Math.min(...a.map((m) => m.slowestBot)))}`;
+const row = (name, a) => `${name.padEnd(16)}${pc(a, (m) => m.won)}${pc(a, (m) => m.place <= 3)}${n1(mean(a.map((m) => m.place)))}${n1(mean(a.map((m) => m.worst)))}${pc(a, (m) => m.last)}${n1(mean(a.map((m) => m.gap).filter(Number.isFinite)))}${n1(mean(a.map((m) => m.lap).filter(Number.isFinite)), 7)}${n1(mean(a.map((m) => m.botLap).filter(Number.isFinite)), 7)}${pc(a, (m) => m.botLap < m.lap)}${n1(mean(a.map((m) => m.walls)))}${n1(mean(a.map((m) => m.hits)))}${n1(mean(a.map((m) => m.botRescues)), 5)}${String(a.filter((m) => m.auto).length).padStart(4)}${n1(mean(a.map((m) => m.margin).filter(Number.isFinite)))}${n1(mean(a.map((m) => m.botOff)) * 100, 5)}${n1(Math.min(...a.map((m) => m.slowestBot)))}${n1(mean(a.map((m) => m.botSpread).filter(Number.isFinite)), 7)}`;
 for (const level of LEVELS) for (const driver of DRIVERS) {
   console.log(`\n${level} / ${driver}${TWO ? ' + beginner' : ''}${TEAMS ? ' teams' : ''}  (races each track ${RACES}, laps ${LAPS})`);
-  console.log(`${'track'.padEnd(16)}  win  pod place worst last  gapS   lapS botLap b<h% walls hits bRsc auto  winBy off% slowB`);
+  console.log(`${'track'.padEnd(16)}  win  pod place worst last  gapS   lapS botLap b<h% walls hits bRsc auto  winBy off% slowB  bSprM`);
   const all = [];
   const t0 = Date.now();
   for (const id of TRACKS) {

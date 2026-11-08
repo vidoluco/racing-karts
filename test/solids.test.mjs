@@ -31,7 +31,9 @@ for (const id of TRACK_IDS) {
     const { track, terrain } = await worldOf(id), S = solidsFor(track), T = track.samples;
     assert.ok(S, 'the track has solids');
     for (let i = 0; i < track.n; i++) {
-      const hw = T.w[i] / 2 - 0.5;
+      // a house whose front stands on the road's edge holds a kart's centre a margin in, as a deck's parapet does: the open road is what
+      // the racing line may use, 1.8 m in from either edge, and that whole width stays clear
+      const hw = T.w[i] / 2 - 1.8;
       for (const d of [0, hw / 2, -hw / 2, hw, -hw]) {
         const x = T.x[i] + T.nx[i] * d, z = T.z[i] + T.nz[i] * d;
         assert.equal(solidPush(S, x, track.heightAt(i, d), z), null, `road at sample ${i}, d ${d}`);
@@ -191,4 +193,84 @@ test('the count of hits tells a barrier from a building, and only the count does
   assert.ok(seen.true > 0, 'it did hit buildings');
   assert.equal(seen.false, 0, `${seen.false} building hits counted as barriers`);
   console.log(`# barriers ${wall}, buildings ${seen.true}`);
+});
+
+// ---------- what the renderer draws, measured on its own and not through the bake ----------
+// Every steep face the landmarks and road.js build, soft props and all, sampled where a kart's body would be: from 0.35 to 2.2 m over the
+// road, inside the road's width less inset. The tunnel rock players drove through on Transfagarasan was in no box because it stood in the
+// bore itself, where no box may go: the art has to leave the road, and this is what says that it has.
+const scenes = new Map();
+const sceneOf = async (id) => { if (!scenes.has(id)) { const { buildScenery } = await import('../tools/bake-solids.mjs'); scenes.set(id, await buildScenery(id)); } return scenes.get(id); };
+async function bodyHits(id, from, to, { inset = 0.3, at = null, skip = null } = {}) {
+  const sc = await sceneOf(id), { THREE, track } = sc, T = track.samples, n = track.n, C = 0.25, cells = new Map();
+  const idx = []; for (let i = from; i <= to; i++) idx.push(((i % n) + n) % n);
+  let ax = Infinity, az = Infinity, bx = -Infinity, bz = -Infinity;
+  for (const i of idx) { const r = T.w[i] / 2 + 2; ax = Math.min(ax, T.x[i] - r); bx = Math.max(bx, T.x[i] + r); az = Math.min(az, T.z[i] - r); bz = Math.max(bz, T.z[i] + r); }
+  const v = new THREE.Vector3(), IM = new THREE.Matrix4(), M = new THREE.Matrix4(), A = [0, 0, 0], B = [0, 0, 0], D = [0, 0, 0];
+  const tri = (src) => {
+    const ux = B[0] - A[0], uy = B[1] - A[1], uz = B[2] - A[2], wx = D[0] - A[0], wy = D[1] - A[1], wz = D[2] - A[2], ny = uz * wx - ux * wz, l = Math.hypot(uy * wz - uz * wy, ny, ux * wy - uy * wx);
+    if (l < 1e-7 || Math.abs(ny) / l > 0.72 || Math.max(A[0], B[0], D[0]) < ax || Math.min(A[0], B[0], D[0]) > bx || Math.max(A[2], B[2], D[2]) < az || Math.min(A[2], B[2], D[2]) > bz) return;
+    const k = Math.min(600, Math.ceil(Math.max(Math.hypot(ux, uy, uz), Math.hypot(wx, wy, wz)) / 0.15));
+    for (let i = 0; i <= k; i++) for (let j = 0; j <= k - i; j++) {
+      const x = A[0] + (ux * i + wx * j) / k, y = A[1] + (uy * i + wy * j) / k, z = A[2] + (uz * i + wz * j) / k, key = `${Math.floor(x / C)},${Math.floor(z / C)}`;
+      let c = cells.get(key); if (!c) cells.set(key, (c = [])); c.push(y, src);
+    }
+  };
+  const run = (g, m, src) => {
+    const P = g.attributes.position; if (!P) return;
+    const I = g.index, count = I ? I.count : P.count, get = (q, o) => { v.fromBufferAttribute(P, I ? I.getX(q) : q); if (m) v.applyMatrix4(m); o[0] = v.x; o[1] = v.y; o[2] = v.z; };
+    for (let q = 0; q + 2 < count; q += 3) { get(q, A); get(q + 1, B); get(q + 2, D); tri(src); }
+  };
+  for (const p of sc.parts) { if (p.mesh?.isInstancedMesh) for (let i = 0; i < p.mesh.count; i++) { p.mesh.getMatrixAt(i, IM); M.multiplyMatrices(p.matrix, IM); run(p.g, M, p.from); } else run(p.g, p.matrix ?? null, p.from); }
+  const hits = [], inside = (x, y, z) => { const c = cells.get(`${Math.floor(x / C)},${Math.floor(z / C)}`); if (c) for (let q = 0; q < c.length; q += 2) if (c[q] > y + 0.35 && c[q] < y + 2.2 && !skip?.test(c[q + 1])) return c[q + 1]; return null; };
+  // at: points where a kart's centre was, tested as they are
+  if (at) { for (const [x, y, z] of at) { const src = inside(x, y, z); if (src) hits.push({ x: +x.toFixed(2), z: +z.toFixed(2), src }); } return hits; }
+  for (const i of idx) {
+    const hw = T.w[i] / 2 - inset;
+    for (let d = -hw; d <= hw; d += C) {
+      const x = T.x[i] + T.nx[i] * d, z = T.z[i] + T.nz[i] * d, src = inside(x, track.heightAt(i, d), z);
+      if (src) hits.push({ i, d: +d.toFixed(2), src });
+    }
+  }
+  return hits;
+}
+
+for (const id of TRACK_IDS) {
+  test(`${id}: no rock and no masonry stands in a tunnel's bore, nor in its mouths`, async () => {
+    const { track } = await worldOf(id), tunnels = track.structures.filter((s) => s.kind === 'tunnel');
+    for (const st of tunnels) {
+      const hits = await bodyHits(id, st.i0 - 12, st.i1 + 12);
+      assert.equal(hits.length, 0, `tunnel ${st.i0}-${st.i1}: ${hits.length} points of the road at a kart's height inside drawn geometry, first ${JSON.stringify(hits[0])}`);
+    }
+  });
+}
+
+test('the buildings that stood in the road stand clear of it', async () => {
+  // Transfagarasan's cabana at u 0.08, Antelao's two cabins where the road loops back at u 0.54, Jakarta's Manggarai station at u 0.84,
+  // a clipped bush of the Ateneu's garden in the middle of Bucarest's road
+  // at Manggarai the lean-tos of the kampung, posts on the gutter in the district's blocks, are props and stay as they are
+  const spots = [['transfagarasan', 75, 100], ['antelao', 553, 563], ['jakarta', 3540, 3575, /^jakarta\.js:172$/], ['bucarest', 678, 698]];
+  for (const [id, a, b, skip] of spots) {
+    const hits = await bodyHits(id, a, b, { skip });
+    assert.equal(hits.length, 0, `${id} samples ${a}-${b}: ${hits.length} points of the road inside drawn geometry, first ${JSON.stringify(hits[0])}`);
+  }
+});
+
+test('a kart driven into the tunnel rock of Transfagarasan never has its centre in the stone', async () => {
+  const { track, terrain } = await worldOf('transfagarasan'), st = track.structures.find((s) => s.kind === 'tunnel');
+  const race = createRace({ track, terrain, seed: 4, laps: 9, players: [{ kart: 'tabia', human: true }], countdown: 0, timeTrial: true });
+  const k = race.state.karts[0], at = [];
+  // from 30 m before each mouth, flat out, steering hard for the rock either side of the portal and on through the bore against its wall
+  for (const [from, back] of [[st.i0 - 15, false], [st.i1 + 15, true]]) for (const side of [-1, 1]) for (const steer of [0.3, 0.7]) {
+    race.teleport(0, from / track.n, side * 2, { speed: 40, lap: 1, yawOffset: back ? Math.PI : 0 });
+    for (let s = 0; s < 200; s++) {
+      race.step([{ steer: side * (back ? 1 : -1) * steer, throttle: 1 }]);
+      const L = track.nearest(k.x, k.z);
+      if (k.rescueT <= 0 && L.i >= st.i0 - 12 && L.i <= st.i1 + 12) at.push([k.x, k.y, k.z]);
+    }
+  }
+  assert.ok(at.length > 300, `the kart did drive there: ${at.length} steps`);
+  // the lamp posts by the road (staticGroup) are props, as the brief keeps them
+  const hits = await bodyHits('transfagarasan', st.i0 - 12, st.i1 + 12, { at, skip: /^staticGroup/ });
+  assert.equal(hits.length, 0, `${hits.length} steps with the kart's centre inside drawn geometry, first ${JSON.stringify(hits[0])}`);
 });

@@ -14,7 +14,7 @@ export const DIFFICULTIES = ['easy', 'medium', 'hard'];
 export const LAPS = [2, 3, 5];
 export const MODES = ['race', 'gp', 'time', 'teams', 'forma'];
 export const FORMA_MIN_BOTS = 3;
-export const VOICES = ['off', 'it', 'ro', 'id']; // the commentary's language; off is no key at all in the options
+export const VOICES = ['off', 'it', 'ro', 'id', 'en']; // the commentary's language; off is no key at all in the options
 // Gran Premio points by place, the spec's table.
 export const POINTS = [10, 8, 6, 5, 4, 3, 2, 1];
 
@@ -533,8 +533,10 @@ export function createFlow({ karts, tracks, regions = {}, rng = Math.random, rul
     },
     // rematch | track | lobby, from the results and the podium, by phone or TV. In a Gran Premio under way, rematch and
     // track both mean the next race: the order was agreed before it started.
-    next(kind) {
+    // turn: the screen a phone saw, when it says; a choice from a screen gone by does not count on the next one.
+    next(kind, turn) {
       if (S.phase !== 'results' && S.phase !== 'podium') return false;
+      if (turn !== undefined && turn !== S.turn) return false;
       if (S.unlocked) S.unlocked = null;
       if (kind === 'lobby') {
         S.gp = null; S.list = []; S.track = null; S.results = null; S.field = null; S.resultsT = 0;
@@ -567,9 +569,10 @@ export function createFlow({ karts, tracks, regions = {}, rng = Math.random, rul
       checkAdvance();
       return true;
     },
-    // Whoever holds the options need not wait for the rest.
+    // Any phone at the table need not wait for the rest: after a race every phone has the same ways out.
     skipWait(slot, turn = S.turn) {
-      if (!atTheEnd() || turn !== S.turn || slot !== api.authority()) return false;
+      const s = S.seats[slot];
+      if (!atTheEnd() || turn !== S.turn || !s?.present || s.away || s.source !== 'pad') return false;
       return moveOn();
     },
     // Who has pressed, of whom: for the TV.
@@ -698,6 +701,26 @@ export function createHudFeed({ every = 0.2 } = {}) {
       const e = last.get(slot);
       if (e && e.key === key && now - e.at < every) return false;
       last.set(slot, { key, at: now });
+      return true;
+    },
+  };
+}
+
+// A phone steering by tilt takes its straight ahead from the hand until just before GO: a player settles during the countdown,
+// not during the flyover, and a wheel already turned at GO counts as turned. The TV keeps saying so, and a phone that misses
+// the last of it, or comes back in the middle, is not left waiting: it goes by the next one, or lets go by itself (pad.js).
+export const HOLD_LEAD = 0.4; // seconds before GO
+export const holdsWheel = (flying, st) => flying || (st.phase === 'countdown' && st.countdown > HOLD_LEAD);
+export function createHoldFeed({ every = 0.3 } = {}) {
+  let on = false, at = 0;
+  return {
+    reset() { on = false; },
+    // Whether to tell the phones now: every so often while it holds, and once when it ends.
+    due(hold, now) {
+      if (!hold && !on) return false;
+      if (hold && on && now - at < every) return false;
+      on = hold;
+      at = now;
       return true;
     },
   };

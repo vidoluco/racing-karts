@@ -72,6 +72,7 @@ function store(key, val) {
 const ID_KEY = 'racing-karts.padId';
 const STEER_KEY = 'racing-karts.steer';
 const LINK_KEY = 'racing-karts.link';
+const HTTP_PORT_KEY = 'racing-karts.httpPort';
 // Arriving from the pad's other address (http and https): each address has its own storage, so the seat's id and the
 // phone's choices come along in the link, once.
 const carried = new URLSearchParams(location.search);
@@ -79,6 +80,7 @@ const carriedId = /^[A-Za-z0-9_-]{1,64}$/.test(carried.get('pad') || '') ? carri
 if (carriedId) store(ID_KEY, carriedId);
 if (carried.get('steer') === 'gyro' || carried.get('steer') === 'stick') store(STEER_KEY, carried.get('steer'));
 if (LANGS.includes(carried.get('lang'))) store(LANG_KEY, carried.get('lang'));
+if (/^\d{1,5}$/.test(carried.get('http') || '')) store(HTTP_PORT_KEY, carried.get('http')); // the way back, if https itself stops answering
 if (carriedId) history.replaceState(null, '', location.pathname);
 let padId = carriedId || store(ID_KEY);
 if (!padId || !/^[A-Za-z0-9_-]{1,64}$/.test(padId)) padId = store(ID_KEY, uuid());
@@ -104,6 +106,7 @@ function applyLang() {
 const st = { x: 0, y: 0, b: 0, d: 0, seq: 0 };
 let ws = null;
 let joined = false;
+let answered = false; // the game has said something to this page: a seat, or that there is none
 let slot = -1;
 let hostOn = false;
 let retry = 0;
@@ -340,6 +343,8 @@ function onMessage(m) {
   switch (m.t) {
     case 'welcome':
       joined = true;
+      answered = true;
+      if (cardKind === 'stuck') steerCard(null);
       slot = Number.isInteger(m.slot) ? m.slot : -1;
       hostOn = !!m.host;
       if (typeof m.id === 'string' && m.id !== padId) padId = store(ID_KEY, m.id);
@@ -353,6 +358,8 @@ function onMessage(m) {
       break;
     case 'full':
       joined = false;
+      answered = true;
+      if (cardKind === 'stuck') steerCard(null);
       overlay('pad.full', 'pad.fullText');
       break;
     case 'host':
@@ -368,6 +375,9 @@ function onMessage(m) {
       if (next !== phase) onPhase(next);
       break;
     }
+    case 'hold':
+      holdWheel(!!m.on);
+      break;
     case 'fx':
       onFx(m.kind, m);
       break;
@@ -383,6 +393,7 @@ function onMessage(m) {
 
 function onPhase(next) {
   if (next === 'race') raceStarts(phase === 'loading');
+  if (next === 'lobby' && (phase === 'results' || phase === 'podium')) backInLobbyAt = performance.now();
   phase = next;
   if (phase === 'lobby') { kartSel.fresh(); trackSel.fresh(); }
   if (phase === 'pick') { kartSel.fresh(); Object.assign(menu, { kart: null, ready: false, others: [] }); }
@@ -773,7 +784,9 @@ function releaseAll() {
 // The stick stays for what a thumb does best here: down brakes, up aims. Sensors need a secure page, and the pad's own
 // address is plain http: choosing this moves the phone to the https one, once, with its seat (see the card below).
 const STEER_SILENT_MS = 2000;
-const STEER_FOLLOW_MS = 2500; // the countdown: a player settling into how they hold it, the last of it is straight ahead
+const STEER_FOLLOW_MS = 2500; // from the first word of a race until the TV speaks: a player settling into how they hold it
+const STEER_HOLD_MS = 1500; // how long one word from the TV lasts, so that a word lost does not leave the wheel dead
+const STUCK_MS = 10000; // an https page with no answer from the game this long is offered the stick: wss and the link have both had their go
 const MOVED_KEY = 'racing-karts.moved';
 const tilt = createTilt();
 const steer = { want: store(STEER_KEY) === 'gyro' ? 'gyro' : 'stick', listening: false, live: false, ever: false, asking: false, since: 0, lastAt: 0, x: 0 };
@@ -789,7 +802,7 @@ function onTilt(e) {
   const now = performance.now();
   steer.lastAt = now;
   steer.ever = true;
-  steer.x = tilt.feed(e.beta, e.gamma, { angle: screenAngle(window), portrait: innerHeight > innerWidth, t: now });
+  steer.x = tilt.feed(e.beta, e.gamma, { angle: screenAngle(window), portrait: innerHeight > innerWidth, t: now, racing: phase === 'race' });
   if (steer.asking) { steer.asking = false; steer.since = now; steerCard(null); } // an iPhone already allowed it in this session
   if (!steer.live && stickId === null) { steer.live = true; paintSteer(); }
   if (!steerOn() || screenName) return;
@@ -849,6 +862,14 @@ function raceStarts(fresh) {
   steer.lastAt = performance.now();
   if (fresh) tilt.follow(STEER_FOLLOW_MS, steer.lastAt);
 }
+// The TV says when a kart cannot steer yet: the flyover and the countdown, all of it up to just before GO. Whatever the hand
+// is doing until then is not steering, and the last of it is straight ahead for this race.
+function holdWheel(on) {
+  if (!steer.listening) return;
+  steer.lastAt = performance.now(); // and a phone at rest meanwhile is not a silent sensor
+  if (on) tilt.follow(STEER_HOLD_MS, steer.lastAt);
+  else tilt.release();
+}
 function paintSteer() {
   const on = steerOn();
   document.body.classList.toggle('gyro', on);
@@ -879,7 +900,7 @@ async function moveToSecure() {
   if (!info?.tlsPort) return false;
   setWant('gyro');
   session((s) => s.setItem(MOVED_KEY, '1'));
-  location.assign(`https://${location.hostname}:${info.tlsPort}/pad?${carry('gyro')}`);
+  location.assign(`https://${location.hostname}:${info.tlsPort}/pad?${carry('gyro')}&http=${location.port || 80}`);
   return true;
 }
 // Back on the http page with the https one never reached: the warning was too much, or it would not open. No going round again.
@@ -887,6 +908,7 @@ function cameBack() {
   if (window.isSecureContext || steer.want !== 'gyro' || !session((s) => s.getItem(MOVED_KEY))) return false;
   session((s) => s.removeItem(MOVED_KEY));
   setWant('stick');
+  steerCard(null);
   paintSteer();
   toast(t('pad.gyroOff'), t('pad.gyroBack'), 3500);
   return true;
@@ -901,7 +923,8 @@ async function chooseSteer(mode) {
     // back to the address the QR gives, or the next scan would be sent to https all over again
     if (location.protocol === 'https:') {
       const info = await addressInfo();
-      if (info?.httpPort) location.replace(`http://${location.hostname}:${info.httpPort}/pad?${carry('stick')}`);
+      const port = info?.httpPort || store(HTTP_PORT_KEY) || location.port - 1; // the server's next port, when nothing else can say
+      location.replace(`http://${location.hostname}:${port}/pad?${carry('stick')}`);
     }
     return;
   }
@@ -913,21 +936,30 @@ async function chooseSteer(mode) {
   startListening();
   paintSteer();
 }
-// The one card: what the move to https is about, or the tap an iPhone wants before it gives its sensors.
+// The one card: what the move to https is about, the same again for a phone that comes back to http with the gyroscope
+// chosen, the tap an iPhone wants before it gives its sensors, or an https page that cannot reach the game.
+const CARDS = {
+  move: ['pad.moveTitle', 'pad.moveText', 'pad.moveGo'],
+  again: ['pad.againTitle', 'pad.againText', 'pad.moveGo'],
+  perm: ['pad.permTitle', 'pad.permText', 'pad.permGo'],
+  stuck: ['pad.stuckTitle', 'pad.stuckText', 'pad.stuckGo'],
+};
 let cardKind = null;
 function steerCard(kind) {
   cardKind = kind;
   $('steerCard').classList.toggle('hide', !kind);
   if (!kind) return;
-  $('scTitle').textContent = t(kind === 'move' ? 'pad.moveTitle' : 'pad.permTitle');
-  $('scText').textContent = t(kind === 'move' ? 'pad.moveText' : 'pad.permText');
-  $('scGo').textContent = t(kind === 'move' ? 'pad.moveGo' : 'pad.permGo');
+  const [title, text, go] = CARDS[kind];
+  $('scTitle').textContent = t(title);
+  $('scText').textContent = t(text);
+  $('scGo').textContent = t(go);
 }
 for (const b of $('steerSeg').children) b.addEventListener('click', () => chooseSteer(b.dataset.steer));
 $('scStay').addEventListener('click', () => { steerCard(null); chooseSteer('stick'); });
 $('scGo').addEventListener('click', async () => {
   vibrate(14, { touch: true });
   if (cardKind === 'perm') return askPermission();
+  if (cardKind === 'stuck') { steerCard(null); stuckFrom = performance.now(); retry = 0; return connect(); }
   $('scGo').disabled = true;
   const moved = await moveToSecure();
   $('scGo').disabled = false;
@@ -940,18 +972,31 @@ $('recenter').addEventListener('pointerdown', (e) => {
   toast(t('pad.recentered'), '', 700);
 });
 window.addEventListener('pageshow', (e) => { if (e.persisted) cameBack(); });
+// An https page that never heard from the game: the warning was passed and then nothing connects. It would say "scan the QR",
+// and the QR leads back here. So it offers the way out, by a tap: with the network down the http address would not open either.
+let stuckFrom = performance.now();
+setInterval(() => {
+  if (location.protocol !== 'https:' || answered || replaced || cardKind) return;
+  if (document.visibilityState !== 'visible') stuckFrom = performance.now();
+  else if (performance.now() - stuckFrom > STUCK_MS) steerCard('stuck');
+}, 500);
 // A page that opens with the choice already made.
 async function boot() {
   if (steer.want === 'gyro' && !window.isSecureContext) {
     if (!cameBack()) {
       overlay('pad.connecting', 'pad.sameWifi');
-      if (await moveToSecure()) return;
-      setWant('stick');
-      toast(t('pad.gyroOff'), t('pad.gyroNoHttps'), 3500);
+      // A tap, not a move by itself: the phone sits down on http meanwhile, a page that moves before it has loaded leaves
+      // nothing to come Back to, and this way a phone that cannot use https any more still has the stick in front of it.
+      if ((await addressInfo())?.tlsPort) steerCard('again');
+      else {
+        setWant('stick');
+        paintSteer();
+        toast(t('pad.gyroOff'), t('pad.gyroNoHttps'), 3500);
+      }
     }
   }
   connect();
-  if (steer.want !== 'gyro') return;
+  if (steer.want !== 'gyro' || !window.isSecureContext) return;
   if (!('DeviceOrientationEvent' in window)) return steerFallback('pad.gyroMissing');
   if (!needsPermission()) return startListening();
   // Safari, and Chrome since 151, give nothing until asked, and a phone that said yes earlier may say it again without a tap.
@@ -1139,7 +1184,7 @@ const OPT_ROWS = [
   { key: 'bots', label: 'pad.bots' },
   { key: 'laps', label: 'pad.laps', vals: [[2, '2'], [3, '3'], [5, '5']] },
   { key: 'mode', label: 'pad.mode', vals: [['race', 'pad.race'], ['gp', 'pad.gp'], ['time', 'pad.modeTime'], ['teams', 'pad.teams'], ['forma', 'pad.modeForma']] },
-  { key: 'voice', label: 'pad.voice', vals: [['off', 'pad.voiceOff'], ['it', 'Italiano'], ['ro', 'Română'], ['id', 'Indonesia']] },
+  { key: 'voice', label: 'pad.voice', vals: [['off', 'pad.voiceOff'], ['it', 'Italiano'], ['ro', 'Română'], ['id', 'Indonesia'], ['en', 'English']] },
   { key: 'weather', label: 'pad.weather', vals: [['clear', 'pad.wxClear'], ['rain', 'pad.wxRain'], ['snow', 'pad.wxSnow'], ['fog', 'pad.wxFog'], ['surprise', 'pad.wxSurprise']] },
   { key: 'night', label: 'pad.hour', vals: [[false, 'pad.wxDay'], [true, 'pad.wxNight']] },
 ];
@@ -1147,7 +1192,11 @@ const localOpts = { difficulty: 'medium', bots: 7, laps: 3, mode: 'race', voice:
 // off is no key at all in the host's options, so what the host says wins over the last thing this phone sent
 const opts = () => ({ ...localOpts, ...(menu.opts ? { voice: 'off', weather: 'clear', night: false } : {}), ...(menu.opts || {}) });
 const canEdit = () => slot === 0 || menu.edit === true;
+// The lobby comes up where a finger has just tapped "back to the lobby": the second tap of a double tap is not a choice of difficulty.
+let backInLobbyAt = -Infinity;
+const lobbyHeld = () => performance.now() - backInLobbyAt < DOUBLE_TAP;
 function setOpt(key, value) {
+  if (lobbyHeld()) return;
   localOpts[key] = value;
   if (menu.opts) menu.opts[key] = value;
   vibrate(10, { touch: true });
@@ -1244,7 +1293,7 @@ function paintOptions() {
   $('goWait').classList.toggle('hide', edit);
 }
 $('goBtn').addEventListener('click', () => {
-  if (!canEdit()) return;
+  if (!canEdit() || lobbyHeld()) return;
   vibrate(25, { touch: true });
   send({ t: 'opt', go: true });
 });
@@ -1397,16 +1446,23 @@ function paintResults() {
   }
   paintAdvance();
 }
-// One big Continue for every phone, and what it will lead to. Whoever holds the options has the other ways out, behind a second
-// tap. A screen that has just appeared takes no press for a moment: a thumb still racing lands right where the button comes up.
+// One big Continue for every phone, and what it will lead to. Every phone has the other ways out too, behind a second tap: the
+// players steer the evening from their hands, not from the computer. A screen that has just appeared takes no press for a moment:
+// a thumb still racing lands right where the button comes up.
+// With races still to run the lobby ends the championship for everyone: it asks once more, and the second tap of a double tap is not an answer.
 const ADVANCE_HOLD = 800;
+const DOUBLE_TAP = 500;
+const LOBBY_ASK_FOR = 4000;
 let advanceTurn = null;
 let advanceFrom = 0;
 let advanceTimer = 0;
 let moreOpen = false;
+let lobbyAsked = 0;
+let lobbyTimer = 0;
+let closedAt = -Infinity;
 const advanceHeld = () => performance.now() < advanceFrom;
 function paintAdvance() {
-  const a = menu.advance, edit = canEdit();
+  const a = menu.advance;
   if (a && a.turn !== advanceTurn) {
     advanceTurn = a.turn;
     advanceFrom = performance.now() + ADVANCE_HOLD;
@@ -1414,11 +1470,18 @@ function paintAdvance() {
     clearTimeout(advanceTimer);
     advanceTimer = setTimeout(() => { if (screenName === 'sResults') paintAdvance(); }, ADVANCE_HOLD + 20);
   }
-  const open = !!a && edit && moreOpen;
-  $('resGo').classList.toggle('hide', !a || open);
-  $('resInfo').classList.toggle('hide', open);
-  $('resMoreBtn').classList.toggle('hide', !a || !edit || open);
+  if (!a) moreOpen = false; // the screen has gone: when the next one comes, nobody has asked for the choices
+  const open = !!a && moreOpen;
+  if (!open) { lobbyAsked = 0; clearTimeout(lobbyTimer); }
+  $('resGo').classList.toggle('hide', !a);
+  $('resNext').classList.toggle('hide', open);
+  $('resClose').classList.toggle('hide', !open);
+  $('resWait').classList.toggle('unseen', open);
+  $('resInfo').classList.toggle('unseen', open);
+  $('resMoreBtn').classList.toggle('hide', !a || open);
   $('resBtns').classList.toggle('hide', !open);
+  $('resLobby').textContent = t(lobbyAsked ? 'pad.toLobbySure' : 'pad.toLobby');
+  $('resLobby').classList.toggle('sure', !!lobbyAsked);
   if (!a) return;
   const btn = $('resNext');
   btn.textContent = t(a.mine ? 'pad.advanceUndo' : 'pad.advance');
@@ -1430,10 +1493,11 @@ function paintAdvance() {
   $('resSkip').classList.toggle('hide', !many);
   $('resAgain').classList.toggle('hide', !a.more);
   $('resTrack').classList.toggle('hide', !a.more);
+  $('resMoreWhat').textContent = t(a.more ? 'pad.advanceMoreAll' : 'pad.toLobby'); // what is behind it, on the button itself
 }
 $('resNext').addEventListener('click', () => {
   const a = menu.advance;
-  if (!a || advanceHeld()) return;
+  if (!a || advanceHeld() || performance.now() - closedAt < DOUBLE_TAP) return; // Close comes off this very spot: its second tap is not a press
   a.mine = !a.mine;
   a.ready = Math.max(0, a.ready + (a.mine ? 1 : -1)); // the host's echo is a moment away: this finger should not have to wait for it
   vibrate(a.mine ? [20, 30, 40] : 12, { touch: true });
@@ -1441,19 +1505,32 @@ $('resNext').addEventListener('click', () => {
   paintAdvance();
 });
 $('resMoreBtn').addEventListener('click', () => { moreOpen = true; vibrate(10, { touch: true }); paintAdvance(); });
-$('resClose').addEventListener('click', () => { moreOpen = false; vibrate(10, { touch: true }); paintAdvance(); });
+$('resClose').addEventListener('click', () => { moreOpen = false; closedAt = performance.now(); vibrate(10, { touch: true }); paintAdvance(); });
 $('resSkip').addEventListener('click', () => {
   if (!menu.advance || advanceHeld()) return;
   vibrate(25, { touch: true });
   send({ t: 'advance', on: true, skip: true, turn: menu.advance.turn });
 });
-for (const [id, next] of [['resAgain', 'rematch'], ['resTrack', 'track'], ['resLobby', 'lobby']]) {
+for (const [id, next] of [['resAgain', 'rematch'], ['resTrack', 'track']]) {
   $(id).addEventListener('click', () => {
     if (advanceHeld()) return;
     vibrate(25, { touch: true });
-    send({ t: 'opt', next });
+    send({ t: 'opt', next, turn: menu.advance?.turn });
   });
 }
+$('resLobby').addEventListener('click', () => {
+  if (advanceHeld()) return;
+  if (menu.advance?.more === false && !lobbyAsked) {
+    lobbyAsked = performance.now();
+    lobbyTimer = setTimeout(() => { lobbyAsked = 0; paintAdvance(); }, LOBBY_ASK_FOR);
+    vibrate(25, { touch: true });
+    paintAdvance();
+    return;
+  }
+  if (lobbyAsked && performance.now() - lobbyAsked < DOUBLE_TAP) return;
+  vibrate(25, { touch: true });
+  send({ t: 'opt', next: 'lobby', turn: menu.advance?.turn });
+});
 
 // ---------- page hygiene: no zoom, no scroll, screen awake ----------
 for (const ev of ['gesturestart', 'gesturechange', 'dblclick', 'contextmenu', 'selectstart']) {
@@ -1571,7 +1648,9 @@ window.__pad = {
   state: st, geometry,
   get slot() { return slot; }, get joined() { return joined; }, get lang() { return lang; }, get phase() { return phase; },
   get pulses() { return pulses; }, get awake() { return awake; }, get screen() { return screenName; }, get menu() { return menu; },
-  get steer() { return { want: steer.want, on: steerOn(), listening: steer.listening, x: steer.x, degrees: tilt.degrees, centre: tilt.centre, frame: tilt.frame, link: linkOn, card: cardKind }; },
+  get lobbyHeld() { return lobbyHeld(); }, // back from the results the lobby's options take no tap for a moment (DOUBLE_TAP)
+  get steer() { return { want: steer.want, on: steerOn(), listening: steer.listening, x: steer.x, degrees: tilt.degrees, centre: tilt.centre, frame: tilt.frame, following: tilt.following, link: linkOn, card: cardKind }; },
+  showCard: (kind) => steerCard(kind),
   get item() { return { held: held.item, charges: held.charges, rolling: !!rolling, name: $('itemName').textContent }; },
   get carousel() {
     if (screenName === 'sKart') return carouselApi(kartCar, kartSel, 'readyBtn');

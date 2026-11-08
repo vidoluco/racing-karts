@@ -227,22 +227,25 @@ export function createPodium(C) {
 
   const steps0 = () => $('.steps');
   // A team championship ends with two steps: the two karts that won on the high one, cheering, their rivals on the low one, sulking.
+  // A step is the side's, and says so ("1st team"), so that two karts on it never read as first and second tied; under the side's
+  // points each driver shows their own, best scorer first.
   async function paintTeams(lang) {
-    const [first] = data.teams;
+    const sides = data.teams.map((T) => ({ ...T, members: [...T.members].sort((a, b) => b.points - a.points) }));
+    const [first] = sides;
     C.text($('.tbar h1'), t('pod.teamsTitle', { team: teamName(first.team, lang) }));
     const steps = steps0();
     steps.classList.add('teams');
-    steps.innerHTML = data.teams.map((T) => {
-      const info = teamInfo(T.team), names = T.members.map((m) => `<span>${m.human && m.slot >= 0 ? `<i data-seat="${m.slot}">${t('res.you', { n: m.slot + 1 })}</i>` : ''}${C.karts.find((x) => x.id === m.kart)?.driver?.name || m.kart}</span>`).join('');
+    steps.innerHTML = sides.map((T) => {
+      const info = teamInfo(T.team), names = T.members.map((m) => `<span>${m.human && m.slot >= 0 ? `<i data-seat="${m.slot}">${t('res.you', { n: m.slot + 1 })}</i>` : ''}${C.karts.find((x) => x.id === m.kart)?.driver?.name || m.kart}<em>${t('pod.points', { n: m.points })}</em></span>`).join('');
       return `<div class="stp" data-p="${T.rank}" data-team="${T.team}" style="--tc:${info.color};--tl:${info.light}"><div class="duo">${T.members.map((m, n) => `<div class="kartc" data-kart="${m.kart}" style="--d:${(-(T.rank * 2 + n) * 0.21).toFixed(2)}s"></div>`).join('')}</div>
-        <div class="block"><div class="nameplate card">${teamIcon(T.team)}<b>${teamName(T.team, lang)}</b><span>${t('pod.points', { n: T.points })}</span></div><div class="tnames">${names}</div><div class="num">${T.rank}</div></div></div>`;
+        <div class="block"><div class="nameplate card">${teamIcon(T.team)}<b>${teamName(T.team, lang)}</b><span>${t('pod.points', { n: T.points })}</span></div><div class="tnames">${names}</div><div class="num">${t(T.rank === 1 ? 'pod.teamFirst' : 'pod.teamSecond')}</div></div></div>`;
     }).join('');
     const f = $('.rfoot');
     const btn = (a, cls, title, sub) => `<button type="button" class="bigbtn ${cls}" data-a="${a}"><b class="${cls.includes('green') ? 'ink' : ''}">${title}</b><span>${sub}</span></button>`;
     f.innerHTML = btn('rematch', 'green', t('res.rematch'), t('res.rematchTeams')) + btn('track', '', t('res.track'), t('res.trackSub')) + btn('lobby', 'soft', t('res.lobby'), t('res.lobbySub'));
     live = [];
     const used = new Map();
-    for (const T of data.teams) {
+    for (const T of sides) {
       const boxes = steps.querySelectorAll(`.stp[data-team="${T.team}"] .kartc`);
       for (let n = 0; n < T.members.length; n++) {
         const m = T.members[n], c = used.get(m.kart) || 0;

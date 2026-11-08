@@ -76,6 +76,8 @@ export const it = {
   'res.teamsTable': 'Campionato a squadre',
   'res.rematchTeams': 'Stesso campionato, stesse squadre',
   'pod.teamsTitle': 'Vince la squadra {team}!',
+  'pod.teamFirst': '1ª squadra',
+  'pod.teamSecond': '2ª squadra',
   'tt.title': 'A cronometro',
   'tt.hint': 'Il tuo fantasma guida il tuo giro migliore: {time}. Tocca a te batterlo!',
   'tt.fly': 'Da solo contro il tuo fantasma',

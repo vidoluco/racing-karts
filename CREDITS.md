@@ -23,7 +23,7 @@ The telecronaca is the second exception to "all sound is live". Its voices (`ass
 | What | Source | Licence, as far as it goes |
 |---|---|---|
 | The tool, `edge-tts` 7.3.1, on the build machine only, never bundled | github.com/rany2/edge-tts | LGPLv3 (`srt_composer.py` MIT). This covers the tool, it says nothing about the audio |
-| The audio: it-IT-DiegoNeural, it-IT-IsabellaNeural, ro-RO-EmilNeural, ro-RO-AlinaNeural, id-ID-ArdiNeural, id-ID-GadisNeural | Microsoft's neural voices, through the service behind Edge's Read Aloud | **No licence for this use that we can point to.** `edge-tts` is not a Microsoft product and that service is not a public API. Microsoft's answer on its own forum: to provide text to speech legally, use Azure AI Speech, and commercial use without a valid subscription could violate its terms |
+| The audio: it-IT-DiegoNeural, it-IT-IsabellaNeural, ro-RO-EmilNeural, ro-RO-AlinaNeural, id-ID-ArdiNeural, id-ID-GadisNeural, en-GB-RyanNeural, en-GB-SoniaNeural | Microsoft's neural voices, through the service behind Edge's Read Aloud | **No licence for this use that we can point to.** `edge-tts` is not a Microsoft product and that service is not a public API. Microsoft's answer on its own forum: to provide text to speech legally, use Azure AI Speech, and commercial use without a valid subscription could violate its terms |
 
 So the packs are not distributed. They are git ignored, and the game runs without them, with captions only. `tools/make-voices.py` can build them on your own machine for your own use; check the terms of the voice service first.
 

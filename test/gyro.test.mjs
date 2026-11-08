@@ -9,13 +9,14 @@ import https from 'node:https';
 import tlsNet from 'node:tls';
 import { build } from 'esbuild';
 import WebSocket from 'ws';
-import { launch, headlessShell, startServerProcess, freePort } from '../tools/harness.mjs';
+import { launch, headlessShell, startServerProcess, freePort, buildDist } from '../tools/harness.mjs';
 import { startServer, host, sleep } from '../server/testing.js';
 import { ensureCert, readCert, CERT_FILE } from '../server/tls.js';
 import { upVector, rollDegrees, pickFrame, steerCurve, createTilt, screenAngle, FULL_LOCK, DEAD_ZONE } from '../controller/tilt.js';
 import { mergeable } from '../controller/link.js';
 import { en, it as itDict } from '../controller/i18n.js';
 import { stickThrottle } from '../src/net/input.js';
+import { createHoldFeed, holdsWheel, HOLD_LEAD } from '../src/game/flow.js';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const hasBrowser = !!headlessShell();
@@ -30,6 +31,13 @@ function pose(side, roll, pitch = 30) {
   let beta = Math.asin(u[1]) * 180 / Math.PI, gamma = Math.atan2(-u[0], u[2]) * 180 / Math.PI;
   if (gamma >= 90) { gamma -= 180; beta = 180 - beta; } else if (gamma < -90) { gamma += 180; beta = 180 - beta; }
   if (beta >= 180) beta -= 360;
+  return { beta, gamma };
+}
+// The same angles for a way up given as a vector: a hand turning the phone from one pose to another goes through these.
+function anglesOf(v) {
+  const n = Math.hypot(...v), u = v.map((c) => c / n);
+  let beta = Math.asin(u[1]) * 180 / Math.PI, gamma = Math.atan2(-u[0], u[2]) * 180 / Math.PI;
+  if (gamma >= 90) { gamma -= 180; beta = 180 - beta; } else if (gamma < -90) { gamma += 180; beta = 180 - beta; }
   return { beta, gamma };
 }
 const close = (a, b, eps = 0.5, what = '') => assert.ok(Math.abs(a - b) <= eps, `${what} ${a} is not ${b} within ${eps}`);
@@ -156,6 +164,188 @@ test('a page stuck upright: a rotation lock is read from gravity, and a phone re
   const at45 = [-Math.sin(Math.PI / 4), Math.cos(Math.PI / 4), 0];
   assert.equal(pickFrame(at45, 0, true, 0), 0);
   assert.equal(pickFrame(at45, 0, true, 270), 270);
+});
+
+// iOS has no way out of a rotation lock: the page stays upright while the phone is held as a wheel, at whatever pitch.
+test('a rotation lock, at every normal pitch: from upright or flat onto its side, level is straight, right is right, left is left', () => {
+  for (const [start, from] of [['upright', upVector(70, 0)], ['flat', upVector(5, 1)]]) {
+    for (const side of [90, 270]) {
+      for (const pitch of [0, 15, 25, 30, 35, 45, 60, 70]) {
+        const where = `from ${start}, side ${side}, pitch ${pitch}`;
+        const tilt = createTilt();
+        let ms = 0;
+        const feed = ({ beta, gamma }, n = 1) => { let x; for (let i = 0; i < n; i++) { ms += 16; x = tilt.feed(beta, gamma, { angle: 0, portrait: true, t: ms }); } return x; };
+        feed(anglesOf(from), 30);
+        const to = upVector(pose(side, 0, pitch).beta, pose(side, 0, pitch).gamma);
+        for (let i = 1; i <= 60; i++) feed(anglesOf(from.map((c, k) => c + (to[k] - c) * (i / 60))));
+        assert.equal(tilt.frame, side, where);
+        assert.equal(feed(pose(side, 0, pitch), 30), 0, `${where}: level`);
+        close(feed(pose(side, 25, pitch), 30), steerCurve(25), 0.01, `${where}: right`);
+        close(feed(pose(side, -25, pitch), 30), -steerCurve(25), 0.01, `${where}: left`);
+        feed(pose(side, 10, pitch), 30);
+        tilt.recenter();
+        assert.equal(feed(pose(side, 10, pitch), 30), 0, `${where}: Centra works`);
+        assert.equal(tilt.frame, side, where);
+      }
+    }
+  }
+});
+
+test('a rotation lock in a race: a wheel turned all the way stays a wheel at any pitch, and the sign never flips', () => {
+  for (const side of [90, 270]) {
+    for (const pitch of [0, 20, 40, 60, 75, 85, 89]) {
+      for (const roll of [-90, -80, -70, -65, -60, -55, -50, -45, -40, -20, 20, 40, 45, 50, 55, 60, 65, 70, 80, 90]) {
+        const u = upVector(pose(side, roll, pitch).beta, pose(side, roll, pitch).gamma);
+        assert.equal(pickFrame(u, 0, true, side, true), side, `side ${side} pitch ${pitch} roll ${roll}`);
+      }
+    }
+  }
+  // lying flat, gravity has no opinion: the last frame stands
+  for (const prev of [0, 90, 180, 270]) assert.equal(pickFrame(upVector(3, -4), 0, true, prev), prev);
+});
+
+// As a hand does it, at 150 degrees a second, with a straight ahead that is not quite level. Before the fix: full opposite
+// lock from about roll 60 back down to about 15, and the centre gone.
+test('a rotation lock in a race: past 60 degrees and back, the wheel keeps its sign and its centre, also held there', () => {
+  for (const side of [90, 270]) {
+    for (const pitch of [15, 30, 40, 45, 60, 70]) {
+      for (const peak of [50, 60, 70, 80, 90]) {
+        for (const dir of [1, -1]) {
+          const where = `side ${side} pitch ${pitch} peak ${peak} dir ${dir}`;
+          const tilt = createTilt();
+          let ms = 0;
+          const feed = (roll) => { ms += 16; const { beta, gamma } = pose(side, roll, pitch); return tilt.feed(beta, gamma, { angle: 0, portrait: true, t: ms, racing: true }); };
+          for (let i = 0; i < 20; i++) feed(4);
+          tilt.recenter();
+          for (let i = 0; i < 20; i++) feed(4);
+          close(tilt.centre, 4, 0.1, `${where}: centre`);
+          const rolls = [];
+          for (let r = 0; r <= peak; r += 2.4) rolls.push(r);
+          for (let i = 0; i < 60; i++) rolls.push(peak); // a second with the wheel all the way round
+          for (let r = peak; r >= 12; r -= 2.4) rolls.push(r);
+          for (const r of rolls) {
+            const x = feed(4 + dir * r);
+            if (r > 6) assert.ok(x * dir > 0, `${where}: at ${r} the steering is ${x}`);
+            assert.equal(tilt.frame, side, `${where}: at ${r}`);
+          }
+          close(tilt.centre, 4, 0.1, `${where}: the centre stays`);
+        }
+      }
+    }
+  }
+});
+
+test('out of a race, and before GO, the way up is still open: only the race holds the wheel', () => {
+  const uprightPose = anglesOf([0.1, 0.99, 0]);
+  const go = (tilt, opts, n = 5) => { let ms = opts.from || 16; for (let i = 0; i < n; i++, ms += 16) tilt.feed(uprightPose.beta, uprightPose.gamma, { angle: 0, portrait: true, t: ms, racing: opts.racing }); return tilt.frame; };
+  const wheel = (racing) => { const tilt = createTilt(); tilt.feed(pose(90, 0, 40).beta, pose(90, 0, 40).gamma, { angle: 0, portrait: true, t: 8, racing }); assert.equal(tilt.frame, 90); return tilt; };
+  assert.equal(go(wheel(false), { racing: false }), 0, 'in the menus');
+  assert.equal(go(wheel(true), { racing: true }), 90, 'in a race');
+  const settling = wheel(true);
+  settling.follow(2500, 8);
+  assert.equal(go(settling, { racing: true }), 0, 'through the flyover and the countdown');
+});
+
+test('upright in a race: an overshoot past 60 keeps its sign, a phone laid on its side becomes a wheel, Centra is the way back', () => {
+  const tilt = createTilt();
+  let ms = 0;
+  const feedU = (v, n = 1) => { const { beta, gamma } = anglesOf(v); let x; for (let i = 0; i < n; i++) { ms += 16; x = tilt.feed(beta, gamma, { angle: 0, portrait: true, t: ms, racing: true }); } return x; };
+  const turned = (deg) => { const a = deg * Math.PI / 180; return [-Math.sin(a), Math.cos(a), 0]; };
+  feedU(turned(0), 10);
+  assert.equal(tilt.frame, 0);
+  for (let a = 0; a <= 70; a += 2.4) assert.ok(feedU(turned(a)) >= 0, `turned ${a}`);
+  for (let a = 70; a >= 10; a -= 2.4) assert.ok(feedU(turned(a)) > 0, `coming back ${a}`);
+  assert.equal(tilt.frame, 0, 'it stayed upright');
+  // laid on its side, and left there
+  const side = upVector(pose(270, 0, 40).beta, pose(270, 0, 40).gamma);
+  feedU(side, 10);
+  assert.equal(tilt.frame, 0, 'not yet: a hand on its way through');
+  feedU(side, 30);
+  assert.equal(tilt.frame, 270);
+  assert.equal(feedU(side, 5), 0, 'level is straight');
+  // and upright again, deliberately: full lock until Centra says so
+  feedU(turned(0), 30);
+  assert.equal(tilt.frame, 270, 'the race holds the wheel');
+  tilt.recenter();
+  assert.equal(feedU(turned(0), 5), 0);
+  assert.equal(tilt.frame, 0);
+  assert.ok(feedU(turned(25), 30) > 0.2, 'upright, right is right');
+});
+
+test('a phone really upright stays upright up to 60 degrees of turn at any lift, and is a wheel again once lifted past it', () => {
+  for (const lift of [90, 70, 50, 30]) { // 90 is the glass vertical, 30 nearly flat
+    const c = Math.sin(lift * Math.PI / 180);
+    for (const a of [-55, -30, 0, 30, 55]) {
+      const r = a * Math.PI / 180, u = [-Math.sin(r) * c, Math.cos(r) * c, Math.cos(lift * Math.PI / 180)];
+      assert.equal(pickFrame(u, 0, true, 0), 0, `lift ${lift} turned ${a}`);
+    }
+  }
+  assert.equal(pickFrame([-0.9, 0.3, 0.3], 0, true, 0), 270);
+  assert.equal(pickFrame([0.9, 0.3, 0.3], 0, true, 0), 90);
+  assert.equal(pickFrame([0.1, 0.99, 0], 0, true, 90), 0, 'and back, well on its way up');
+});
+
+test('a straight ahead taken upright means nothing on its side: it starts again from level', () => {
+  const tilt = createTilt();
+  let ms = 0;
+  const feed = (b, g, n = 12) => { let x; for (let i = 0; i < n; i++) { ms += 16; x = tilt.feed(b, g, { angle: 0, portrait: true, t: ms }); } return x; };
+  const a = 15 * Math.PI / 180, leaning = anglesOf([-Math.sin(a), Math.cos(a), 0]);
+  feed(leaning.beta, leaning.gamma);
+  assert.equal(tilt.frame, 0);
+  tilt.recenter();
+  close(tilt.centre, 15, 1);
+  assert.equal(feed(pose(90, 0, 40).beta, pose(90, 0, 40).gamma), 0);
+  assert.equal(tilt.frame, 90);
+  assert.equal(tilt.centre, 0);
+});
+
+test('follow: asked again it goes on for longer without losing what it has, release ends it at once, and it lets go by itself', () => {
+  const tilt = createTilt();
+  let ms = 0;
+  const feed = (roll, n = 12) => { let x; for (let i = 0; i < n; i++) { ms += 16; x = tilt.feed(pose(90, roll).beta, pose(90, roll).gamma, { angle: 90, t: ms }); } return x; };
+  feed(0);
+  tilt.follow(2500, ms);
+  feed(15);
+  close(tilt.centre, 15, 1);
+  feed(50); // out of the reach of a centre: what it had stays
+  const had = tilt.centre;
+  tilt.follow(1500, ms);
+  assert.equal(tilt.centre, had, 'going on is not starting over');
+  assert.equal(feed(50), 0);
+  feed(6);
+  close(tilt.centre, 6, 1);
+  tilt.follow(100, ms); // never shorter than what it was already going to do
+  ms += 500;
+  assert.equal(feed(6, 1), 0);
+  assert.equal(tilt.following, true);
+  tilt.release();
+  assert.equal(tilt.following, false);
+  assert.equal(feed(6), 0, 'where the hand was is straight ahead');
+  assert.ok(feed(30) > 0.2);
+  tilt.follow(100, ms);
+  assert.equal(feed(30, 2), 0);
+  ms += 200;
+  assert.ok(feed(50) > 0.1, 'nobody said a word: it lets go');
+});
+
+test('the TV holds the wheel through the flyover and the countdown, up to just before GO, and says so every so often and once at the end', () => {
+  assert.equal(holdsWheel(true, { phase: 'countdown', countdown: 3 }), true);
+  assert.equal(holdsWheel(false, { phase: 'countdown', countdown: 3 }), true);
+  assert.equal(holdsWheel(false, { phase: 'countdown', countdown: HOLD_LEAD + 0.01 }), true);
+  assert.equal(holdsWheel(false, { phase: 'countdown', countdown: HOLD_LEAD }), false);
+  assert.equal(holdsWheel(false, { phase: 'race', countdown: 0 }), false);
+  assert.ok(HOLD_LEAD > 0 && HOLD_LEAD < 1);
+  const feed = createHoldFeed({ every: 0.3 });
+  assert.equal(feed.due(false, 0), false, 'nothing to say');
+  assert.equal(feed.due(true, 1), true);
+  assert.equal(feed.due(true, 1.1), false);
+  assert.equal(feed.due(true, 1.31), true);
+  assert.equal(feed.due(false, 1.32), true, 'the end at once');
+  assert.equal(feed.due(false, 2), false, 'and only once');
+  feed.due(true, 3);
+  feed.reset();
+  assert.equal(feed.due(false, 3.1), false, 'a new race starts quiet');
+  assert.equal(feed.due(true, 3.1), true);
 });
 
 test('the page\'s angle: window.orientation first, screen.orientation otherwise', () => {
@@ -503,7 +693,7 @@ test('over https: the emulated sensor itself (CDP override, the real event path)
   await tap(p, '#steerSeg [data-steer="gyro"]');
   const set = (o) => p.cdp.send('DeviceOrientation.setDeviceOrientationOverride', { alpha: 0, ...o });
   // the browser only fires on a change: a hand is never still either
-  const jiggle = setInterval(() => { set(pose(90, jiggle.roll + (jiggle.flip = !jiggle.flip ? 0.05 : -0.05))).catch(() => {}); }, 40);
+  const jiggle = setInterval(() => { jiggle.flip = !jiggle.flip; set(pose(90, jiggle.roll + (jiggle.flip ? 0.2 : -0.2))).catch(() => {}); }, 40);
   jiggle.roll = 0;
   t.after(() => clearInterval(jiggle));
   await p.page.waitForFunction(() => window.__pad.steer.on, null, { timeout: 5000 });
@@ -570,6 +760,176 @@ test('a race that starts: the countdown settles the centre, the wheel works stra
   close((await p.steer()).centre, 12, 1);
   assert.equal(await hold(p, pose(90, 12)), 0, 'that is straight ahead for this race');
   assert.ok(await hold(p, pose(90, 30)) > 0.2);
+});
+
+// The real timing on a TV (src/main.js): phase race first, then the flyover, then the countdown, then GO, seconds later.
+// The flyover here is cut down, only long enough to outlast the follow a phase message starts by itself.
+const FLY_MS = 3200;
+async function raceOnTv(p, h, flying, level, holdMs = 300) {
+  h.send({ t: 'phase', phase: 'loading', slot: 0 });
+  await p.page.waitForFunction(() => window.__pad.phase === 'loading');
+  h.send({ t: 'phase', phase: 'race', slot: 0 });
+  await p.page.waitForFunction(() => window.__pad.phase === 'race');
+  const say = setInterval(() => h.send({ t: 'hold', on: true, slot: 0 }), holdMs);
+  await hold(p, pose(90, flying, 35), FLY_MS);
+  const x = await hold(p, pose(90, level, 35), 1000);
+  clearInterval(say);
+  return x;
+}
+
+test('the wheel at GO: whatever the phone did through the flyover, level through the countdown goes straight', { skip, timeout: 45000 }, async (t) => {
+  const { srv, h } = await pageRoom(t);
+  const p = await phone(t, `${srv.https}/pad`);
+  await p.joined();
+  await lobby(p, h);
+  await tap(p, '#steerSeg [data-steer="gyro"]');
+  await hold(p, pose(90, 0, 35));
+  for (const flying of [15, -8]) {
+    assert.equal(await raceOnTv(p, h, flying, 0), 0, `rested at ${flying} through the flyover`);
+    assert.equal((await p.steer()).following, true, 'still long past the follow of the phase message');
+    h.send({ t: 'hold', on: false, slot: 0 });
+    await p.page.waitForFunction(() => !window.__pad.steer.following);
+    assert.equal(await hold(p, pose(90, 0, 35)), 0, `level at GO, after ${flying}`);
+    close((await p.steer()).centre, 0, 0.5, `centre after ${flying}`);
+    await lastX(h, 0);
+    const right = await hold(p, pose(90, 30, 35));
+    close(right, steerCurve(30), 0.03, 'and it steers straight away');
+    await lastX(h, right);
+    h.send({ t: 'phase', phase: 'lobby', slot: 0 });
+    await p.page.waitForFunction(() => window.__pad.screen === 'sLobby');
+    await hold(p, pose(90, 0, 35));
+  }
+  // held crooked on purpose through the countdown: that is the player's straight ahead, as before
+  assert.equal(await raceOnTv(p, h, 3, 12), 0);
+  h.send({ t: 'hold', on: false, slot: 0 });
+  await p.page.waitForFunction(() => !window.__pad.steer.following);
+  close((await p.steer()).centre, 12, 1);
+  assert.equal(await hold(p, pose(90, 12, 35)), 0);
+  assert.deepEqual(p.errors, []);
+});
+
+test('the wheel at GO: a word from the TV that is lost does not leave the wheel dead', { skip, timeout: 30000 }, async (t) => {
+  const { srv, h } = await pageRoom(t);
+  const p = await phone(t, `${srv.https}/pad`);
+  await p.joined();
+  await lobby(p, h);
+  await tap(p, '#steerSeg [data-steer="gyro"]');
+  await hold(p, pose(90, 0, 35));
+  assert.equal(await raceOnTv(p, h, 5, 0), 0);
+  // no last word: the socket dropped it
+  assert.ok(await hold(p, pose(90, 30, 35), 1800) > 0.2, 'it lets go by itself');
+  assert.equal((await p.steer()).on, true);
+  assert.deepEqual(p.errors, []);
+});
+
+test('the wheel at GO: a phone lying still through the flyover is not told that its sensors fell silent', { skip, timeout: 30000 }, async (t) => {
+  const { srv, h } = await pageRoom(t);
+  const p = await phone(t, `${srv.https}/pad`);
+  await p.joined();
+  await lobby(p, h);
+  await tap(p, '#steerSeg [data-steer="gyro"]');
+  await hold(p, pose(90, 0, 35));
+  h.send({ t: 'phase', phase: 'race', slot: 0 });
+  await p.page.waitForFunction(() => window.__pad.phase === 'race');
+  const say = setInterval(() => h.send({ t: 'hold', on: true, slot: 0 }), 300);
+  t.after(() => clearInterval(say));
+  await sleep(2800); // Android says nothing about a phone that does not move
+  clearInterval(say);
+  assert.equal((await p.steer()).on, true);
+  assert.equal(await p.page.locator('#toastSmall').textContent(), '');
+  assert.deepEqual(p.errors, []);
+});
+
+test('a rotation lock on the real page: on its side with the page upright, level is straight, both ways steer, Centra works', { skip, timeout: 30000 }, async (t) => {
+  const { srv, h } = await pageRoom(t);
+  const p = await phone(t, `${srv.https}/pad`, { width: 390, height: 844 });
+  await p.joined();
+  await lobby(p, h);
+  await tap(p, '#steerSeg [data-steer="gyro"]');
+  await hold(p, { beta: 70, gamma: 0 }, 300); // upright, to tap
+  await race(p, h);
+  const from = upVector(70, 0), to = upVector(pose(90, 0, 40).beta, pose(90, 0, 40).gamma);
+  for (let i = 1; i <= 8; i++) await hold(p, anglesOf(from.map((c, k) => c + (to[k] - c) * (i / 8))), 40);
+  assert.equal(await hold(p, pose(90, 0, 40), 300), 0, 'level');
+  assert.equal((await p.steer()).frame, 90);
+  const right = await hold(p, pose(90, 20, 40), 300), left = await hold(p, pose(90, -20, 40), 300);
+  close(right, steerCurve(20), 0.02, 'right');
+  close(left, -steerCurve(20), 0.02, 'left');
+  await lastX(h, left);
+  close(await hold(p, pose(90, 20, 15), 300), await hold(p, pose(90, 20, 60), 300), 0.01, 'pitch does nothing');
+  await hold(p, pose(90, 8, 40), 300);
+  await p.page.locator('#recenter').dispatchEvent('pointerdown');
+  assert.equal(await hold(p, pose(90, 8, 40), 200), 0, 'Centra');
+  assert.deepEqual(p.errors, []);
+});
+
+test('a rotation lock on the real page, in a race: past 60 degrees and back at 150 degrees a second, never the other way', { skip, timeout: 30000 }, async (t) => {
+  const { srv, h } = await pageRoom(t);
+  const p = await phone(t, `${srv.https}/pad`, { width: 390, height: 844 });
+  await p.joined();
+  await lobby(p, h);
+  await tap(p, '#steerSeg [data-steer="gyro"]');
+  await hold(p, pose(90, 0, 40), 300);
+  await race(p, h);
+  await hold(p, pose(90, 0, 40), 200);
+  assert.equal((await p.steer()).frame, 90);
+  for (const [peak, pitch] of [[60, 40], [70, 40], [70, 20], [60, 60], [90, 40]]) {
+    const trace = await p.page.evaluate(([peak, pitch]) => new Promise((ok) => {
+      const rolls = [], out = [], P = pitch * Math.PI / 180;
+      for (let r = 0; r <= peak; r += 2.4) rolls.push(r);
+      for (let r = peak; r >= 0; r -= 2.4) rolls.push(r);
+      let i = 0;
+      const id = setInterval(() => {
+        const r = rolls[i] * Math.PI / 180, u = [Math.cos(r) * Math.cos(P), Math.sin(r), Math.cos(r) * Math.sin(P)];
+        let beta = Math.asin(u[1]) * 180 / Math.PI, gamma = Math.atan2(-u[0], u[2]) * 180 / Math.PI;
+        if (gamma >= 90) { gamma -= 180; beta = 180 - beta; } else if (gamma < -90) { gamma += 180; beta = 180 - beta; }
+        dispatchEvent(new DeviceOrientationEvent('deviceorientation', { beta, gamma }));
+        out.push([rolls[i], window.__pad.state.x, window.__pad.steer.frame]);
+        if (++i >= rolls.length) { clearInterval(id); ok(out); }
+      }, 16);
+    }), [peak, pitch]);
+    const wrong = trace.filter(([r, x, frame]) => (r > 3 && x < -0.02) || frame !== 90);
+    assert.deepEqual(wrong, [], `peak ${peak} pitch ${pitch}`);
+    assert.ok(trace.some(([, x]) => x > 0.99), `peak ${peak} pitch ${pitch}: the full lock is there`);
+  }
+  assert.equal(await hold(p, pose(90, 0, 40), 200), 0, 'level is straight again');
+  assert.deepEqual(p.errors, []);
+});
+
+test('the real TV: the phone that rests crooked through the real flyover and is level through the real countdown goes straight at GO', { skip, timeout: 240000 }, async (t) => {
+  const real = tempDir(t, 'real');
+  await buildDist(real);
+  const srv = await startServerProcess({ dist: real, tls: true, tlsDir: tempDir(t, 'cert') });
+  t.after(() => srv.close());
+  // No menus on the TV's quick path, so no lobby button: a phone that chose it earlier. The page feeds itself, the test only moves the hand.
+  const p = await phone(t, `https://pad.test:${srv.port + 1}/pad`, { stored: { 'racing-karts.steer': 'gyro' } });
+  await p.joined();
+  await p.page.evaluate((a) => { window.__hand = a; setInterval(() => dispatchEvent(new DeviceOrientationEvent('deviceorientation', window.__hand)), 16); }, pose(90, 15, 35));
+  await p.page.waitForFunction(() => window.__pad.steer.on, null, { timeout: 10000 });
+  const hand = (roll) => p.page.evaluate((a) => { window.__hand = a; }, pose(90, roll, 35));
+  const ctx = await browser.newContext({ viewport: { width: 480, height: 270 }, locale: 'en-US' });
+  t.after(() => ctx.close());
+  const tv = await ctx.newPage();
+  await tv.goto(`${srv.base}/?lang=en&track=antelao&bots=0&players=1&seed=1&quality=low`);
+  const sim = () => tv.evaluate(() => ({ fly: window.__game.flyover, phase: window.__game.state?.phase, cd: window.__game.state?.countdown, err: window.__game.error }));
+  await tv.waitForFunction(() => window.__game.flyover || window.__game.error, null, { timeout: 90000 });
+  await sleep(3200); // past what the phase message alone would follow
+  assert.equal((await sim()).fly, true, 'still flying');
+  const during = await p.steer();
+  assert.equal(during.following, true, 'the TV is holding it');
+  assert.equal(await p.page.evaluate(() => window.__pad.state.x), 0, 'not steering yet');
+  close(during.centre, 15, 1, 'resting at 15');
+  await tv.waitForFunction(() => !window.__game.flyover || window.__game.error, null, { timeout: 90000 });
+  await hand(0);
+  await tv.waitForFunction(() => window.__game.state?.phase === 'race' || window.__game.error, null, { timeout: 60000 });
+  assert.equal((await sim()).err, null);
+  const at = await p.steer();
+  assert.equal(at.following, false, 'let go by GO');
+  close(at.centre, 0, 0.5, 'straight ahead is where the hand was');
+  assert.equal(await p.page.evaluate(() => window.__pad.state.x), 0, 'level at GO goes straight');
+  await hand(30);
+  await p.page.waitForFunction((x) => Math.abs(window.__pad.state.x - x) < 0.03, steerCurve(30), { timeout: 3000 });
+  assert.deepEqual(p.errors, []);
 });
 
 test('fallback: silent for 2 s goes to the stick with a word, and the stick steers again', { skip, timeout: 30000 }, async (t) => {
@@ -642,7 +1002,7 @@ test('the choice is remembered: a reload on https comes back on the gyroscope, a
   assert.deepEqual(p.errors, []);
 });
 
-test('from http: a short word first, then https with the same seat, the same language, and the next scan goes there by itself', { skip, timeout: 45000 }, async (t) => {
+test('from http: a short word first, then https with the same seat, the same language, and the next scan asks for one tap', { skip, timeout: 45000 }, async (t) => {
   const { srv, h } = await pageRoom(t);
   const other = new WebSocket(`${srv.wsBase}?role=pad&id=before`);
   await new Promise((ok) => other.once('open', ok));
@@ -682,12 +1042,129 @@ test('from http: a short word first, then https with the same seat, the same lan
   assert.ok(await hold(p, pose(90, 30)) > 0.2);
   await lastX(h, await hold(p, pose(90, 30)));
 
-  // the QR again, in a new tab of the same phone: http remembers, and sends it on before taking a seat
+  // the QR again, in a new tab of the same phone: http remembers, and asks for one tap: from a tap the way back stays open
   const again = await p.ctx.newPage();
   await again.goto(`${srv.http}/pad`);
+  await again.waitForFunction(() => window.__pad?.joined && window.__pad.steer.card === 'again');
+  assert.equal(new URL(again.url()).protocol, 'http:', 'it goes nowhere by itself');
+  assert.equal(await again.locator('#scText').textContent(), itDict['pad.againText']);
+  await again.locator('#scGo').click();
   await again.waitForURL(`${srv.https}/pad`, { timeout: 10000 });
+  await again.waitForFunction(() => window.__pad?.joined);
+  assert.equal(await again.evaluate(() => window.__pad.slot), 1, 'the same seat');
   assert.deepEqual(p.errors, []);
   await again.close();
+});
+
+// A phone that chose the gyroscope and later cannot use https: 5192 blocked, or a warning it will not pass.
+test('a later scan with https out of reach: never a dead end, the stick is one tap away and Back works', { skip, timeout: 45000 }, async (t) => {
+  const { srv, h } = await pageRoom(t);
+  const p = await phone(t, `${srv.http}/pad`);
+  await p.joined();
+  await lobby(p, h);
+  const id = await p.page.evaluate(() => localStorage.getItem('racing-karts.padId'));
+  await p.page.evaluate(() => localStorage.setItem('racing-karts.steer', 'gyro'));
+  await p.page.close();
+  await p.ctx.route(/^https:/, (r) => r.abort());
+
+  // Continue, the https page does not open, Back: on http, on the stick, in the same seat, for good
+  const tab = await p.ctx.newPage();
+  await tab.goto(`${srv.http}/pad`);
+  await tab.waitForFunction(() => window.__pad?.joined && window.__pad.steer.card === 'again');
+  await sleep(600);
+  assert.equal(tab.url(), `${srv.http}/pad`, 'it stays until told');
+  await tab.locator('#scGo').click();
+  await tab.waitForURL(/^chrome-error:/, { timeout: 8000, waitUntil: 'commit' }).catch(() => {}); // the failed move is the point
+  await sleep(1000); // the browser's error page settling: Back before that fails in the test driver, not in the page
+  assert.match(tab.url(), /^chrome-error:/);
+  await tab.goBack();
+  assert.equal(new URL(tab.url()).protocol, 'http:', 'Back is the http pad, not an empty tab');
+  await tab.waitForFunction(() => window.__pad?.joined);
+  assert.equal(await tab.evaluate(() => window.__pad.steer.want), 'stick');
+  assert.equal(await tab.evaluate(() => localStorage.getItem('racing-karts.steer')), 'stick');
+  assert.equal(await tab.evaluate(() => localStorage.getItem('racing-karts.padId')), id);
+  assert.equal(await tab.locator('#steerCard').isVisible(), false);
+  await tab.close();
+
+  // the same phone, the choice made again, and this time the other button of the card
+  const seed = await p.ctx.newPage();
+  await seed.goto(`${srv.http}/pad`);
+  await seed.evaluate(() => localStorage.setItem('racing-karts.steer', 'gyro'));
+  await seed.close();
+  const tab2 = await p.ctx.newPage();
+  await tab2.goto(`${srv.http}/pad`);
+  await tab2.waitForFunction(() => window.__pad?.steer.card === 'again');
+  await tab2.locator('#scStay').click();
+  await tab2.waitForFunction(() => window.__pad?.joined && window.__pad.steer.want === 'stick');
+  assert.equal(await tab2.evaluate(() => localStorage.getItem('racing-karts.steer')), 'stick');
+  assert.equal(new URL(tab2.url()).protocol, 'http:');
+  await tab2.close();
+  const tab3 = await p.ctx.newPage();
+  await tab3.goto(`${srv.http}/pad`);
+  await tab3.waitForFunction(() => window.__pad?.joined);
+  await sleep(300);
+  assert.equal(await tab3.evaluate(() => window.__pad.steer.card), null, 'the next scan is the plain stick again');
+  assert.equal(srv.room.status().slots.filter(Boolean).length, 1, 'one seat through all of it');
+  await tab3.close();
+});
+
+// The inference nobody can check here: an iPhone that refuses the link's EventSource as well as wss. The page itself opened.
+test('an https page that never gets a seat: after a few seconds it offers the stick, back on http in the same seat, even with no answer from https', { skip, timeout: 60000 }, async (t) => {
+  const { srv, h } = await pageRoom(t);
+  const p = await phone(t, `${srv.http}/pad`, { init: NO_WSS, locale: 'it-IT' });
+  await p.joined();
+  await lobby(p, h);
+  const id = await p.page.evaluate(() => localStorage.getItem('racing-karts.padId'));
+  await p.ctx.route(/\/link\/down/, (r) => r.abort());
+  await p.ctx.route(/^https:.*\/api\/info/, (r) => r.abort());
+  await tap(p, '#steerSeg [data-steer="gyro"]');
+  await tap(p, '#scGo');
+  await p.page.waitForURL(`${srv.https}/pad`, { timeout: 10000 });
+  await p.page.waitForFunction(() => window.__pad?.steer.card === 'stuck', null, { timeout: 20000 });
+  assert.equal(await p.page.evaluate(() => window.__pad.joined), false);
+  assert.equal(await p.page.locator('#scTitle').textContent(), itDict['pad.stuckTitle']);
+
+  // Riprova: a new go at it, and the card comes back if it still does not work
+  await tap(p, '#scGo');
+  assert.equal(await p.page.locator('#steerCard').isVisible(), false);
+  await p.page.waitForFunction(() => window.__pad?.steer.card === 'stuck', null, { timeout: 20000 });
+
+  await tap(p, '#scStay');
+  await p.page.waitForURL(`${srv.http}/pad`, { timeout: 10000 });
+  await p.joined();
+  assert.equal((await p.steer()).want, 'stick');
+  assert.equal(await p.page.evaluate(() => localStorage.getItem('racing-karts.steer')), 'stick', 'http now knows: the next scan is the plain stick');
+  assert.equal(await p.page.evaluate(() => localStorage.getItem('racing-karts.padId')), id, 'the same seat');
+  assert.equal(srv.room.status().slots.filter(Boolean).length, 1);
+
+  // and the link that only comes late: the card goes away by itself
+  const q = await phone(t, `${srv.https}/pad`, { init: NO_WSS });
+  await q.ctx.route(/\/link\/down/, (r) => r.abort());
+  await q.page.reload();
+  await q.page.waitForFunction(() => window.__pad?.steer.card === 'stuck', null, { timeout: 20000 });
+  await q.ctx.unroute(/\/link\/down/);
+  await q.page.waitForFunction(() => window.__pad.joined, null, { timeout: 15000 });
+  assert.equal((await q.steer()).card, null);
+  assert.equal(q.page.url(), `${srv.https}/pad`);
+});
+
+test('an https page with its seat, or told the room is full, is not stuck: no card, however long it waits', { skip, timeout: 40000 }, async (t) => {
+  const { srv } = await pageRoom(t);
+  const p = await phone(t, `${srv.https}/pad`);
+  await p.joined();
+  const others = [];
+  for (let i = 0; i < 3; i++) {
+    const w = new WebSocket(`${srv.wsBase}?role=pad&id=seat${i}`);
+    await new Promise((ok) => w.once('open', ok));
+    others.push(w);
+  }
+  t.after(() => others.forEach((w) => w.terminate()));
+  const q = await phone(t, `${srv.https}/pad`);
+  await q.page.waitForFunction(() => document.getElementById('ovTitle').textContent === 'The game is full' || document.getElementById('ovTitle').textContent.length > 0);
+  await sleep(11000);
+  assert.equal((await p.steer()).card, null);
+  assert.equal((await q.steer()).card, null);
+  assert.equal(await q.page.evaluate(() => window.__pad.joined), false, 'the fifth phone really has no seat');
 });
 
 test('the warning was too much: back on http it is the stick, with a word, and no going round again', { skip, timeout: 30000 }, async (t) => {
@@ -719,6 +1196,7 @@ test('the http stick flow as it was: no card, no sensor, no https, no warnings',
   assert.equal(await p.page.locator('#steerCard').isVisible(), false);
   assert.equal(await p.page.locator('#steerSeg button.on').getAttribute('data-steer'), 'stick');
   await race(p, h);
+  h.send({ t: 'hold', on: true, slot: 0 }); // the TV says it to every phone: nothing to a stick
   assert.equal(await p.page.locator('#recenter').isVisible(), false);
   const geo = await p.page.evaluate(() => window.__pad.geometry());
   await p.cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: geo.sx, y: geo.sy, id: 1 }] });
@@ -902,8 +1380,26 @@ test('it fits: the centre button in a race and both cards, on every phone size, 
   }
 });
 
+test('it fits: the later-scan card and the stuck card, on every phone size, in both languages', { skip, timeout: 60000 }, async (t) => {
+  const { srv } = await pageRoom(t);
+  for (const [width, height] of [[844, 390], [667, 375], [568, 320], [390, 844], [320, 568], [360, 780]]) {
+    for (const locale of ['it-IT', 'en-US']) {
+      const p = await phone(t, `${srv.http}/pad`, { width, height, locale, stored: { 'racing-karts.steer': 'gyro' } });
+      await p.page.waitForFunction(() => window.__pad?.steer.card === 'again');
+      for (const kind of ['again', 'stuck']) {
+        await p.page.evaluate((k) => window.__pad.showCard(k), kind);
+        const m = await p.page.evaluate(() => { const f = (id) => { const r = (typeof id === 'string' ? document.querySelector(id) : id).getBoundingClientRect(); return { l: r.left, t: r.top, r: r.right, b: r.bottom, w: r.width, h: r.height }; }; return { box: f('#steerCard .box'), go: f('#scGo'), stay: f('#scStay'), w: innerWidth, h: innerHeight }; });
+        const where = `${width}x${height} ${locale} ${kind}: ${JSON.stringify(m)}`;
+        assert.ok(m.box.l >= 0 && m.box.t >= 0 && m.box.r <= m.w && m.box.b <= m.h, where);
+        assert.ok(m.go.h >= 40 && m.stay.h >= 40 && m.go.r <= m.box.r && m.stay.r <= m.box.r && m.stay.b <= m.box.b && m.go.b <= m.box.b, where);
+      }
+      await p.ctx.close();
+    }
+  }
+});
+
 test('every word of it is in both languages, with no em dash', () => {
-  const keys = ['pad.steer', 'pad.steerGyro', 'pad.steerStick', 'pad.hintGyro', 'pad.recenter', 'pad.recentered', 'pad.moveTitle', 'pad.moveText', 'pad.moveGo', 'pad.moveStay', 'pad.permTitle', 'pad.permText', 'pad.permGo', 'pad.gyroOff', 'pad.gyroMissing', 'pad.gyroDenied', 'pad.gyroSilent', 'pad.gyroNoHttps', 'pad.gyroBack'];
+  const keys = ['pad.steer', 'pad.steerGyro', 'pad.steerStick', 'pad.hintGyro', 'pad.recenter', 'pad.recentered', 'pad.moveTitle', 'pad.moveText', 'pad.moveGo', 'pad.moveStay', 'pad.permTitle', 'pad.permText', 'pad.permGo', 'pad.gyroOff', 'pad.gyroMissing', 'pad.gyroDenied', 'pad.gyroSilent', 'pad.gyroNoHttps', 'pad.gyroBack', 'pad.againTitle', 'pad.againText', 'pad.stuckTitle', 'pad.stuckText', 'pad.stuckGo'];
   for (const k of keys) {
     assert.ok(itDict[k], `it ${k}`);
     assert.ok(en[k], `en ${k}`);

@@ -56,7 +56,7 @@ async function commentated(id, lang, { seed = 7, humans = 1, laps = 3, duration 
 }
 
 describe('the lines', () => {
-  test('every pool has the same lines in the three languages, and every track its own', () => {
+  test('every pool has the same lines in every language, and every track its own', () => {
     for (const [id, P] of Object.entries(POOLS)) {
       const n = P.it.length;
       assert.ok(n >= 1, id);
@@ -270,7 +270,7 @@ describe('words that are true for the race being run', () => {
   });
   test('a long road races one lap: the event is its last kilometre, never a last lap', () => {
     assert.deepEqual(pools('race', [{ type: 'lastLap', kart: 0 }], { laps: 1 }), ['lastKm']);
-    for (const l of VOICE_LANGS) for (const s of POOLS.lastKm[l]) assert.doesNotMatch(s, /giro|tur\b|putaran/i);
+    for (const l of VOICE_LANGS) for (const s of POOLS.lastKm[l]) assert.doesNotMatch(s, /giro|tur\b|putaran|\blap\b/i);
   });
   test('alone against the ghost nobody wins and nobody is told to throw anything', () => {
     assert.deepEqual(pools('time', [{ type: 'go' }, { type: 'lastLap', kart: 0 }]), ['ttStart', 'ttLast']);
@@ -301,9 +301,11 @@ describe('words that are true for the race being run', () => {
     for (const s of POOLS.start.it) assert.doesNotMatch(s, /\botto\b/i);
     for (const s of POOLS.start.ro) assert.doesNotMatch(s, /\bopt\b/i);
     for (const s of POOLS.start.id) assert.doesNotMatch(s, /delapan/i);
+    for (const s of POOLS.start.en) assert.doesNotMatch(s, /\beight\b/i);
     for (const [id, P] of Object.entries(POOLS)) if (P.who) {
       for (const s of P.it) assert.doesNotMatch(s, /\b(per primo|primo|lui)\b/, `${id}: ${s}`);
       for (const s of P.ro) assert.doesNotMatch(s, /\b(primul(?! loc)|el)\b/, `${id}: ${s}`);
+      for (const s of P.en) assert.doesNotMatch(s, /\b(he|him|his|she|her)\b/i, `${id}: ${s}`);
     }
   });
   test('every kind of disaster and hazard on any track has words, and a warning stays a warning: no joke in it', async () => {
@@ -343,6 +345,9 @@ describe('the option', () => {
     assert.equal(f.setOpts({ voice: 'off' }), true);
     assert.equal('voice' in f.opts, false);
     assert.deepEqual(sanitizeOpt({ t: 'opt', voice: 'id' }), { voice: 'id' });
+    assert.deepEqual(sanitizeOpt({ t: 'opt', voice: 'en' }), { voice: 'en' });
+    assert.equal(f.setOpts({ voice: 'en' }), true);
+    assert.equal(f.opts.voice, 'en');
     assert.equal(sanitizeOpt({ t: 'opt', voice: 'x' }), null);
   });
   test('words in both languages of the screens', () => {
@@ -451,6 +456,8 @@ test('by phone and TV, from the lobby to the results: voices, captions, ducking;
   await tv.locator('.lobby .chips[data-key="voice"] .chip[data-v="it"]').click();
   await tv.waitForFunction(() => window.__game.voice.lang === 'it', null, { timeout: 8000 });
   await phone.page.waitForFunction((s) => document.querySelector(`${s} button.on`)?.dataset.v === 'it', seg, { timeout: 8000 });
+  // back from the results the phone's lobby takes no tap for a moment, so the second tap of a double tap is not a choice
+  await phone.page.waitForFunction(() => !window.__pad.lobbyHeld, null, { timeout: 8000 });
   await tap(`${seg} button[data-v="off"]`);
   await tv.waitForFunction(() => window.__game.voice.lang === 'off', null, { timeout: 8000 });
   assert.equal(await tv.evaluate(() => localStorage.getItem('racing-karts.voice')), null);

@@ -137,7 +137,7 @@ Needs Node 24 or newer.
 
 Scan the QR on the TV with each phone. Phones and computer must be on the same network: a Wi-Fi or a phone's hotspot. If the computer changes network, scan the QR again.
 
-The commentary's voices are not in the repository (`assets/voice/` is git ignored, see `CREDITS.md`): a fresh clone plays it silently, with captions only. To make them for your own machine, `python3 tools/make-voices.py` (needs internet, about 48000 characters, makes its own `.venv`), then `npm run build`.
+The commentary's voices are not in the repository (`assets/voice/` is git ignored, see `CREDITS.md`): a fresh clone plays it silently, with captions only. To make them for your own machine, `python3 tools/make-voices.py` (needs internet, about 69000 characters in four languages, makes its own `.venv`), then `npm run build`.
 
 ## How many can play
 
@@ -159,7 +159,7 @@ A fifth phone waits for a free seat. A phone that leaves keeps its seat: the TV 
 | Kart | all the karts on turntables | swipe, confirm |
 | Track | big cards, coin if you disagree | swipe, vote |
 | Race | a flyover, 3, 2, 1, Go | the wheel |
-| After | results, then the podium, and who has pressed | Continue: when everyone here has pressed, it goes on. Player 1 also has More: don't wait, rematch, change track, lobby |
+| After | results, then the podium, and who has pressed | Continue: when everyone here has pressed, it goes on. Every phone also has More choices: don't wait, rematch, change track, lobby |
 
 ## What the phone does
 

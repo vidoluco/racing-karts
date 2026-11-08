@@ -370,8 +370,9 @@ for (const difficulty of ['easy', 'medium', 'hard']) {
     assert.equal(home.length, 8, `the whole field home: ${JSON.stringify(g.results.filter((r) => r.time === null))}`);
     assert.ok(stuck < MAX_STUCK_S, `no kart stood still for ${MAX_STUCK_S} s of race: ${stuck.toFixed(1)} s`);
     const winner = Math.min(...home.map((r) => r.time));
-    results[difficulty] = winner;
-    t.diagnostic(`${difficulty}: winner in ${winner.toFixed(1)} s, ${home.length} of 8 home, longest still ${stuck.toFixed(1)} s`);
+    // the bots' pace, not the winner's: on easy the person in the seat now wins, so the winner's time is theirs
+    results[difficulty] = Math.min(...home.filter((r) => !r.human).map((r) => r.time));
+    t.diagnostic(`${difficulty}: winner in ${winner.toFixed(1)} s, best bot ${results[difficulty].toFixed(1)} s, ${home.length} of 8 home, longest still ${stuck.toFixed(1)} s`);
     assert.ok(winner > 60 && winner < 260, `${winner}`);
     assert.deepEqual(errors, []);
     assert.deepEqual(pads[0].errors, []);

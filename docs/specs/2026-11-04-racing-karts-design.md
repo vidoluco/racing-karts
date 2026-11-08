@@ -156,7 +156,7 @@ race.drainEvents()   // [{ type, kart, ...}] since the last drain; createRace al
 race.autopilot(i)    // the input the bot brain would give kart i, for tools and tests filling a human slot
 race.teleport(i, u, d, { speed, lap, yawOffset }), race.give(i, itemId), race.rescue(i), race.disaster(entry)     // scripted setups, tests and tools only; disaster starts def.disasters[entry] now
 ```
-Options: `countdown` (default 3, 0 starts racing at once; tests use it); `players[i].difficulty` overrides `difficulty` for one kart, `'ace'` is a good driver with no rubber band for a human slot on autopilot. `phase` becomes `done` when all karts finished, or with humans in the race 30 s after the leader once no human is still racing; the sim keeps stepping (finished karts drive on by themselves, slowly, immune and not colliding).
+Options: `countdown` (default 3, 0 starts racing at once; tests use it); `players[i].difficulty` overrides `difficulty` for one kart, `'ace'` is a good driver with no rubber band for a human slot on autopilot. `phase` becomes `done` when all karts finished, or with humans in the race 30 s after the leader once no human is still racing, and then a bot still on the road is classified with the time its road left would take at its own pace (with every person home the spread and the band let go of it); the sim keeps stepping (finished karts drive on by themselves, slowly, immune and not colliding).
 
 ```
 state = {
@@ -199,8 +199,8 @@ Bots (`bot.js`): follow the racing line (precomputed by smoothing the centre lin
 
 | Difficulty | Speed cap vs player's kart | Mistakes | Items | Rubber band |
 |---|---|---|---|---|
-| `easy` | 0.87 | every few seconds, runs wide, no drifts, ignores shortcuts | late, wasteful | waits for the slowest person, no last lap sprint, never pushes a bot ahead of a person |
-| `medium` | 0.91 (0.93 on a long track) | often wide, brakes in corners, ignores shortcuts | late, wasteful | gentle |
+| `easy` | 0.82 (0.77 on a long track), each bot its own pace down to 0.75 of that | every few seconds, runs wide, no drifts, ignores shortcuts | late, wasteful | waits for the slowest person, no last lap sprint, never pushes a bot ahead of a person |
+| `medium` | 0.91 (0.93 on a long track), each bot down to 0.94 of that | often wide, brakes in corners, ignores shortcuts | late, wasteful | gentle |
 | `hard` (Difficilissimo) | 0.95 | seldom, drifts most corners | sensible, held and timed | catches up, light at the front |
 
 The row that was `hard` (0.965) left the menu after the players' evening of 06/11/2026 and stays as `expert` for tools and tests. On every level a bot ahead of every person is never sped up. Measured with `tools/ladder.mjs`, drivers in `test/helpers/drivers.mjs`, targets in `test/balance.test.mjs`.

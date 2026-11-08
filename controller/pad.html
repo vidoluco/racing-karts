@@ -187,7 +187,9 @@
   .teamic { flex: none; display: block; width: 28px; height: 28px; }
   .side button { display: flex; align-items: center; justify-content: center; gap: 5px; padding-left: 4px; }
   .side button small { font-size: 13px; font-weight: 700; opacity: 0.9; }
-  .seg[data-key="mode"], .seg[data-key="weather"] { flex-wrap: wrap; }
+  .seg[data-key="mode"], .seg[data-key="weather"], .seg[data-key="voice"] { flex-wrap: wrap; }
+  /* five voices: on a phone too narrow for them in one row they take two, and no word is a target under 40 px */
+  .seg[data-key="voice"] button { min-width: 44px; }
   /* one more row than the card was laid out for: a phone of any size still shows them all */
   @media (max-height: 640px) { #optCard.sided { gap: 3px; padding-top: 6px; padding-bottom: 6px; } #optCard.sided .optTtl { display: none; } #optCard.sided .seg button, #optCard.sided .step button { min-height: 40px; font-size: 15px; } #optCard.sided .seg { gap: 4px; } #optCard.sided .teamic { width: 24px; height: 24px; } }
   .seg.side button.on { background: var(--tc); color: #fff; -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; }
@@ -366,11 +368,14 @@
   #resInfo, #resGo { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
   #resInfo > * { max-width: 100%; }
   #resInfo #resTeam { flex-wrap: wrap; justify-content: center; white-space: normal; line-height: 1.1; }
-  #resNext { --side: var(--accent-d); width: min(100%, 320px); height: clamp(84px, 30vmin, 150px); border-radius: 30px; font-size: clamp(28px, 7vmin, 44px); font-weight: 700; background: radial-gradient(circle at 50% 30%, var(--accent-l), var(--accent) 66%); }
+  #resBig { position: relative; width: min(100%, 320px); height: clamp(84px, 30vmin, 150px); }
+  #resNext { --side: var(--accent-d); width: 100%; height: 100%; border-radius: 30px; font-size: clamp(28px, 7vmin, 44px); font-weight: 700; background: radial-gradient(circle at 50% 30%, var(--accent-l), var(--accent) 66%); }
   #resNext.done { --side: #c9951a; background: radial-gradient(circle at 50% 30%, #fff3b0, var(--sun) 66%); }
   #resNext.held { opacity: 0.45; }
-  /* the other ways out are behind a second tap, in the far corner from the big button */
-  #resMoreBtn { position: absolute; left: calc(var(--sal) + 12px); bottom: calc(var(--sab) + 8px); min-height: 44px; min-width: 76px; padding: 4px 14px; font-size: 16px; border-radius: 16px; }
+  /* the other ways out, on every phone, behind a second tap in the far corner from the big button: a real button that says what is in it */
+  #resMoreBtn { position: absolute; left: calc(var(--sal) + 12px); bottom: calc(var(--sab) + 8px); min-height: 52px; min-width: 132px; max-width: calc(50% - 24px); padding: 4px 16px; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; }
+  #resMoreBtn b { font-size: 19px; }
+  #resMoreBtn small { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
   #resPlace { color: #fff; font-size: clamp(64px, 24vmin, 110px); font-weight: 700; line-height: 1; -webkit-text-stroke: 9px var(--ink); paint-order: stroke fill; filter: drop-shadow(0 4px 0 var(--ink)); }
   #resPlace sup { font-size: 0.5em; vertical-align: 0.65em; }
   #resTime { padding: 5px 16px; font-size: 18px; font-weight: 700; }
@@ -387,8 +392,18 @@
     #resUnlock img { width: 40px; height: 40px; }
     #resInfo #resTeam { font-size: 16px; }
   }
-  #resBtns { position: absolute; inset: inherit; padding: inherit; display: flex; gap: 14px; flex-wrap: wrap; align-content: center; justify-content: center; }
-  #resBtns .btn { min-width: min(44%, 220px); min-height: 48px; padding: 6px 14px; font-size: 18px; }
+  /* a short screen: the button with what is in it fits in the room the old one had */
+  @media (max-height: 470px) and (orientation: landscape), (max-height: 700px) and (orientation: portrait) {
+    #resMoreBtn { min-height: 44px; padding: 2px 14px; }
+    #resMoreBtn b { font-size: 17px; }
+  }
+  /* The choices come where the numbers were. The numbers stay in the layout, unseen, so nothing moves, and the spot of Continue says
+     Close in the same shape: a finger going back to the familiar place shuts the choices and ends nothing. */
+  #resClose { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 30px; font-size: clamp(24px, 6vmin, 36px); }
+  .unseen { visibility: hidden; }
+  #resBtns { position: absolute; top: 0; left: 0; bottom: 0; right: calc(50% + 7px); padding: inherit; padding-bottom: calc(var(--sab) + 60px); display: flex; gap: 10px; flex-wrap: wrap; align-content: center; justify-content: center; }
+  #resBtns .btn { flex: 1 1 calc(50% - 5px); min-width: 0; max-width: 220px; min-height: 48px; padding: 6px; font-size: 18px; line-height: 1.1; }
+  #resLobby.sure { background: var(--sun); }
   #resWait { padding: 5px 14px; font-size: 15px; font-weight: 700; background: var(--cream); line-height: 1.15; }
 
   @media (orientation: portrait) {
@@ -431,8 +446,8 @@
     .bar i { height: 20px; }
     .vc.tc { height: min(100% - 20px, 420px); }
     .tc .pic { border-bottom: 0; }
-    #resBtns { flex-direction: column; flex-wrap: nowrap; align-items: center; }
-    #resBtns .btn { width: min(100%, 300px); }
+    /* upright the numbers are above Continue: the choices fill that room from the top, and stop before it */
+    #resBtns { right: 0; bottom: auto; padding-bottom: 0; align-content: flex-start; }
   }
   @media (orientation: portrait) and (max-width: 380px) {
     .seg[data-key="weather"] button, .seg[data-key="voice"] button { font-size: 13px; padding: 2px 1px; }
@@ -593,16 +608,18 @@
       <div id="resUnlock" class="sticker hide"><img alt=""><span></span></div>
     </div>
     <div id="resGo" class="hide">
-      <button id="resNext" class="toy" type="button"></button>
+      <div id="resBig">
+        <button id="resNext" class="toy" type="button"></button>
+        <button id="resClose" class="toy btn quiet hide" type="button" data-i18n="pad.advanceClose"></button>
+      </div>
       <div id="resWait" class="sticker"></div>
     </div>
-    <button id="resMoreBtn" class="toy btn quiet hide" type="button" data-i18n="pad.advanceMore"></button>
+    <button id="resMoreBtn" class="toy btn quiet hide" type="button"><b data-i18n="pad.advanceMore"></b><small id="resMoreWhat"></small></button>
     <div id="resBtns" class="hide">
       <button id="resSkip" class="toy btn" type="button" data-i18n="pad.advanceSkip"></button>
       <button id="resAgain" class="toy btn" type="button" data-i18n="pad.rematch"></button>
       <button id="resTrack" class="toy btn" type="button" data-i18n="pad.changeTrack"></button>
       <button id="resLobby" class="toy btn" type="button" data-i18n="pad.toLobby"></button>
-      <button id="resClose" class="toy btn quiet" type="button" data-i18n="pad.advanceClose"></button>
     </div>
   </div>
 </section>

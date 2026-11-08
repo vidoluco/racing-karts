@@ -263,18 +263,20 @@ export function buildGround(track, terrain, look, mat, forestOf, world = null) {
     const far = buildLevel(Lf, Yf, CHUNK * 2 * FAR_CELL, 14);
     cells = far.map((m) => ({ far: m, near: chunks.filter((c) => Math.floor(c.userData.cell[0] / FAR_CELL) === m.userData.cell[0] && Math.floor(c.userData.cell[1] / FAR_CELL) === m.userData.cell[1]) }));
   }
-  const water = waterY !== null && waterY !== undefined ? buildWater(terrain, Y, L, mw, mh, rivers, look, mat) : terrain.lake ? buildWater(terrain, Y, L, mw, mh, rivers, look, mat, terrain.lake) : null;
+  // the water in sheets of four chunks, as a long track's ground: one material, and every sheet a draw call
+  const wSize = CHUNK * 2;
+  const water = waterY !== null && waterY !== undefined ? buildWater(terrain, Y, L, mw, mh, rivers, look, mat, null, wSize) : terrain.lake ? buildWater(terrain, Y, L, mw, mh, rivers, look, mat, terrain.lake, wSize) : null;
   return { group, chunks, cells, water, groundAt, far: field.far, triangles, heights: Y };
 }
 
 // The water: a level sheet over every cell whose ground dips under it, with the depth at each vertex for the foam line.
-function buildWater(terrain, Y, L, mw, mh, rivers, look, _mat, lake = null) {
+function buildWater(terrain, Y, L, mw, mh, rivers, look, _mat, lake = null, size = CHUNK) {
   const { w, x0, z0, step } = terrain, level = lake ? lake.level : terrain.water, group = new THREE.Group(), material = waterMaterial(look);
   // look.water.capture: a still lake that shows what stands round it, captured once by the landmark into uCapture; the number is how much of it, default none
   if (look.water.capture) material.defines = { ...material.defines, WATER_CAPTURE: 1 };
   // a lake with its own level: only its own basin holds water, the ground under that level elsewhere stays dry
   const outside = lake ? (i, j) => ((x0 + i * step - lake.x) / lake.rx) ** 2 + ((z0 + j * step - lake.z) / lake.rz) ** 2 > 1.5 : null;
-  const cw = Math.ceil(mw / CHUNK), ch = Math.ceil(mh / CHUNK), levelStep = [1, 1, 2, 4];
+  const cw = Math.ceil(mw / size), ch = Math.ceil(mh / size), levelStep = [1, 1, 2, 4];
   for (let cj = 0; cj < ch; cj++) for (let ci = 0; ci < cw; ci++) {
     const map = new Map(), pos = [], dep = [], flow = [], idx = [];
     const vert = (i, j) => {
@@ -288,7 +290,7 @@ function buildWater(terrain, Y, L, mw, mh, rivers, look, _mat, lake = null) {
       }
       return v;
     };
-    for (let mj = cj * CHUNK; mj < Math.min(mh, (cj + 1) * CHUNK); mj++) for (let mi = ci * CHUNK; mi < Math.min(mw, (ci + 1) * CHUNK); mi++) {
+    for (let mj = cj * size; mj < Math.min(mh, (cj + 1) * size); mj++) for (let mi = ci * size; mi < Math.min(mw, (ci + 1) * size); mi++) {
       const st = levelStep[L[mj * mw + mi]], i0 = mi * MACRO, j0 = mj * MACRO;
       for (let b = 0; b < MACRO; b += st) for (let a = 0; a < MACRO; a += st) {
         const k = (j0 + b) * w + i0 + a, s = st;

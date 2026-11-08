@@ -92,7 +92,7 @@ export const WALL = {
   restitution: 0.15,
 };
 
-export const SOLID = { margin: 1.1, passes: 5, taper: 1.5, across: 0.7, stallM: 8, stallT: 5, pinnedM: 6, pinnedT: 8, see: 0.7 }; // margin: m round a building's footprint that a kart's centre keeps out of, its flank and not its axle meets the wall. taper: m of shoulder per m along, how sharply the barrier comes in to a building's front. stallM, stallT: a bot touching one that has gained less than this many m of road in this many s gets fetched. pinnedM, pinnedT: a person, who has moved less than this many m. across: how square a face must stand to the road to count as a gable end. see: s ahead a bot near the road's edge looks for one
+export const SOLID = { margin: 1.1, passes: 5, edgeIn: 1.5, taper: 1.5, across: 0.7, stallM: 8, stallT: 5, pinnedM: 6, pinnedT: 8, see: 0.7 }; // margin: m round a building's footprint that a kart's centre keeps out of, its flank and not its axle meets the wall. taper: m of shoulder per m along, how sharply the barrier comes in to a building's front.  edgeIn: m inside the road edge the barrier may come in to, where a building stands on the edge (the bake keeps the same 1.5 m, LANE_IN). stallM, stallT: a bot touching one that has gained less than this many m of road in this many s gets fetched. pinnedM, pinnedT: a person, who has moved less than this many m. across: how square a face must stand to the road to count as a gable end. see: s ahead a bot near the road's edge looks for one
 
 export const RAZZO = { v: 55, ttl: 8, r: 2.7, seek: 26, lateral: 16, near: 30, clear: 4.5, sweepLong: 2400, leadSafe: 3 }; // sweepLong: m the leader's razzo flies on a long track, not 10 km of it; leadSafe: s the leader is untouchable after firing it
 export const MICI_SHOT = { v: 24, minV: 46, ttl: 3.5, r: 2.2 };
@@ -135,16 +135,18 @@ export const STINK_WOBBLE = 0.5;
 export const QUAKE_WOBBLE = 0.34;    // the road moves under you: steering this far off at the height of an earthquake
 
 // One row per level of the menu. Measured with tools/ladder.mjs against scripted people on a phone (test/helpers/drivers.mjs), held by test/balance.test.mjs.
-// easy: someone new to the game gets to the front. Bots look away and run wide, never use an item well, and the band waits for the slowest person (waitLast); finale: 1 is no last lap sprint, so no band ever brings a bot past cap * (1 + back), 0.92 of a person's top speed.
+// easy: someone new to the game gets to the front. Bots look away and run wide, never use an item well, and the band waits for the slowest person (waitLast); finale: 1 is no last lap sprint, so no band ever brings a bot past cap * (1 + back), 0.87 of a person's top speed.
+// spread: every bot its own pace, the slowest at 1 - spread of the cap, so the field strings out. The players of 07/11/2026 still found the 0.87 row without it far too strong: a gyro player with 33 wall and building hits came last on Batur, the bots all home within 1.3 s.
 // medium is the row easy was until the players of 06/11/2026 called it medium to very hard; hard is the row medium was, a little sharper, because a good driver still won 85% against it. The old hard row left the menu and stays as expert, for tools and tests.
 export const DIFFICULTY = {
   easy: {
-    cap: 0.87, corner: 0.51, driftChance: 0, minTier: 1, minCorner: 1.2, mistakeEvery: [3, 7], mistakeT: 2.2, mistakeAmp: 0.8,
+    cap: 0.82, spread: 0.25, corner: 0.51, driftChance: 0, minTier: 1, minCorner: 1.2, mistakeEvery: [3, 7], mistakeT: 2.2, mistakeAmp: 0.8,
     itemDelay: [8, 18], smart: false, shortcuts: 0, avoid: 0.15, see: 24, crate: 0.25, pack: 0, leadEase: 0.03, back: 0.06, front: -0.2, reach: 50, finale: 1, waitLast: true,
     hunt: { cap: 0.93, corner: 0.58 },
+    long: { cap: 0.77 }, // six minutes of one road leave a clumsy driver more walls to find: podium 79% at 0.82 for the struggler driver, 96% here
   },
   medium: {
-    cap: 0.91, corner: 0.55, driftChance: 0.12, minTier: 1, minCorner: 1.2, mistakeEvery: [4, 9], mistakeT: 2, mistakeAmp: 0.62,
+    cap: 0.91, spread: 0.06, corner: 0.55, driftChance: 0.12, minTier: 1, minCorner: 1.2, mistakeEvery: [4, 9], mistakeT: 2, mistakeAmp: 0.62, // spread: a step easier after 07/11/2026, a driver as slow as that evening's stick player reached the podium 16% without it, 35% with
     itemDelay: [6, 15], smart: false, shortcuts: 0, avoid: 0.25, see: 34, crate: 0.35, pack: 0.02, leadEase: 0.02, back: 0.15, front: -0.13, reach: 60,
     hunt: { cap: 0.97, corner: 0.62 }, // in Caccia alla Forma there is no band to wait for you, and at this table's pace a good driver kept the wheel for most of the match
     long: { cap: 0.93 }, // ten minutes of road forgive a casual driver more than three short laps do: podium 59% at 0.91, against 42% on the short tracks

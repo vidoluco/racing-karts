@@ -14,7 +14,7 @@ Nothing here has run on a real phone. The tests (`test/gyro.test.mjs`) use headl
 2. Safari shows "This connection is not private". Tap **Show Details**, then **visit this website**, then **Visit Website**. Italian: **Mostra dettagli**, **visita questo sito web**, **Visita sito web**.
 3. The pad comes back on `https://...:5192/pad`, in the same seat. The TV may say offline for those seconds, and the seat must stay the same.
 4. A card asks for a tap: **Attiva**, then **Allow** on Safari's question. Do not tap anything else first.
-5. If rotation is locked in Control Center, turn the lock off: the pad is meant to be on its side.
+5. If rotation is locked in Control Center the steering still works, but the screen stays upright while you hold it on its side. Turn the lock off for the buttons to turn too.
 
 ## Android, Chrome
 
@@ -27,6 +27,8 @@ Nothing here has run on a real phone. The tests (`test/gyro.test.mjs`) use headl
 | Check | Expected |
 |---|---|
 | Hold it sideways, level, thumbs on | The kart goes straight, nothing drifts by itself |
+| Rest it crooked during the flyover, level during the 3, 2, 1 | At GO the kart goes straight: straight ahead is taken just before GO |
+| On an iPhone with the rotation lock on, sideways at a normal angle | Same as without the lock: level is straight, right is right, **Centra** works |
 | Turn it right, turn it left | The kart follows at once, small turns give small corrections, full lock at about 40 degrees |
 | Tip the phone towards you, away, nearly flat | The steering does not change |
 | Turn the phone over to the other landscape | Left is still left, right is still right |
@@ -35,7 +37,9 @@ Nothing here has run on a real phone. The tests (`test/gyro.test.mjs`) use headl
 | **Centra** at the top right, holding it a bit crooked | That becomes straight ahead |
 | Lock the phone for 20 s, unlock | Back in the seat, still steering by tilt |
 | Back in the lobby, tap **Stick** | The page goes back to http, same seat, the thumb steers again |
-| Scan the QR again on a phone that chose the gyroscope | It goes straight to https; no new warning unless the browser forgot it |
+| Scan the QR again on a phone that chose the gyroscope | A card, **Giroscopio: ancora un tocco**: **Continua** goes to https, the same seat, no new warning unless the browser forgot it; **Resto sullo stick** stays on http, for good |
+| On that card tap **Continua**, then Back on the warning page | The http pad, on the stick, in the same seat. iPhone and Android both: this history is the part only Chromium was seen doing |
+| With the rotation lock on, in a race, turn past 60 degrees and all the way to 90, and back | Full lock the same way all the time, never the other way, and straight ahead stays where it was |
 | A second phone on the stick, all evening | No card, no warning, exactly as before |
 
 ## The question this answers
@@ -54,6 +58,8 @@ Safari on iPhone has a long record of refusing `wss://` to a self-signed certifi
 | "La pagina sicura non si è aperta" | Went back from the warning. The phone stays on the stick; choose the gyroscope to try again |
 | The warning comes back another day | The Mac's address changed (a new certificate is made), or the browser forgot. Same steps |
 | "Scansiona di nuovo il QR" on https | The Mac changed network. Scan the QR; choose the gyroscope again on the new address |
+| "La pagina sicura non si collega" after about 10 s on https | The page opened but neither `wss://` nor the link reached the game. **Resto sullo stick** goes back to http in the same seat. Report this one: it answers the question above, and it means this phone cannot steer by tilt |
+| In a race with the rotation lock, a phone held upright reads full lock | It was laid on its side for a moment, and the race then holds it as a wheel. **Centra** lets it be upright again; the next race starts fresh too |
 | A phone stuck at the warning page | Port 5192 blocked: check the macOS firewall and any VPN on the Mac |
 
 Report which phone, which iOS or Android version and which browser. A tilt that is too sensitive or too lazy is a one-line change: `FULL_LOCK` and `steerCurve` in `controller/tilt.js`.

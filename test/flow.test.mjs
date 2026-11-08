@@ -1146,9 +1146,12 @@ test('the numbers of a race tell a barrier from a building, on the real TV page 
     const d = loc.d > 0 ? 1 : -1, x = S.x[loc.i] + S.nx[loc.i] * d, z = S.z[loc.i] + S.nz[loc.i] * d;
     return { u: loc.u, d, yawOffset: Math.atan2(r[0] - x, r[1] - z) - Math.atan2(S.tx[loc.i], S.tz[loc.i]) };
   });
+  // a barrier no building brought in, on either side, from a little before the start to past where the kart meets it; since the houses of Bran were baked whole no stretch of it is 60 m from every one
+  const walls = createRace({ track, terrain: buildTerrain(track), seed: 1, laps: 1, players: [{ slot: 0, kart: 'tabia', human: true, name: 'a' }], countdown: 0 }).walls;
+  const plain = (i) => { for (let o = -5; o <= 15; o++) { const j = (i + o + track.n) % track.n; if (walls.solidLeft[j] || walls.solidRight[j]) return false; } return true; };
   const clear = [];
-  for (let i = 0; i < track.n && clear.length < 12; i += 40) {
-    if (track.structureAt(i) || def.solids.some((r) => Math.hypot(r[0] - S.x[i], r[1] - S.z[i]) < 60)) continue;
+  for (let i = 0; i < track.n && clear.length < 12; i += 10) {
+    if (track.structureAt(i) || !plain(i) || def.solids.some((r) => Math.hypot(r[0] - S.x[i], r[1] - S.z[i]) < 30)) continue;
     clear.push({ u: i / track.n, d: 0, yawOffset: 1.2 });
   }
   assert.ok(shots.length && clear.length, `${shots.length} at houses, ${clear.length} at barriers`);

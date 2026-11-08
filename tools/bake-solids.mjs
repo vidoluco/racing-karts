@@ -17,13 +17,19 @@ const BAND = [0.35, 2.2];    // m above the ground under a kart: what a kart's b
 const STEEP = 0.72;          // |normal.y| over this is a floor or a roof, never something to run into
 const MIN_TOP = 2.05;        // m above the ground: a structure stands higher than this. A fence, a plinth or a kerb does not
 const MIN_AREA = 3.5;        // m2 of footprint: a post, a lamp or a sign has less
+const PILLAR = [1.5, 0.9];   // m2 and m: less footprint, but a mass at least this wide all round, a gate's pier or a shrine and not a post, is a structure too
 const CLOSE = 1.0;           // m: parts this close are one thing, a kart does not fit between them
 const REACH_MARGIN = 2.5;    // m: a footprint this close to where a kart can be counts as reachable
 const LEVEL_GAP = 3;         // m between two levels of ground at one spot, a crossing
 const EXTRA = 9;             // m of ground kept past the barrier, so that the footprint of what stands on it is whole
 const MAX_HOLE = 2500;       // m2: a wall round more than this is a yard, not a building
+const OWN_MASONRY = 1.6;     // m more that a bridge's own masonry keeps off a lane
+// a tunnel's gallery in road.js is not one of them: its portal is boxed to the edge, and the barrier is brought in to its margin
+const GALLERY = (() => { const t = readFileSync(fileURLToPath(new URL('../src/render/road.js', import.meta.url)), 'utf8').split('\n'), a = t.findIndex((l) => /^function gallery\(/.test(l)) + 1; let b = t.findIndex((l, i) => i >= a && /^(export )?function /.test(l)); if (b < 0) b = t.length; return [a, b]; })();
+const deckMasonry = (src) => { const m = /^road\.js:(\d+)$/.exec(src); return !!m && !(+m[1] >= GALLERY[0] && +m[1] <= GALLERY[1]); };
+const PAD = 0.05;             // m of slack on the margin when a box is checked against the centres of lane cells
 const SHORTCUT_CLEAR = 1;    // m past a shortcut's edge: a bot takes one at speed and cuts inside its bends, and a legal way through stays one
-const LANE_IN = 0.4;         // m inside the road's edge: no box, grown by a kart's margin, ever reaches further onto a road: the whole width stays a road
+const LANE_IN = 1.5;         // m inside the road's edge: no box, grown by a kart's margin, ever reaches further onto a road. A house whose front stands on the road's edge holds a kart's centre this far in, as a deck's parapet does, and the racing line, 1.8 m in, stays clear
 
 // What the eye takes for soft or light, by the words on the line of the landmark module that adds it: hay gives way, a cart is a prop. The brief: trees, signs and small props stay as they are.
 const SOFT = {
@@ -101,7 +107,7 @@ export async function buildScenery(id) {
 // ---------- where a kart can be: every 0.5 m cell near the road, with the height of the ground under a kart there ----------
 function createField(track, terrain) {
   const walls = wallsFor(track, terrain), R = { track, walls }, S = track.samples, n = track.n;
-  const heads = new Map(), N = { cell: [], next: [], y: [], flags: [] };
+  const heads = new Map(), N = { cell: [], next: [], y: [], flags: [], depth: [] }, edges = new Map(); // edges: the true line where each strip's lane ends, by 2 m bucket
   const key = (ix, iz) => (ix + 40000) * 100000 + (iz + 40000);
   const REACH = 1, ROAD = 2, LANE = 4, SOLID = 8;
   const nodeAt = (ix, iz, y) => {
@@ -112,17 +118,23 @@ function createField(track, terrain) {
       q = N.next[q];
     }
     const id = N.y.length;
-    N.cell.push(c); N.y.push(y); N.flags.push(0); N.next.push(heads.get(c) ?? -1);
+    N.cell.push(c); N.y.push(y); N.flags.push(0); N.depth.push(-1); N.next.push(heads.get(c) ?? -1);
     heads.set(c, id);
     return id;
   };
   const DL = CELL * 0.6, SUB = 8;
   // one strip across a road, out from (x, z) along the normal; reach(x, z, e): may a kart stand there?
   const across = (x0, z0, nx, nz, side, hw, out, level, reach, lane = hw - LANE_IN) => {
+    { const ex = x0 + nx * side * lane, ez = z0 + nz * side * lane, k = `${Math.floor(ex / 2)},${Math.floor(ez / 2)}`; let b = edges.get(k); if (!b) edges.set(k, (b = [])); b.push(ex, ez, level(side * Math.min(lane, hw))); }
     for (let e = 0; e <= out + EXTRA; e += DL) {
       const x = x0 + nx * side * e, z = z0 + nz * side * e, on = e <= hw, y = on ? level(side * e) : terrain.heightAt(x, z), q = nodeAt(Math.floor(x / CELL), Math.floor(z / CELL), y);
-      if (on) N.flags[q] |= ROAD;
-      if (e <= lane) N.flags[q] |= LANE;
+      // a cell is road or lane by where its centre stands, not by any point of it: the checks below then measure from true positions, and a
+      // house front at the road's edge keeps a box instead of losing a raster's worth of slack on every side
+      if (e <= Math.max(hw, lane) + CELL) {
+        const dc = Math.abs(((Math.floor(x / CELL) + 0.5) * CELL - x0) * nx + ((Math.floor(z / CELL) + 0.5) * CELL - z0) * nz);
+        if (dc <= hw) { N.flags[q] |= ROAD; if (hw - dc > N.depth[q]) N.depth[q] = hw - dc; } // depth: m inside the road's edge, on this level
+        if (dc <= lane) N.flags[q] |= LANE;
+      }
       if (!(N.flags[q] & REACH) && reach(x, z, e)) N.flags[q] |= REACH;
     }
   };
@@ -149,7 +161,21 @@ function createField(track, terrain) {
       }
     }
   }
-  return { heads, N, key, REACH, ROAD, LANE, SOLID };
+  // Does B, grown by pad, take in a point of a lane's true edge between heights lo and hi? The lane cells are tested by their centres; this is
+  // what keeps a box's corner from slipping between two centres onto the lane.
+  const edgeIn = (B, pad, lo, hi) => {
+    const r = Math.hypot(B.hu, B.hv) + pad;
+    for (let a = Math.floor((B.x - r) / 2); a <= Math.floor((B.x + r) / 2); a++) for (let b = Math.floor((B.z - r) / 2); b <= Math.floor((B.z + r) / 2); b++) {
+      const P = edges.get(`${a},${b}`);
+      if (P) for (let i = 0; i < P.length; i += 3) {
+        if (P[i + 2] < lo || P[i + 2] > hi) continue;
+        const dx = P[i] - B.x, dz = P[i + 1] - B.z;
+        if (Math.abs(dx * B.ux + dz * B.uz) < B.hu + pad && Math.abs(-dx * B.uz + dz * B.ux) < B.hv + pad) return true;
+      }
+    }
+    return false;
+  };
+  return { heads, N, key, REACH, ROAD, LANE, SOLID, edgeIn };
 }
 
 // ---------- the geometry falls on the field ----------
@@ -315,7 +341,8 @@ export async function extractSolids(id, { margin = SOLID.margin, scene = null } 
     const source = Object.entries(counts).sort((p, q) => q[1] - p[1])[0]?.[0] ?? '?';
     let kind = null, bd = 1e9;
     for (const b of buildings) { const d = Math.hypot(b.x - cx, b.z - cz); if (d < bd && d < Math.max(14, b.r ?? 14)) { bd = d; kind = b.kind ?? b.type ?? null; } }
-    const big = height >= MIN_TOP && area >= MIN_AREA;
+    const pier = area >= PILLAR[0] && area < MIN_AREA && (() => { const B = fitBox(cells); return Math.min(B.hu, B.hv) * 2 >= PILLAR[1]; })();
+    const big = height >= MIN_TOP && (area >= MIN_AREA || pier);
     // is it where a kart can be, on this level?
     const near = Math.ceil(REACH_MARGIN / CELL);
     let reachable = false;
@@ -329,7 +356,7 @@ export async function extractSolids(id, { margin = SOLID.margin, scene = null } 
     if (!big || !reachable) continue;
     // no box may reach onto a lane of this level, once it has grown by the kart's margin
     const onLane = (B) => {
-      const pad = margin + CELL * 0.75, r = Math.hypot(B.hu, B.hv) + pad, x0 = Math.floor((B.x - r) / CELL), x1 = Math.floor((B.x + r) / CELL), z0 = Math.floor((B.z - r) / CELL), z1 = Math.floor((B.z + r) / CELL);
+      const pad = margin + PAD, r = Math.hypot(B.hu, B.hv) + pad, x0 = Math.floor((B.x - r) / CELL), x1 = Math.floor((B.x + r) / CELL), z0 = Math.floor((B.z - r) / CELL), z1 = Math.floor((B.z + r) / CELL);
       for (let ix = x0; ix <= x1; ix++) for (let iz = z0; iz <= z1; iz++) {
         let q = heads.get(key(ix, iz));
         while (q !== undefined && q >= 0) {
@@ -340,10 +367,24 @@ export async function extractSolids(id, { margin = SOLID.margin, scene = null } 
           q = N.next[q];
         }
       }
-      return false;
+      return F.edgeIn(B, pad, y0 - LEVEL_GAP, y1 + LEVEL_GAP);
     };
+    // The footprint stops a kart's margin short of any lane of its level before it is cut, so that a house whose front stands by the road
+    // gets its box right up to that front. Cut first and checked after, every box touching the front row was dropped, and the whole front with it.
+    // a bridge's own masonry (road.js: parapets, abutments) is held by the deck's barrier: a box at the road's edge would stand square on
+    // to a kart at the bridge's mouth, so it keeps the clearance of old, a metre and more off the edge
+    const TRIM = margin + CELL / 2 + PAD + (deckMasonry(source) ? OWN_MASONRY : 0), tr = Math.ceil(TRIM / CELL); // a cell centre this far from a lane cell's: the face of its box, at the cell's edge, clears the lane check below
+    const free = cells.filter(([cx, cz]) => {
+      const ix = Math.round(cx / CELL), iz = Math.round(cz / CELL);
+      let lane = false;
+      for (let a = -tr; a <= tr && !lane; a++) for (let b = -tr; b <= tr && !lane; b++) {
+        if (Math.hypot(a, b) * CELL >= TRIM) continue;
+        nodesAt(ix + a, iz + b, (o) => { if ((N.flags[o] & LANE) && N.y[o] > y0 - LEVEL_GAP && N.y[o] < y1 + LEVEL_GAP) lane = true; });
+      }
+      return !lane;
+    });
     const out = [];
-    carve(cells, onLane, out);
+    carve(free, onLane, out);
     for (const B of out) {
       // only the boxes a kart can touch go in the file
       const r = Math.hypot(B.hu, B.hv) + REACH_MARGIN, x0 = Math.floor((B.x - r) / CELL), x1 = Math.floor((B.x + r) / CELL), z0 = Math.floor((B.z - r) / CELL), z1 = Math.floor((B.z + r) / CELL);
@@ -364,12 +405,12 @@ export async function extractSolids(id, { margin = SOLID.margin, scene = null } 
       if (!touch) continue;
       const lo = floor - 1.5, hi = Math.max(Math.min(topY, ceiling - 1), ground + 2);
       // the last word, as the sim will read it: at this height range, grown by the margin, no lane of any level under it
-      const pad = margin + CELL * 0.75, grown = Math.hypot(B.hu, B.hv) + pad;
+      const pad = margin + PAD, grown = Math.hypot(B.hu, B.hv) + pad;
       let clear = true;
       for (let ix = Math.floor((B.x - grown) / CELL); ix <= Math.floor((B.x + grown) / CELL) && clear; ix++) for (let iz = Math.floor((B.z - grown) / CELL); iz <= Math.floor((B.z + grown) / CELL) && clear; iz++) {
         nodesAt(ix, iz, (q) => { if (!(N.flags[q] & LANE) || N.y[q] < lo || N.y[q] > hi) return; const [u, v] = coordsIn(B, (ix + 0.5) * CELL, (iz + 0.5) * CELL); if (Math.abs(u) < B.hu + pad && Math.abs(v) < B.hv + pad) clear = false; });
       }
-      if (!clear) continue;
+      if (!clear || F.edgeIn(B, pad, lo, hi)) continue;
       boxes.push({ x: B.x, z: B.z, hu: B.hu, hv: B.hv, ux: B.ux, uz: B.uz, y0: lo, y1: hi });
       thing.boxes++;
     }

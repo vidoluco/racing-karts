@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { hash3, lerp, linear, smooth, vnoise } from '../math.js';
 import { shardGeometry } from '../rocks.js';
 import { trough } from '../../world/tracks/transfagarasan.js';
-import { merge, paint, place, box, roundedBox, sphere, capsule, cylinder, cone, gable, tube, lathe } from '../shapes.js';
+import { merge, paint, place, box, roundedBox, sphere, capsule, cylinder, cone, gable, tube, lathe, keepBore } from '../shapes.js';
 
 // Colours of the place: dark red timber and red tin roofs, grey stone.
 const TIMBER = '#66261c', TIMBER_D = '#451a14', TIMBER_L = '#7e3224', ROOF = '#a8362a', ROOF_D = '#862a22', STONE = '#8f8b84', STONE_D = '#6c6964', WHITE = '#efe9dc', STEEL = '#8b8d90', STEEL_D = '#5e6066', BOULDER = '#8f8e86', WOOL = '#f3ece0', SNOW = '#fbfaf6', GLASS = '#2e3a40', GLASS_L = '#4d5c64', TIN = 7;
@@ -303,7 +303,7 @@ function mergeUV(list) {
 
 // The cable car's line up the valley: pylons at true-ish spacing, from the station by the lake north until the valley drops out of sight.
 const CABLE = [[-140, 134], [-128, 262], [-118, 452], [-98, 590], [-84, 790], [-70, 1010]];
-const CABANA = [84, 73]; // e, n: its front in the water, turned toward the road coming along the shore
+const CABANA = [84, 62]; // e, n: its front in the water, turned toward the road coming along the shore. Eleven metres nearer the water than it once stood, when its corner stood in the road at u 0.08 and karts drove through it
 
 // The torrents, in true e, n: out of the lake's north end under the road and on down past the ladder, and the one under the viaduct.
 const STREAMS = [
@@ -478,7 +478,7 @@ export function build({ track, batch, mat, world, terrain, look }) {
     put(0, 20, -16, 22, 11, 14, sB + 7);
     put(-13, 19, -22, 17, 12, 13, sB + 8);
     put(14, 20, -24, 17, 11, 13, sB + 9);
-    B.add(merge(list));
+    B.add(keepBore(merge(list), track, i));
   }
   // scree on the fans under the walls, thick where the paint says stone: what makes a wall of the bare grey
   {
