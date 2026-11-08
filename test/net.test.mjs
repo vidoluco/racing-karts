@@ -2,11 +2,14 @@
 // keyboard for four players. Real ws clients against the real server.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { execFileSync, spawn } from 'node:child_process';
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { startServer, host, pad, sleep } from '../server/testing.js';
 import { createServer, lanAddress } from '../server/index.js';
-import { SLOT_COLORS, sanitizeInput, sanitizePick, sanitizeVote, sanitizeOpt } from '../server/room.js';
+import { createRoom, GRACE_MS, SLOT_COLORS, sanitizeInput, sanitizePick, sanitizeVote, sanitizeOpt } from '../server/room.js';
+import { createTelemetry, telemetryLine } from '../server/telemetry.js';
 import { createInput, DEFAULT_COLORS } from '../src/net/input.js';
 import { createKeyboard } from '../src/net/keyboard.js';
 import { createWsTransport } from '../src/net/ws-transport.js';
@@ -89,6 +92,8 @@ test('sanitizers keep only what the contract allows', () => {
   assert.deepEqual(sanitizeOpt({ t: 'opt', bots: -3 }), { bots: 0 });
   assert.deepEqual(sanitizeOpt({ t: 'opt', difficulty: 'nightmare', laps: 4, bots: 1.5, go: true }), { go: true });
   assert.deepEqual(sanitizeOpt({ t: 'opt', next: 'rematch' }), { next: 'rematch' });
+  assert.deepEqual(sanitizeOpt({ t: 'opt', next: 'lobby', turn: 7 }), { next: 'lobby', turn: 7 });
+  assert.deepEqual(sanitizeOpt({ t: 'opt', bots: 2, turn: 7 }), { bots: 2 }, 'a turn travels with a way on only');
   assert.equal(sanitizeOpt({ t: 'opt', difficulty: 'nightmare', next: 'quit', go: 1, laps: '3' }), null);
 });
 
@@ -128,33 +133,39 @@ test('opt: anyone before the first pick, then slot 0 only, and again after the h
   assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 1, laps: 5 });
 });
 
-test('slot 0 gone at the results: the lowest connected slot decides for the room, the others still do not', async (t) => {
+// After a race every phone has the ways on (rematch, change track, lobby): the players asked to steer it from their phones. What
+// stays with the lowest phone connected is the race options, once karts are picked.
+test('slot 0 gone at the results: the lowest connected slot holds the race options, and every phone has the ways on all along', async (t) => {
   const srv = await startServer({ reserveMs: 80 });
   t.after(() => srv.close());
   const h = await host(srv);
   const [a, b, c] = await fourPads(srv);
   a.send({ t: 'pick', kart: 'tabia' });
   await h.next('pick');
+  b.send({ t: 'opt', bots: 2 });
+  assert.ok(await h.none('opt'), 'slot 0 is here: slot 1 has no say on the options');
   b.send({ t: 'opt', next: 'rematch' });
-  assert.ok(await h.none('opt'), 'slot 0 is here: slot 1 has no say');
+  assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 1, next: 'rematch' }, 'but it has the way on');
   await a.close();
   await h.next((m) => m.t === 'leave' && m.slot === 0);
   // while its seat is held too: a phone that is not there decides nothing
-  b.send({ t: 'opt', next: 'rematch' });
-  assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 1, next: 'rematch' });
+  b.send({ t: 'opt', bots: 2 });
+  assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 1, bots: 2 });
   assert.deepEqual(await h.next('free'), { t: 'free', slot: 0 }, 'the reservation ran out, and the TV hears it');
   assert.equal(srv.room.status().slots[0], null);
-  b.send({ t: 'opt', next: 'lobby' });
-  assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 1, next: 'lobby' });
-  c.send({ t: 'opt', next: 'rematch' });
-  assert.ok(await h.none('opt'), 'slot 2 is not the lowest: nothing');
-  // slot 0's phone returns as a new one, and takes the seat and the say
+  c.send({ t: 'opt', bots: 4 });
+  assert.ok(await h.none('opt'), 'slot 2 is not the lowest: no options');
+  c.send({ t: 'opt', next: 'lobby', turn: 9 });
+  assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 2, next: 'lobby', turn: 9 }, 'and the way on all the same');
+  // slot 0's phone returns as a new one, and takes the seat and the options
   const again = await pad(srv, 'again');
   assert.equal((await again.next('welcome')).slot, 0);
-  b.send({ t: 'opt', next: 'lobby' });
+  b.send({ t: 'opt', bots: 1 });
   assert.ok(await h.none('opt'));
-  again.send({ t: 'opt', next: 'lobby' });
-  assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 0, next: 'lobby' });
+  again.send({ t: 'opt', bots: 1 });
+  assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 0, bots: 1 });
+  b.send({ t: 'opt', next: 'track' });
+  assert.deepEqual(await h.next('opt'), { t: 'opt', slot: 1, next: 'track' });
 });
 
 test('release: the TV gives up a held seat and the first in the queue takes it; a seat with a phone on it is never released', async (t) => {
@@ -218,25 +229,266 @@ test('host messages reach only the pad in that slot, the fields pass through', a
   for (const p of [a, b, c, d]) assert.ok(await p.none('fx', 50));
 });
 
-test('leave keeps the slot for the same id, reconnection resumes it; a newcomer waits meanwhile', async (t) => {
+test('leave keeps the slot for the same id, reconnection resumes it; someone already in the queue waits meanwhile', async (t) => {
   const srv = await startServer({ reserveMs: 60000 });
   t.after(() => srv.close());
   const h = await host(srv);
   const [, , c] = await fourPads(srv);
-  await c.close();
-  assert.deepEqual(await h.next('leave'), { t: 'leave', slot: 2 });
   const n = await pad(srv, 'nnnn');
   assert.equal((await n.next()).t, 'full');
+  await c.close();
+  assert.deepEqual(await h.next('leave'), { t: 'leave', slot: 2 });
+  assert.ok(await n.none('welcome'), 'a phone that may be blinking keeps its seat from the queue');
   const c2 = await pad(srv, 'cccc');
   const w = await c2.next('welcome');
   assert.equal(w.slot, 2);
   assert.equal(w.color, SPEC_COLORS[2]);
+  assert.equal(w.took, undefined, 'its own seat, nothing to tell');
   await h.next((m) => m.t === 'join' && m.slot === 2);
   c2.send({ t: 'in', x: 0.1, y: 0.2, b: 0, d: 1, seq: 0 });
   const got = await h.next('in');
   assert.equal(got.slot, 2);
   assert.equal(got.d, 1);
   assert.ok(await n.none('welcome'));
+});
+
+// ---------- a phone away: 120 s, and after them the seat still stands during a game ----------
+const fakeWs = () => { const out = []; return { readyState: 1, out, send: (raw) => out.push(JSON.parse(raw)), close() {} }; };
+
+test('the grace is 120000 ms, on the room and on a real server, and the TV hears the drop at once', async (t) => {
+  assert.equal(GRACE_MS, 120000);
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  const room = createRoom();
+  const tv = fakeWs(), a = fakeWs();
+  room.addHost(tv);
+  assert.equal(tv.out[0].reserveMs, 120000, 'the TV is told what to count down from');
+  room.addPad(a, 'aaaa');
+  tv.out.length = 0;
+  room.removePad(a);
+  assert.deepEqual(tv.out, [{ t: 'leave', slot: 0 }], 'at once, in the same tick');
+  t.mock.timers.tick(119999);
+  assert.equal(room.status().slots[0].id, 'aaaa', 'one ms before the end the seat is held');
+  assert.equal(tv.out.length, 1);
+  t.mock.timers.tick(1);
+  assert.equal(room.status().slots[0], null, 'in the lobby it then goes');
+  assert.deepEqual(tv.out.at(-1), { t: 'free', slot: 0 });
+  room.close();
+});
+
+test('a seat past its grace during a game stays until the lobby: the same phone comes back to it, with nothing freed', async (t) => {
+  const srv = await startServer({ reserveMs: 60 });
+  t.after(() => srv.close());
+  const h = await host(srv);
+  h.send({ t: 'game', on: true, phase: 'race' });
+  const a = await pad(srv, 'aaaa');
+  await a.next('welcome');
+  const b = await pad(srv, 'bbbb');
+  assert.equal((await b.next('welcome')).slot, 1);
+  await a.close();
+  assert.deepEqual(await h.next('leave'), { t: 'leave', slot: 0 });
+  assert.deepEqual(await h.next('expired'), { t: 'expired', slot: 0 });
+  assert.ok(await h.none('free', 150), 'nothing is freed during a game');
+  assert.equal(srv.room.status().slots[0].expired, true);
+  const back = await pad(srv, 'aaaa');
+  const w = await back.next('welcome');
+  assert.equal(w.slot, 0, 'after the grace, the same seat');
+  assert.equal(w.took, undefined);
+  assert.deepEqual(await h.next((m) => m.t === 'join' && m.slot === 0), { t: 'join', slot: 0, color: SPEC_COLORS[0] });
+  // gone again: back in the lobby is where an expired seat really goes
+  await back.close();
+  await h.next('expired');
+  h.send({ t: 'game', on: false, phase: 'lobby' });
+  assert.deepEqual(await h.next('free'), { t: 'free', slot: 0 });
+  assert.equal(srv.room.status().slots[0], null);
+});
+
+test('a seat still in its grace is not touched by the way to the lobby, and goes when the grace does', async (t) => {
+  const srv = await startServer({ reserveMs: 250 });
+  t.after(() => srv.close());
+  const h = await host(srv);
+  h.send({ t: 'game', on: true, phase: 'results' });
+  const a = await pad(srv, 'aaaa');
+  await a.next('welcome');
+  await a.close();
+  await h.next('leave');
+  h.send({ t: 'game', on: false, phase: 'lobby' });
+  assert.ok(await h.none('free', 80));
+  assert.equal(srv.room.status().slots[0].id, 'aaaa');
+  assert.deepEqual(await h.next('free', 1000), { t: 'free', slot: 0 });
+});
+
+test('a new phone takes an offline seat rather than a new one and is told; the old id then gets what is left', async (t) => {
+  const srv = await startServer();
+  t.after(() => srv.close());
+  const h = await host(srv);
+  h.send({ t: 'game', on: true, phase: 'race' });
+  const a = await pad(srv, 'aaaa');
+  await a.next('welcome');
+  const b = await pad(srv, 'bbbb');
+  await b.next('welcome');
+  await b.close();
+  await h.next((m) => m.t === 'leave' && m.slot === 1);
+  const tab = await pad(srv, 'newtab');
+  const w = await tab.next('welcome');
+  assert.equal(w.slot, 1, 'not slot 2, which is empty');
+  assert.equal(w.took, true, 'the phone is told');
+  assert.deepEqual(await h.next((m) => m.t === 'join' && m.took), { t: 'join', slot: 1, color: SPEC_COLORS[1], took: true });
+  assert.equal(srv.room.status().slots[1].id, 'newtab');
+  // the older of two offline seats goes first
+  await a.close();
+  await sleep(5);
+  await tab.close();
+  await h.next((m) => m.t === 'leave' && m.slot === 1);
+  const c = await pad(srv, 'cccc');
+  assert.equal((await c.next('welcome')).slot, 0);
+  // nothing offline any more but seat 1: the phone that had seat 0 takes it, as a new phone would
+  const old = await pad(srv, 'aaaa');
+  assert.equal((await old.next('welcome')).slot, 1);
+  // with no offline seat and an empty one, it is the empty one, with nothing to tell
+  const d = await pad(srv, 'dddd');
+  const wd = await d.next('welcome');
+  assert.equal(wd.slot, 2);
+  assert.equal(wd.took, undefined);
+});
+
+test('the queue takes a seat past its grace during a game, and a new phone does not pass the queue', async (t) => {
+  const srv = await startServer({ reserveMs: 120 });
+  t.after(() => srv.close());
+  const h = await host(srv);
+  h.send({ t: 'game', on: true, phase: 'race' });
+  const [a] = await fourPads(srv);
+  const q = await pad(srv, 'queued');
+  await q.next('full');
+  await a.close();
+  const late = await pad(srv, 'late');
+  assert.deepEqual(await late.next(), { t: 'full' }, 'behind the one already waiting');
+  const w = await q.next('welcome', 1500);
+  assert.equal(w.slot, 0);
+  assert.equal(w.took, true);
+  assert.ok(await h.none('free', 50), 'still no seat freed');
+});
+
+test('a network change during a game: no seat is freed, the new ids take them lowest first', async (t) => {
+  let nets = { en0: [{ family: 'IPv4', address: '127.0.0.1', internal: false }] };
+  const srv = await startServer({ ifaces: () => nets, netPollMs: 3600000 });
+  t.after(() => srv.close());
+  const h = await host(srv);
+  h.send({ t: 'game', on: true, phase: 'race' });
+  await h.next('hello');
+  await fourPads(srv);
+  nets = { en0: [{ family: 'IPv4', address: '172.20.10.2', internal: false }] };
+  for (let s = 0; s < 4; s++) {
+    const p = await pad(srv, `new${s}`);
+    assert.equal((await p.next('welcome')).slot, s);
+  }
+  assert.ok(await h.none('free', 100));
+});
+
+test('a phone that merely blinks: the same socket id back at once loses nothing and frees nothing', async (t) => {
+  const srv = await startServer({ reserveMs: 80 });
+  t.after(() => srv.close());
+  const h = await host(srv);
+  const a = await pad(srv, 'aaaa');
+  await a.next('welcome');
+  await a.close();
+  await h.next('leave');
+  const a2 = await pad(srv, 'aaaa');
+  assert.equal((await a2.next('welcome')).slot, 0);
+  assert.ok(await h.none('free', 200), 'its timer is gone with its return');
+  assert.equal(srv.room.status().slots[0].connected, true);
+});
+
+test('a phone says how it steers: relayed with its slot, anything else dropped', async (t) => {
+  const srv = await startServer();
+  t.after(() => srv.close());
+  const h = await host(srv);
+  const a = await pad(srv, 'aaaa');
+  await a.next('welcome');
+  a.send({ t: 'mode', input: 'telepathy', slot: 3 });
+  a.send({ t: 'mode', input: 'gyro', slot: 3 });
+  assert.deepEqual(await h.next('mode'), { t: 'mode', slot: 0, input: 'gyro' });
+  assert.ok(await h.none('mode'));
+});
+
+test('a pad that stops talking is stale after a second, connected or not it is never stale when gone, a word clears it', () => {
+  let t = 0;
+  const handlers = new Set();
+  const transport = { onMessage(fn) { handlers.add(fn); return () => handlers.delete(fn); }, send() { return true; } };
+  const say = (m) => { for (const fn of handlers) fn(m); };
+  const input = createInput(transport, { keyboard: null, now: () => t, staleMs: 1000 });
+  assert.equal(input.padStale(0), false);
+  say({ t: 'join', slot: 0 });
+  assert.equal(input.padStale(0), false);
+  t = 1001;
+  assert.equal(input.padStale(0), true);
+  say({ t: 'in', slot: 0, x: 0, y: 0, b: 0, d: 0, seq: 1 });
+  assert.equal(input.padStale(0), false);
+  t = 5000;
+  say({ t: 'leave', slot: 0 });
+  assert.equal(input.padStale(0), false);
+  assert.equal(input.padStale(9), false);
+});
+
+// ---------- the evening's numbers ----------
+test('telemetry: only well formed lines of a known kind, size capped; a server without a folder writes nothing; a failure is silent', async (t) => {
+  const line = (m) => telemetryLine(m, new Date('2026-11-06T20:00:00Z'));
+  const race = { e: 'race', track: 'bran', mode: 'teams', difficulty: 'easy', karts: [{ slot: 0, human: true, kart: 'gatto', place: 2, time: 201.4, bestLap: 70.1, wall: 3, botS: 0 }] };
+  assert.deepEqual(JSON.parse(line(race)), { at: '2026-11-06T20:00:00.000Z', ...race });
+  for (const bad of [null, 5, [], {}, { e: 'nope' }, { e: 'race', x: '<script>' }, { e: 'race', 'a b': 1 }, { e: 'race', t: NaN }, { e: 'race', a: { b: { c: { d: { f: 1 } } } } },
+    { e: 'race', list: Array(17).fill(1) }, { e: 'race', s: 'x'.repeat(49) }, { e: 'race', f() {} }, { e: 'race', ...Object.fromEntries(Array.from({ length: 40 }, (_, i) => [`k${i}`, 'v'])) }]) {
+    assert.equal(line(bad), null, JSON.stringify(bad));
+  }
+  const dir = mkdtempSync(join(tmpdir(), 'rk-tm-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  // a blocked folder: a file where the folder should be
+  const blocked = join(dir, 'blocked');
+  writeFileSync(blocked, 'x');
+  const said = [];
+  const off = createTelemetry({ dir: blocked, log: (m) => said.push(m) });
+  off.write(race);
+  off.write(race);
+  await off.flushed();
+  assert.equal(said.length, 1, 'said once, and nothing thrown');
+  const tm = createTelemetry({ dir: join(dir, 'deep', 'telemetry'), maxFile: 700 });
+  for (let i = 0; i < 5; i++) tm.write({ ...race, n: i });
+  await tm.flushed();
+  const [file] = readdirSync(join(dir, 'deep', 'telemetry'));
+  const lines = readFileSync(join(dir, 'deep', 'telemetry', file), 'utf8').trim().split('\n').map((l) => JSON.parse(l));
+  assert.deepEqual(lines.map((l) => l.n), [0, 1, 2], 'in order, and the day\'s file stops at its cap');
+});
+
+test('telemetry on a real server: what the TV sends and each drop and return land in the file; the report prints people against bots', async (t) => {
+  const dir = mkdtempSync(join(tmpdir(), 'rk-tm-'));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  const srv = await startServer({ telemetryDir: dir });
+  t.after(() => srv.close());
+  const h = await host(srv);
+  h.send({ t: 'game', on: true, phase: 'race' });
+  h.send({ t: 'tm', d: { e: 'session', difficulty: 'easy', bots: 6, laps: 3, mode: 'race', weather: 'clear', night: false, humans: 2, lang: 'it' } });
+  h.send({ t: 'tm', d: { e: 'nonsense', a: 1 } });
+  h.send({ t: 'tm', d: { e: 'race', track: 'bran', mode: 'teams', difficulty: 'easy', laps: 3, weather: 'clear', night: true, karts: [
+    { slot: -1, human: false, kart: 'tabia', place: 1, time: 200, bestLap: 65.2, wall: 0, botS: 0 },
+    { slot: 0, human: true, kart: 'gatto', place: 2, time: 215, bestLap: 70.4, wall: 4, botS: 0 },
+    { slot: 1, human: true, kart: 'jeep', place: 3, time: 230, bestLap: 74.1, wall: 7, building: 2, botS: 30, input: 'stick' },
+  ] } });
+  const a = await pad(srv, 'aaaa');
+  await a.next('welcome');
+  a.send('x'.repeat(5000));
+  await a.close();
+  await h.next('leave');
+  const a2 = await pad(srv, 'aaaa');
+  await a2.next('welcome');
+  await sleep(150);
+  const [file] = readdirSync(dir);
+  const lines = readFileSync(join(dir, file), 'utf8').trim().split('\n').map((l) => JSON.parse(l));
+  assert.deepEqual(lines.map((l) => l.e), ['session', 'race', 'drop', 'back']);
+  assert.match(lines[2].why, /closed/);
+  assert.equal(lines[2].phase, 'race');
+  assert.ok(lines[3].ms >= 0 && lines[3].took === false);
+  assert.ok(!JSON.stringify(lines).includes('aaaa'), 'no phone id in the file');
+  const out = execFileSync(process.execPath, ['tools/telemetry-report.mjs', dir], { cwd: new URL('..', import.meta.url), encoding: 'utf8' }).trim().split('\n');
+  assert.match(out[0], /bran teams easy clear\+night: P1 1:10\.4 place 2, 4w, P2 1:14\.1\* place 3, 7w 2b stick \| bots best 1:05\.2 mean 1:05\.2, gap 5\.2 s/);
+  assert.match(out[1], /^1 races, 1 phone drops, 1 returns/);
 });
 
 test('reloading a pad with the same id takes over its slot without a leave', async (t) => {
@@ -315,7 +567,8 @@ test('silent clients are dropped by the heartbeat', async (t) => {
 });
 
 test('a pad that goes silent is dropped within padSilentMs and comes back to its slot; one that never pinged is not', async (t) => {
-  const srv = await startServer({ padSilentMs: 400, reserveMs: 60000 });
+  const said = [];
+  const srv = await startServer({ padSilentMs: 400, reserveMs: 60000, log: (m) => said.push(m) });
   t.after(() => srv.close());
   const h = await host(srv);
   const a = await pad(srv, 'aaaa');
@@ -328,6 +581,7 @@ test('a pad that goes silent is dropped within padSilentMs and comes back to its
   const t0 = Date.now();
   assert.deepEqual(await h.next('leave', 3000), { t: 'leave', slot: 0 });
   assert.ok(Date.now() - t0 < 1500, `dropped after ${Date.now() - t0} ms`);
+  assert.ok(said.some((l) => /left slot 0 \(silent \d+ ms\)/.test(l)), `the log tells a silence from a close: ${said}`);
   assert.ok(await h.none((m) => m.t === 'leave' && m.slot === 1, 600), 'a client that never pinged stays');
   const a2 = await pad(srv, 'aaaa');
   assert.equal((await a2.next('welcome')).slot, 0);

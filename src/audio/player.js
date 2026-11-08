@@ -69,7 +69,7 @@ export function createPlayer(synth, tune, opts = {}) {
       if (t < now - 0.02) continue;
       if (opts.solo && !opts.solo.includes(ev.part)) continue;
       const durS = (ev.dur * secPerBeat) / rate;
-      synth.note(parts[ev.part], { f: ev.f, vel: ev.vel, voice: ev.voice, slide: ev.slide, durS }, t);
+      synth.note(parts[ev.part], { f: ev.f, vel: ev.vel, voice: ev.voice, slide: ev.slide, legato: ev.legato, durS }, t);
       lastPlaced = t;
     }
   }

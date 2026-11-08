@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { hash3, lerp, smooth } from '../math.js';
 import { blobAnimal } from '../props.js';
-import { merge, paint, place, box, sphere, capsule, cylinder, cone, gable, tube, lathe, roundedBox, torus } from '../shapes.js';
+import { merge, paint, place, box, sphere, capsule, cylinder, cone, gable, tube, lathe, roundedBox, torus, keepBore } from '../shapes.js';
 
 const WOOD = '#6a4a33', WOOD_D = '#46322a', WOOD_L = '#8e6c4c', SHINGLE = '#5a5152', STONE = '#8f8a8c', PLASTER = '#e9dfd0', LARCH = '#4b3629', LARCH_L = '#6d4f3b', HAY = '#a8925e', DOLOMIA = '#a8968a', DOLOMIA_D = '#7e7884', SNOW = '#fbfaff', SNOW_S = '#cdd8ee', ORANGE = '#f26b2b', RED = '#d43d33', BLUE = '#2d62b5';
 // windows are the lights of the hour: a touch over 1 so they glow against the blue of the shade
@@ -895,7 +895,7 @@ export function build({ track, terrain, batch, mat, world }) {
     if (st.kind !== 'tunnel') continue;
     for (const [i0, out] of [[st.i0, -1], [st.i1, 1]]) {
       const x = S.x[i0], z = S.z[i0], hw = S.w[i0] / 2, yawF = Math.atan2(S.tx[i0] * out, S.tz[i0] * out), nx = S.nx[i0], nz = S.nz[i0], tx = S.tx[i0] * out, tz = S.tz[i0] * out, y = S.y[i0];
-      const rock = (side, fore, w, h, seed, up = -1.2) => { const px = x + nx * side + tx * fore, pz = z + nz * side + tz * fore; B.add(place(rockFace(w, h, 7, seed), { p: [px, y + up, pz], r: [0, yawF, 0] })); if (up < 0) B.blob(px, pz, w * 0.5, 0.4); };
+      const rock = (side, fore, w, h, seed, up = -1.2) => { const px = x + nx * side + tx * fore, pz = z + nz * side + tz * fore; B.add(keepBore(place(rockFace(w, h, 7, seed), { p: [px, y + up, pz], r: [0, yawF, 0] }), track, i0)); if (up < 0) B.blob(px, pz, w * 0.5, 0.4); };
       for (const s2 of [-1, 1]) { rock(s2 * (hw + 6), 1.5, 11, 12, 11 + s2); rock(s2 * (hw + 15), -1, 14, 17, 14 + s2); rock(s2 * (hw + 26), -4, 16, 13, 16 + s2); rock(s2 * (hw + 2.4), 7, 4.6, 3.4, 18 + s2); }
       // the brow over the arch
       rock(0, 0.4, hw * 2 + 12, 9, 21, 7.6);

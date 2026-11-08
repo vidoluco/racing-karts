@@ -4,7 +4,8 @@
 //                          several pitches at once: c4+e4+g4
 //                          r is a rest, - holds the previous note on, @ asks the section's auto style for this bar
 //   dur                    w h q e s (16th) z (32nd) t (triplet eighth); sticky until it changes
-//   mods                   > accent, ? soft, / slide in from below, ~ trill, ^ grace from above, % tremolo
+//   mods                   > accent, ? soft, / slide in from below, ~ trill, ^ grace from above, % tremolo,
+//                          < grace from below, = mordent (the note, its upper neighbour, the note), _ slurred from the last note
 //
 // A bar that does not add up to the meter throws: that is the whole point of the bars.
 // Percussion lanes are step patterns, one per bar: 'x...x...' (x hit, X accent, o soft, . rest), or a table of letters
@@ -14,7 +15,7 @@ import { hash, rng32, midiHz } from './dsp.js';
 const NOTE = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, b: 11 };
 const DUR = { w: 4, h: 2, q: 1, e: 0.5, s: 0.25, z: 0.125, t: 1 / 3 };
 const PITCH = "(?:[a-g](?:#|b)?\\d|[1-7][',]*)";
-const TOKEN = new RegExp(`^([>?/~^%]*)(${PITCH}(?:\\+${PITCH})*|r|-)([whqeszt])?(\\.)?$`);
+const TOKEN = new RegExp(`^([>?/~^%<=_]*)(${PITCH}(?:\\+${PITCH})*|r|-)([whqeszt])?(\\.)?$`);
 
 export function nameToMidi(n) {
   const m = /^([a-g])(#|b)?(\d)$/.exec(n);
@@ -145,6 +146,53 @@ export const STYLES = {
     const pcs = c(at).pcs;
     return { at, d: 0.5, midi: [below(pcs[[0, 1, 2, 1][k % 4] % pcs.length], s.arpTop)], vel: k % 2 ? 0.55 : 0.8 };
   }),
+  // mazurka: the bass on one, and the weight of the bar on the second beat, not the first
+  mazurkaBass: (c, s) => [{ at: 0, d: 1, midi: [s.bar % 2 ? below(c(0).fifth, s.bassTop) : below(c(0).root, s.bassTop)], vel: 0.92 }],
+  mazurkaComp: (c, s) => [1, 2].map((at, i) => ({ at, d: 0.55, midi: s.voice(c(at).pcs), vel: i ? 0.66 : 1 })),
+  // the cobza's țiitură: quill down on the offbeat, a light rake back up just after it
+  sarbaCobza: (c, s) => [0.5, 0.75, 1.5, 1.75].map((at, i) => ({ at, d: 0.25, midi: s.voice(c(at).pcs), vel: i % 2 ? 0.5 : 0.92 })),
+  // a walk for the taraf's bass in 7/8, long on the three
+  geampBass: (c, s) => [
+    { at: 0, d: 0.9, midi: [below(c(0).root, s.bassTop)], vel: 1 },
+    { at: 1, d: 0.9, midi: [below(c(1).fifth, s.bassTop)], vel: 0.84 },
+    { at: 2, d: 1.3, midi: [below(c(2).root, s.bassTop)], vel: 0.95 },
+  ],
+  // 2 + 2 + 3: an afterbeat in each short group, two in the long one
+  geampComp: (c, s) => [0.5, 1.5, 2.5, 3].map((at, i) => ({ at, d: 0.32, midi: s.voice(c(at).pcs), vel: i === 3 ? 0.62 : 0.88 })),
+  geampArp: (c, s) => [0, 1, 2, 3, 4, 5, 6].map((k) => {
+    const at = k * 0.5;
+    const pcs = c(at).pcs;
+    const pc = pcs[[0, 2, 0, 2, 1, 2, 1][k] % pcs.length];
+    return { at, d: 0.5, midi: [below(pc, s.arpTop - ([0, 2, 4].includes(k) ? 12 : 0))], vel: [0, 2, 4].includes(k) ? 0.92 : 0.6 };
+  }),
+  // Transylvania's kontra in dűvő: a stroke on every eighth, the bow pushed on the offbeat so the band leans forward
+  duvo: (c, s) => [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5].map((at, k) => ({ at, d: 0.45, midi: s.voice(c(at).pcs), vel: k % 2 ? 1 : 0.62 })),
+  // the same kontra in esztam: nothing on the beat, the chord only after it
+  esztam: (c, s) => [0.5, 1.5, 2.5, 3.5].map((at) => ({ at, d: 0.34, midi: s.voice(c(at).pcs), vel: 0.92 })),
+  esztamBass: (c, s) => [0, 2].map((at, k) => ({ at, d: 0.9, midi: [below(k && s.bar % 2 ? c(at).fifth : c(at).root, s.bassTop)], vel: k ? 0.86 : 1 })),
+  // the gardon: stick on the strings on the beat, and the double hit before the next one
+  gardonBeat: (c, s) => [0, 1, 2, 3, 3.5].map((at, k) => ({ at, d: 0.4, midi: [below(c(at).root, s.bassTop)], vel: k === 4 ? 0.66 : k % 2 ? 0.74 : 1 })),
+  // dangdut: the bass walks in three, three and two, over the drum
+  dangdutBass: (c, s) => [
+    { at: 0, d: 0.7, midi: [below(c(0).root, s.bassTop)], vel: 1 },
+    { at: 0.75, d: 0.7, midi: [below(c(0.75).root, s.bassTop)], vel: 0.76 },
+    { at: 1.5, d: 0.45, midi: [below(c(1.5).fifth, s.bassTop)], vel: 0.8 },
+    { at: 2, d: 0.7, midi: [below(c(2).root, s.bassTop)], vel: 0.94 },
+    { at: 2.75, d: 0.7, midi: [below(c(2.75).root, s.bassTop)], vel: 0.76 },
+    { at: 3.5, d: 0.45, midi: [below(c(3.5).fifth, s.bassTop)], vel: 0.82 },
+  ],
+  // the rhythm guitar's chop on the afterbeats
+  dangdutChop: (c, s) => [0.5, 1.5, 2.5, 3.5].map((at, k) => ({ at, d: 0.26, midi: s.voice(c(at).pcs), vel: k % 2 ? 0.95 : 0.78 })),
+  // a kettle on each afterbeat, third and fifth in turn: the kromong sitting in the holes of the gambang
+  kromongOff: (c, s) => [0.5, 1, 1.5, 2.5, 3, 3.5].map((at, k) => {
+    const pcs = c(at).pcs;
+    return { at, d: 0.4, midi: [below(pcs[[1, 2, 1, 2, 1, 0][k] % pcs.length], s.arpTop)], vel: k === 1 || k === 4 ? 0.6 : 0.88 };
+  }),
+  // a broken chord for a hammered string in a slow three
+  hackbrettWalz: (c, s) => [0.5, 1, 1.5, 2, 2.5].map((at, k) => {
+    const pcs = c(at).pcs;
+    return { at, d: 0.5, midi: [below(pcs[[2, 0, 1, 0, 2][k] % pcs.length], s.arpTop)], vel: k === 1 ? 0.86 : 0.58 };
+  }),
 };
 
 // ---------- compile ----------
@@ -209,7 +257,22 @@ export function compile(tune) {
           push(partName, beat + 0.1, it.d - 0.1, f, 0.9 * accent * gainK);
           continue;
         }
-        push(partName, beat, it.d, f, 0.9 * accent * gainK, it.mods.includes('/') ? { slide: true } : {});
+        if (it.mods.includes('<')) {
+          push(partName, beat, 0.1, neighbourBelow(f, tune), 0.6 * accent * gainK);
+          push(partName, beat + 0.1, it.d - 0.1, f, 0.9 * accent * gainK, { legato: true });
+          continue;
+        }
+        if (it.mods.includes('=')) {
+          const step = Math.min(0.125, it.d / 3);
+          push(partName, beat, step, f, 0.86 * accent * gainK);
+          push(partName, beat + step, step, neighbour(f, tune), 0.62 * accent * gainK, { legato: true });
+          push(partName, beat + step * 2, it.d - step * 2, f, 0.86 * accent * gainK, { legato: true });
+          continue;
+        }
+        const extra = {};
+        if (it.mods.includes('/')) extra.slide = true;
+        if (it.mods.includes('_')) extra.legato = true;
+        push(partName, beat, it.d, f, 0.9 * accent * gainK, extra);
         made.push(events[events.length - 1]);
       }
       last = made.length ? made : last;
@@ -264,7 +327,8 @@ export function compile(tune) {
           voice: (pcs) => { voices[partName] = voiceLead(pcs, voices[partName], low, high); return voices[partName]; },
         };
         for (const c of fn(at, helper)) {
-          for (const m of c.midi) push(partName, (barNo + i) * beats + c.at, c.d, midiHz(m) * 2 ** shift, 0.9 * c.vel * gainK);
+          // a hand across strings: the notes of a strummed chord fall one after the other (cfg.strum, in beats)
+          c.midi.forEach((m, k) => push(partName, (barNo + i) * beats + c.at + k * (cfg.strum ?? 0), c.d, midiHz(m) * 2 ** shift, 0.9 * c.vel * gainK));
         }
       }
     }
@@ -299,6 +363,20 @@ export function compile(tune) {
   return { name: tune.name, tune, events, bars: barNo, beats, totalBeats: barNo * beats, marks };
 }
 
+function neighbourBelow(f, tune) {
+  if (tune.scale) {
+    const all = Object.values(tune.scale.cents).sort((a, b) => a - b);
+    const here = 1200 * Math.log2(f / tune.scale.base);
+    const inOct = ((here % 1200) + 1200) % 1200;
+    const prev = [...all].reverse().find((c) => c < inOct - 5) ?? all[all.length - 1] - 1200;
+    return f * 2 ** ((prev - inOct) / 1200);
+  }
+  const m = Math.round(69 + 12 * Math.log2(f / 440));
+  const pcs = tune.pcs ?? [0, 2, 4, 5, 7, 9, 11];
+  for (let k = 1; k <= 3; k++) if (pcs.includes((m - k + 120) % 12)) return midiHz(m - k);
+  return midiHz(m - 2);
+}
+
 function neighbour(f, tune) {
   if (tune.scale) {
     const all = Object.values(tune.scale.cents).sort((a, b) => a - b);
@@ -330,7 +408,8 @@ export function lint(tune) {
   }
   for (const p of Object.values(out.parts)) { p.mean = +(p.sum / p.n).toFixed(1); p.low = Math.round(p.low); p.high = Math.round(p.high); delete p.sum; }
   for (const [name, sec] of Object.entries(tune.sections)) {
-    if (!sec.harm || !sec.lead) continue;
+    // a tune can declare that its chords clash with its melody on purpose: the kontra plays major triads under a minor tune
+    if (!sec.harm || !sec.lead || tune.chordsClash) continue;
     const harm = sec.harm.split('|').map((b) => b.trim().split(/\s+/).map(chordTones));
     const parsed = parseLane(sec.lead, { beats, scale: tune.scale, name });
     let sum = 0, n = 0, off = 0, total = 0;

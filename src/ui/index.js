@@ -13,6 +13,7 @@ import { createVote } from './screens/vote.js';
 import { createHud } from './screens/hud.js';
 import { createLoading, createPause, createResults, createPodium } from './screens/results.js';
 import { pauseIcon } from './screens/art.js';
+import { SLOT_COLORS } from '../../server/room.js';
 
 const CSS_ID = 'rk-ui-style';
 
@@ -67,9 +68,16 @@ export function createUI(root, { lang = 'it', karts = [], tracks = [], itemIds =
   sticker.innerHTML = `<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 18h8l11-9v30l-11-9H8z" fill="#fff" stroke="#1d1f2b" stroke-width="4" stroke-linejoin="round"/><path d="M33 17c3 4 3 10 0 14M38 12c6 7 6 17 0 24" fill="none" stroke="#1d1f2b" stroke-width="4" stroke-linecap="round"/></svg><span></span>`;
   const errCard = el('div', 'errcard card hide');
   errCard.innerHTML = '<h2></h2><p></p>';
-  const rejoinCard = el('div', 'rejoin card hide');
+  const rejoinCard = el('div', 'rejoin corner card hide');
   rejoinCard.innerHTML = '<img alt=""><b></b><span></span>';
-  ui.append(toasts, sticker, errCard, rejoinCard);
+  // who is offline: above the toasts in their column, so the two never cover each other
+  const offlineBar = el('div', 'offline hide');
+  toasts.append(offlineBar);
+  let offlineKey = '';
+  // who has pressed Continue on their phone, between the results and the buttons
+  const readyBar = el('div', 'readybar hide');
+  let readyKey = '';
+  ui.append(toasts, sticker, errCard, rejoinCard, readyBar);
 
   let shown = null;
   // A mouse that moves shows what only a mouse can use.
@@ -131,16 +139,51 @@ export function createUI(root, { lang = 'it', karts = [], tracks = [], itemIds =
       errCard.querySelector('p').textContent = tr(bodyKey);
     },
     clearError() { errCard.classList.add('hide'); },
-    // The way back in for a phone that lost the game: url null hides it, corner keeps it out of a menu's way.
-    rejoin(url, corner = false) {
+    // The way back in for a phone that lost the game: url null hides it. To the side, on every screen: it can stay up for a whole
+    // game, and in a race it stands between the map and the place (see style.js), clear of the karts of those still playing.
+    rejoin(url) {
       rejoinCard.classList.toggle('hide', !url);
-      rejoinCard.classList.toggle('corner', !!corner);
       if (!url) return;
       const qr = `qr.svg?u=${encodeURIComponent(url)}`;
       const img = rejoinCard.querySelector('img');
       if (img.dataset.src !== qr) { img.dataset.src = qr; img.src = qr; }
       rejoinCard.querySelector('b').textContent = tr('rejoin.title');
       rejoinCard.querySelector('span').textContent = url.replace(/^https?:\/\//, '');
+    },
+    // list: [{ slot, left }] from flow's offlineList; left in seconds, null past the grace, when the seat waits with no clock.
+    offline(list) {
+      const key = `${current}|${list.map((o) => `${o.slot}:${o.left}`).join(',')}`;
+      if (key === offlineKey) return;
+      offlineKey = key;
+      offlineBar.classList.toggle('hide', !list.length);
+      offlineBar.replaceChildren(...list.map(({ slot, left }) => {
+        const p = el('div', `off${left === null ? ' waits' : ''}`);
+        p.dataset.slot = slot;
+        p.style.setProperty('--seat', SLOT_COLORS[slot]);
+        p.textContent = left === null ? tr('off.waits', { n: slot + 1 })
+          : tr('off.left', { n: slot + 1, t: `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}` });
+        return p;
+      }));
+    },
+    // state: { ready: [slots], of: [slots] } from flow.advanceState(), null hides it.
+    advance(state) {
+      const key = state ? `${current}|${state.ready.join()}|${state.of.join()}` : '';
+      if (key === readyKey) return;
+      readyKey = key;
+      readyBar.classList.toggle('hide', !state);
+      if (!state) return;
+      const chips = state.of.map((slot) => {
+        const on = state.ready.includes(slot), c = el('i', on ? 'on' : '');
+        c.dataset.slot = slot;
+        c.style.setProperty('--seat', SLOT_COLORS[slot]);
+        c.textContent = `${tr('res.you', { n: slot + 1 })}${on ? ' \u2713' : ''}`;
+        return c;
+      });
+      const count = el('b');
+      count.textContent = tr('ready.count', { n: state.ready.length, of: state.of.length });
+      const hint = el('span');
+      hint.textContent = tr('ready.hint');
+      readyBar.replaceChildren(...chips, count, hint);
     },
     tick(dt) { if (shown) screens[shown].tick?.(dt); },
     t: (k, v) => tr(k, v),

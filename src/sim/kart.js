@@ -4,12 +4,13 @@
 
 import {
   G, GRIP, DRIFT_GRIP, STEER_RATE, STEER_SCRUB, DRIFT_SCRUB, HOP_V, DRIFT_MIN_V, DRIFT_RANGE, DRIFT_OPEN, DRIFT_TIERS, BOOST, HIT,
-  RECOVER_T, RECOVER_MUL, RESCUE_T, RESCUE_SAFE, WALL, SURFACE, OFFROAD_FACTOR, KART_R, BIG_SCALE, TIPSY_WOBBLE, STINK_WOBBLE, QUAKE_WOBBLE,
+  RECOVER_T, RECOVER_MUL, RESCUE_T, RESCUE_SAFE, WALL, SOLID, SURFACE, OFFROAD_FACTOR, KART_R, BIG_SCALE, TIPSY_WOBBLE, STINK_WOBBLE, QUAKE_WOBBLE,
   POLENTA, DURIAN, RENDANG, FLOOR_Y, LOST_D, kartPhysics, clamp, wrapAngle, easeInOut, yawRateAt,
 } from './tuning.js';
 import { itemInfo } from '../data/items.js';
 import { stepWeatherKart, weatherGrip, weatherSpeed } from './weather.js';
 import { sacredPoints } from './disasters.js';
+import { solidPush, solidsFor } from './solids.js';
 
 const TIPSY_T = itemInfo('grappa').tipsyT;
 
@@ -59,7 +60,42 @@ export function wallsFor(track, terrain) {
     for (let i = 0; i < n; i++) { const b = A[(i - 1 + n) % n] + taper; if (b < A[i]) A[i] = b; }
     for (let i = n - 1; i >= 0; i--) { const b = A[(i + 1) % n] + taper; if (b < A[i]) A[i] = b; }
   }
-  w = { terrain, left: L, right: Rt };
+  // A building ends the shoulder at its front, as a church does: nobody gets round behind one and wedges in a yard with the road on the far side of it
+  const solids = solidsFor(track);
+  let byL = null, byR = null;
+  if (solids) {
+    const L0 = L.slice(), R0 = Rt.slice();
+    // by a shortcut's mouth the barrier stays where it was: a bot leaves the road early for it, and the box alone stands in its way. Only the
+    // mouths: along the stretch between them the main road is a street like any other, and its houses end the shoulder too
+    const mouth = new Uint8Array(n), M = Math.round(0.012 * n);
+    for (const sc of track.shortcuts) for (const u of [sc.from, sc.to]) for (let o = -M; o <= M; o++) mouth[((Math.round(u * n) + o) % n + n) % n] = 1;
+    for (let i = 0; i < n; i++) {
+      if (S.struct[i] || mouth[i]) continue;
+      const j = (i + 1) % n, hw = S.w[i] / 2;
+      for (const side of [1, -1]) {
+        const A = side > 0 ? L : Rt;
+        // from inside the road's edge: a front that stands on the edge holds a kart's centre a margin in, and the barrier ends where that
+        // margin begins, so a kart slides along it and never meets the front square on, as at a tunnel's mouth beside its rock. At the
+        // sample and half way to the next, so that a pier standing between two samples is seen too
+        for (const f of [0, 0.5]) {
+          const ox = S.x[i] + (S.x[j] - S.x[i]) * f, oz = S.z[i] + (S.z[j] - S.z[i]) * f, nx = S.nx[i] + (S.nx[j] - S.nx[i]) * f, nz = S.nz[i] + (S.nz[j] - S.nz[i]) * f, nl = Math.hypot(nx, nz) || 1;
+          for (let t = hw - SOLID.edgeIn; t < A[i]; t += 0.25) {
+            const x = ox + nx / nl * side * t, z = oz + nz / nl * side * t;
+            if (solidPush(solids, x, t <= hw ? track.heightAt(i + f, side * t) : terrain.heightAt(x, z), z)) { A[i] = Math.max(hw - SOLID.edgeIn, t - 0.25); if (f) A[j] = Math.min(A[j], A[i]); break; }
+          }
+        }
+      }
+    }
+    const steep = SOLID.taper * track.step;
+    for (const A of [L, Rt]) for (let pass = 0; pass < 2; pass++) {
+      for (let i = 0; i < n; i++) { const b = A[(i - 1 + n) % n] + steep; if (b < A[i] && !S.struct[i] && !mouth[i]) A[i] = b; }
+      for (let i = n - 1; i >= 0; i--) { const b = A[(i + 1) % n] + steep; if (b < A[i] && !S.struct[i] && !mouth[i]) A[i] = b; }
+    }
+    // where a building brought the barrier in, at its front or on the shoulder leading to it, a kart against it has met the building, and counts so
+    byL = new Uint8Array(n); byR = new Uint8Array(n);
+    for (let i = 0; i < n; i++) { byL[i] = L[i] < L0[i] - 0.01 ? 1 : 0; byR[i] = Rt[i] < R0[i] - 0.01 ? 1 : 0; }
+  }
+  w = { terrain, left: L, right: Rt, solidLeft: byL, solidRight: byR };
   wallCache.set(track, w);
   return w;
 }
@@ -94,7 +130,7 @@ export function createPriv(k, track) {
     prevItem: false, prevDrift: false, hopArmed: false,
     tipsyDelay: 0, stickyT: 0, recoverT: 0, boostMul: 1, iceT: 0, hitYaw: 0, hitDur: 0,
     fireT: 0, wallCd: 0, wrongT: 0, nearCd: 0, pendingItem: null, overtakeCd: 0, pullMul: 1, slowT: 0,
-    resc: null, moved: 0, stillT: 0, bot: null,
+    resc: null, moved: 0, stillT: 0, bot: null, solidAt: -1e9, wallSolid: false, markP: k.progress, markX: k.x, markZ: k.z, markT: 0, freeX: k.x, freeZ: k.z,
   };
 }
 
@@ -130,8 +166,8 @@ export function wallPush(R, x, z, f) {
     const q = sc.nearest(x, z);
     if (Math.abs(q.d) <= sc.samples.w[q.i] / 2 + 2) return null;
   }
-  const s = loc.d >= 0 ? -1 : 1;
-  return { pen, nx: S.nx[i] * s, nz: S.nz[i] * s, tx: S.tx[i], tz: S.tz[i], f: loc.f };
+  const s = loc.d >= 0 ? -1 : 1, by = loc.d >= 0 ? W.solidLeft : W.solidRight;
+  return { pen, nx: S.nx[i] * s, nz: S.nz[i] * s, tx: S.tx[i], tz: S.tz[i], f: loc.f, solid: !!R.solids && !!by?.[i] }; // solid: the barrier at a building's front, in a race that has its buildings
 }
 
 export function startRescue(R, k, p) {
@@ -242,21 +278,72 @@ function applyWall(R, k, p, dt) {
   const w = wallPush(R, k.x, k.z, p.f);
   if (!w) return;
   k.x += w.nx * w.pen; k.z += w.nz * w.pen;
-  const into = -(k.vx * w.nx + k.vz * w.nz), before = Math.hypot(k.vx, k.vz);
+  p.solidAt = R.state.t; // a barrier and a building can hold a kart between them: for the fetch, it counts as a touch
+  bounce(R, k, p, dt, w.nx, w.nz, w.tx, w.tz, w.solid);
+}
+
+// Off a wall or a building, (nx, nz) pointing back out: (rtx, rtz) is the road's way, for when the kart comes square on.
+function bounce(R, k, p, dt, nx, nz, rtx, rtz, solid = false) {
+  const into = -(k.vx * nx + k.vz * nz), before = Math.hypot(k.vx, k.vz);
   if (into <= 0) return;
-  k.vx += w.nx * into * (1 + WALL.restitution); k.vz += w.nz * into * (1 + WALL.restitution);
+  k.vx += nx * into * (1 + WALL.restitution); k.vz += nz * into * (1 + WALL.restitution);
   // Along the barrier, the way the kart was going, with most of its speed: a nudge and never a stop.
   const fx = Math.sin(k.yaw), fz = Math.cos(k.yaw);
-  let tx = -w.nz, tz = w.nx;
-  const roadDot = tx * w.tx + tz * w.tz, headDot = tx * fx + tz * fz;
+  let tx = -nz, tz = nx;
+  const roadDot = tx * rtx + tz * rtz, headDot = tx * fx + tz * fz;
   if ((Math.abs(headDot) > 0.25 ? headDot : roadDot) < 0) { tx = -tx; tz = -tz; }
   const along = k.vx * tx + k.vz * tz, keep = before * (0.72 - 0.3 * Math.min(1, into / Math.max(1, before)));
   if (along < keep) { k.vx += tx * (keep - along); k.vz += tz * (keep - along); }
-  if (fx * w.nx + fz * w.nz < 0.05 && k.hitT <= 0) {
+  if (fx * nx + fz * nz < 0.05 && k.hitT <= 0) {
     k.yaw += wrapAngle(Math.atan2(tx, tz) - k.yaw) * Math.min(1, 10 * dt);
   }
   if (into > WALL_EVENT_MIN && p.wallCd <= 0) {
+    p.wallSolid = solid; // what the last 'wall' event hit, for the count of hits only: the event itself says nothing of it, and solidAt is set by a barrier too
     R.emit({ type: 'wall', kart: k.i, force: into }); p.wallCd = WALL_EVENT_GAP;
+  }
+}
+
+// A building: out by the face it came in through, and off it like off a wall. A few passes, for a corner where two boxes meet.
+// Square on to a gable end, a slide either way along it may lead into the angle with the next wall: this one leads back to the road, and the nose comes round to the road's way.
+function applySolids(R, k, p, dt, px, pz) {
+  const S = R.solids, Tr = R.track.samples, i = p.i, rtx = Tr.tx[i], rtz = Tr.tz[i];
+  for (let pass = 0; pass < SOLID.passes; pass++) {
+    const h = solidPush(S, k.x, k.y, k.z, px, pz);
+    if (!h) return;
+    p.solidAt = R.state.t;
+    k.x += h.nx * h.pen; k.z += h.nz * h.pen;
+    const nx = h.nx, nz = h.nz, into = -(k.vx * nx + k.vz * nz), across = Math.abs(nx * rtx + nz * rtz);
+    if (across > SOLID.across && into > 0) {
+      const c = k.d >= 0 ? -1 : 1, way = Math.sign(k.vx * rtx + k.vz * rtz) || 1, tx = -nz, tz = nx, s = (tx * Tr.nx[i] + tz * Tr.nz[i]) * c >= 0 ? 1 : -1, keep = Math.hypot(k.vx, k.vz) * 0.45;
+      k.vx = nx * into * WALL.restitution + tx * s * keep; k.vz = nz * into * WALL.restitution + tz * s * keep;
+      if (k.hitT <= 0) k.yaw += wrapAngle(Math.atan2(rtx * way, rtz * way) - k.yaw) * Math.min(1, 10 * dt);
+      if (into > WALL_EVENT_MIN && p.wallCd <= 0) { p.wallSolid = true; R.emit({ type: 'wall', kart: k.i, force: into }); p.wallCd = WALL_EVENT_GAP; }
+    } else bounce(R, k, p, dt, nx, nz, rtx, rtz, true);
+    px = k.x; pz = k.z;
+  }
+}
+
+// After karts have shoved each other: nobody ends a step inside a building. Where boxes crowd and a few pushes do not clear them all, back to where it last stood free.
+export function settleSolids(R) {
+  const S = R.solids;
+  if (!S) return;
+  for (const k of R.state.karts) {
+    const p = R.priv[k.i];
+    if (k.rescueT > 0) { p.freeX = k.x; p.freeZ = k.z; continue; }
+    let h = null;
+    for (let pass = 0; pass < SOLID.passes; pass++) {
+      h = solidPush(S, k.x, k.y, k.z);
+      if (!h) break;
+      k.x += h.nx * h.pen; k.z += h.nz * h.pen;
+      const into = -(k.vx * h.nx + k.vz * h.nz);
+      if (into > 0) { k.vx += h.nx * into; k.vz += h.nz * into; }
+      h = null;
+    }
+    if (solidPush(S, k.x, k.y, k.z, k.x, k.z, SOLID.margin - 0.01)) {
+      const dx = p.freeX - k.x, dz = p.freeZ - k.z, l = Math.hypot(dx, dz) || 1, into = -(k.vx * dx + k.vz * dz) / l;
+      k.x = p.freeX; k.z = p.freeZ;
+      if (into > 0) { k.vx += dx / l * into; k.vz += dz / l * into; }
+    } else { p.freeX = k.x; p.freeZ = k.z; }
   }
 }
 
@@ -365,8 +452,9 @@ export function stepKart(R, k, inp, dt) {
   }
 
   // move
+  const px = k.x, pz = k.z;
   k.x += k.vx * dt; k.z += k.vz * dt;
-  locateWalls(R, k, p, dt);
+  locateWalls(R, k, p, dt, px, pz);
   stepVertical(R, k, p, dt);
 
   if (k.hitT <= 0 && !k.rescueT) stepAttitude(R, k, p, dt);
@@ -394,11 +482,24 @@ export function stepKart(R, k, inp, dt) {
   // how long has it been going nowhere? Bots read this; the tests measure it.
   // A kart with no input is not stuck, it is waiting: a bot taking over a gone phone's kart goes forward at once.
   if (racing && !coast && !k.finished && !hit && Math.hypot(k.vx, k.vz) < 1.5) p.stillT += dt; else p.stillT = 0;
+
+  // Wedged in the angle of two buildings with nowhere the stick can find: a kart that keeps touching one and has got nowhere is fetched, as off the world.
+  // A bot by the road it has not gained, a person only when really pinned: a clumsy thumb bumping along a wall stays in charge of its own kart.
+  if (R.solids) {
+    const person = k.human && !k.autoHome;
+    if (!racing || k.finished || hit || (person ? Math.hypot(k.x - p.markX, k.z - p.markZ) > SOLID.pinnedM : (k.progress - p.markP) * R.track.length > SOLID.stallM)) { p.markP = k.progress; p.markX = k.x; p.markZ = k.z; p.markT = s.t; }
+    else if (s.t - p.markT > (person ? SOLID.pinnedT : SOLID.stallT) && s.t - p.solidAt < 3) {
+      p.markP = k.progress; p.markX = k.x; p.markZ = k.z; p.markT = s.t;
+      if (p.bot) p.bot.route = -1;
+      startRescue(R, k, p);
+    }
+  }
 }
 
-function locateWalls(R, k, p, dt) {
+function locateWalls(R, k, p, dt, px, pz) {
   locate(R, k, p);
   if (R.walls) applyWall(R, k, p, dt);
+  if (R.solids) applySolids(R, k, p, dt, px, pz);
   locate(R, k, p);
 }
 

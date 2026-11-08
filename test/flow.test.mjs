@@ -3,11 +3,15 @@
 // with a phone leaving and returning.
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createFlow, createHudFeed, hudOf, padFx, resultRows, FLOW, POINTS, RANDOM } from '../src/game/flow.js';
+import { AWAY_CRUISE, awayDrive, createFlow, createHudFeed, hudOf, offlineList, padFx, resultRows, FLOW, POINTS, RANDOM } from '../src/game/flow.js';
+import { createRace, DT } from '../src/sim/index.js';
+import { buildTrack } from '../src/world/track.js';
+import { buildTerrain } from '../src/world/terrain.js';
+import { loadTrackDef } from '../src/data/tracks.js';
 import { viewRect } from '../src/ui/screens/hud.js';
 import { viewLayout } from '../src/render/index.js';
 import { launch, headlessShell, ROOT } from '../tools/harness.mjs';
@@ -295,19 +299,25 @@ describe('results and after', () => {
   test('points are only for a Gran Premio', () => {
     assert.ok(race().state.results.rows.every((r) => r.points === 0));
   });
-  test('a phone that stayed away gives its seat up on the way to the lobby', () => {
+  test('a phone past its grace gives its seat up on the way to the lobby, one that only blinked keeps it', () => {
     const f = make();
-    f.join(0); f.join(1);
+    f.join(0); f.join(1); f.join(2);
     f.go();
     f.leave(1);
+    f.leave(2);
     f.pick(0, 'jeep', true);
     f.step(FLOW.allReady + 0.1);
     f.forceTrack('bali');
     f.step(FLOW.solo + 0.1);
     f.field(); f.loaded();
+    f.expire(1);
     f.raceDone(rows(f.state.field));
     f.next('lobby');
     assert.equal(f.seats[1].present, false);
+    assert.equal(f.seats[2].present, true);
+    assert.equal(f.seats[2].away, true);
+    assert.equal(f.free(2), true, 'and it goes when the room says its grace is over');
+    assert.equal(f.seats[2].present, false);
   });
   test('quit and restart from the pause menu', () => {
     const f = make();
@@ -349,14 +359,223 @@ describe('the field', () => {
     const at = list.findIndex((p) => p.human);
     assert.ok(at >= 4 && at < 7, `grid position ${at}`);
   });
-  test('a phone gone before the start does not race', () => {
+  test('a phone gone a moment before the start races under the autopilot; one past its grace sits it out and keeps its seat', () => {
     const f = make();
     f.join(0); f.join(1);
     f.go();
     f.pick(0, 'jeep', true);
     f.leave(1);
-    assert.equal(f.field().filter((p) => p.human).length, 1);
+    assert.deepEqual(f.field().filter((p) => p.human).map((p) => p.slot), [0, 1]);
+    f.expire(1);
+    assert.deepEqual(f.field().filter((p) => p.human).map((p) => p.slot), [0]);
+    assert.equal(f.seats[1].present, true);
+    f.join(1);
+    assert.deepEqual(f.field().filter((p) => p.human).map((p) => p.slot), [0, 1], 'back: in the next race');
   });
+});
+
+describe('a phone away', () => {
+  const inRace = (f, ...slots) => {
+    toVote(f, ...slots);
+    f.forceTrack('bali');
+    f.step(FLOW.solo + 0.1);
+    f.field(); f.loaded();
+    f.drain();
+    assert.equal(f.phase, 'race');
+  };
+  const gpInRace = (f, mode, ...slots) => {
+    f.setOpts({ mode });
+    toVote(f, ...slots);
+    f.gpToggle('bali'); f.gpToggle('pelmo'); f.gpToggle('antelao');
+    f.gpStart();
+    f.field(); f.loaded();
+    f.drain();
+    assert.equal(f.phase, 'race');
+  };
+  const finish = (f, order) => f.raceDone(rows(f.state.field).map((r, n) => ({ ...r, team: f.state.field[n].team, place: order(r) })));
+  const seatOf = (f, slot) => f.state.gp.table[`p${slot}`];
+
+  test('the TV\'s list: at once with the whole time left, counting down, no clock past the grace, gone on return', () => {
+    const f = make();
+    f.join(0); f.join(1); f.join(3, 'keyboard');
+    const since = [];
+    assert.deepEqual(offlineList(f.seats, since, 0, 120000), []);
+    f.leave(1);
+    since[1] = 1000;
+    assert.deepEqual(offlineList(f.seats, since, 1000, 120000), [{ slot: 1, left: 120 }], 'the moment it left');
+    assert.deepEqual(offlineList(f.seats, since, 31500, 120000), [{ slot: 1, left: 90 }]);
+    assert.deepEqual(offlineList(f.seats, since, 121000, 120000), [{ slot: 1, left: null }], 'the clock ran out, the seat did not');
+    f.leave(3);
+    assert.deepEqual(offlineList(f.seats, since, 1000, 120000).map((o) => o.slot), [1], 'a keyboard seat has no phone to lose');
+    f.expire(1);
+    assert.deepEqual(offlineList(f.seats, since, 2000, 120000), [{ slot: 1, left: null }]);
+    f.join(1);
+    assert.deepEqual(offlineList(f.seats, since, 2000, 120000), []);
+  });
+  test('who is online: offline seats never count, and leaving releases whoever waited for them', () => {
+    const f = make();
+    f.join(0); f.join(1);
+    assert.deepEqual(f.online(), [0, 1]);
+    f.leave(1);
+    assert.deepEqual(f.online(), [0]);
+    assert.equal(f.isOnline(0), true);
+    assert.equal(f.isOnline(1), false);
+    assert.equal(f.isOnline(2), false);
+    f.join(1);
+    assert.equal(f.isOnline(1), true);
+    f.go();
+    f.pick(1, 'jeep', true);
+    f.leave(0);
+    f.step(FLOW.allReady + 0.1);
+    assert.equal(f.phase, 'vote', 'the pick did not wait');
+    f.vote(1, 'bali', true);
+    f.leave(1);
+    assert.equal(f.state.vote.phase, 'agree', 'nor the vote');
+  });
+  test('every phone gone on the pick: the TV can still move on, the phones do not do it by themselves', () => {
+    const f = make();
+    toPick(f, 0);
+    f.leave(0);
+    f.step(5);
+    assert.equal(f.phase, 'pick');
+    f.pickFromTV('jeep');
+    f.step(FLOW.allReady + 0.1);
+    assert.equal(f.phase, 'vote');
+  });
+  test('a seat is only freed in the lobby, whatever the phase', () => {
+    const f = make();
+    f.join(0); f.join(1);
+    f.go();
+    assert.equal(f.free(1), false, 'pick');
+    f.pick(0, 'jeep', true); f.leave(1);
+    f.step(FLOW.allReady + 0.1);
+    assert.equal(f.free(1), false, 'vote');
+    f.forceTrack('bali');
+    f.step(FLOW.solo + 0.1);
+    assert.equal(f.free(1), false, 'loading');
+    f.field(); f.loaded();
+    assert.equal(f.free(1), false, 'race');
+    finish(f, (r) => r.i + 1);
+    assert.equal(f.free(1), false, 'results');
+    f.toPodium();
+    assert.equal(f.free(1), false, 'podium');
+    assert.equal(f.seats[1].present, true);
+    f.expire(1);
+    f.next('lobby');
+    assert.equal(f.seats[1].present, false);
+  });
+  for (const expired of [false, true]) {
+    const when = expired ? 'after' : 'before';
+    test(`a race: back ${when} the grace, the same seat, kart and results row, and the next race has it`, () => {
+      const f = make();
+      inRace(f, 0, 1);
+      const kart = f.seats[1].kart;
+      f.leave(1);
+      if (expired) { assert.equal(f.expire(1), true); assert.equal(f.seats[1].expired, true); }
+      assert.equal(f.seats[1].present, true);
+      f.join(1);
+      assert.deepEqual([f.seats[1].away, f.seats[1].expired, f.seats[1].kart], [false, false, kart]);
+      assert.deepEqual(f.drain().filter((e) => e.slot === 1 && e.type !== 'leave' && e.type !== 'expired'), [{ type: 'back', slot: 1 }]);
+      finish(f, (r) => (r.slot === 1 ? 1 : r.i + 2));
+      assert.equal(f.menuFor(1).place, 1, 'its row, and its place on the phone');
+      f.next('rematch');
+      assert.equal(f.field().find((p) => p.slot === 1).kart, kart);
+    });
+    test(`a championship: back ${when} the grace between two races, same points, same kart, still on the grid`, () => {
+      const f = make();
+      gpInRace(f, 'gp', 0, 1);
+      const kart = f.seats[1].kart;
+      f.leave(1);
+      if (expired) f.expire(1);
+      finish(f, (r) => (r.slot === 1 ? 1 : r.i + 2)); // a bot took it home, and the win is the seat's
+      assert.equal(seatOf(f, 1).points, POINTS[0]);
+      assert.equal(f.free(1), false);
+      assert.equal(f.seats[1].present, true);
+      f.next('rematch');
+      assert.equal(f.phase, 'loading');
+      assert.ok(f.field().some((p) => p.human && p.slot === 1 && p.kart === kart), 'gone or not, the kart is on the grid: the autopilot drives it');
+      f.loaded();
+      f.join(1);
+      finish(f, (r) => (r.slot === 1 ? 2 : r.i + 3));
+      assert.equal(seatOf(f, 1).points, POINTS[0] + POINTS[1], 'the points of both races, on one line');
+      assert.equal(f.gpTable().filter((e) => e.human && e.slot === 1).length, 1);
+      assert.equal(f.seats[1].kart, kart);
+    });
+  }
+  test('teams: a seat past its grace keeps its side, and the side keeps the points', () => {
+    const f = make();
+    f.join(0); f.join(1);
+    gpInRace(f, 'teams', 0, 1);
+    const side = f.seats[1].team;
+    assert.ok(side);
+    f.leave(1); f.expire(1);
+    finish(f, (r) => (r.slot === 1 ? 1 : r.i + 2));
+    f.next('rematch');
+    assert.equal(f.field().find((p) => p.slot === 1).team, side);
+    assert.equal(f.state.gp.teams[side].points >= POINTS[0], true);
+    f.join(1);
+    assert.equal(f.seats[1].team, side);
+  });
+  test('a new phone on an offline seat: to the game it is that seat, with its points', () => {
+    const f = make();
+    gpInRace(f, 'gp', 0, 1);
+    f.leave(1); f.expire(1);
+    finish(f, (r) => (r.slot === 1 ? 1 : r.i + 2));
+    const kart = f.seats[1].kart;
+    f.join(1); // the room says it took the seat; here it looks like any return
+    assert.deepEqual([f.seats[1].away, f.seats[1].kart, seatOf(f, 1).points], [false, kart, POINTS[0]]);
+    assert.equal(f.menuFor(1).place, 1);
+  });
+  test('sat the first race of a championship out and came back: a bot gives up its place, on the right side', () => {
+    const f = make();
+    f.join(0); f.join(1);
+    f.setOpts({ mode: 'gp', bots: 3 });
+    f.go();
+    f.pick(0, 'jeep', true);
+    f.leave(1); f.expire(1);
+    f.step(FLOW.allReady + 0.1);
+    f.gpToggle('bali'); f.gpToggle('pelmo');
+    f.gpStart();
+    const first = f.field();
+    assert.deepEqual(first.filter((p) => p.human).map((p) => p.slot), [0]);
+    assert.equal(first.length, 4);
+    f.loaded();
+    finish(f, (r) => r.i + 1);
+    f.join(1);
+    f.next('rematch');
+    const second = f.field();
+    assert.deepEqual(second.filter((p) => p.human).map((p) => p.slot).sort(), [0, 1]);
+    assert.equal(second.length, 4, 'the same field size');
+  });
+});
+
+describe('the kart of a phone away', () => {
+  // the seat's kart in the middle of the grid, the way main.js drives it, or (full) on the plain brain of a bot
+  async function run(id, full) {
+    const def = await loadTrackDef(id);
+    const track = buildTrack(def), terrain = buildTerrain(track);
+    const players = KARTS.slice(0, 8).map((kart, i) => ({ slot: i === 4 ? 0 : -1, kart, human: i === 4, i, name: 'x' }));
+    const race = createRace({ track, terrain, seed: 7, laps: 2, players, difficulty: 'medium', countdown: 1 });
+    const k = race.state.karts[4];
+    let still = 0, worst = 0;
+    for (let n = 0; race.state.phase !== 'done' && n < 60 * 500; n++) {
+      if (!k.finished && !full) race.internals.priv[4].cruise = AWAY_CRUISE;
+      const a = race.autopilot(4);
+      race.step({ 4: full ? a : awayDrive(a) });
+      race.drainEvents();
+      still = race.state.phase === 'race' && !k.finished && Math.hypot(k.vx, k.vz) < 1 && k.hitT <= 0 && k.rescueT <= 0 ? still + DT : 0;
+      worst = Math.max(worst, still);
+    }
+    return { finished: k.finished, time: k.finishT, worst, item: k.item };
+  }
+  for (const id of ['bran', 'antelao', 'bali']) {
+    test(`${id}: it never stops in the road, it gets home, slower than a bot would`, async () => {
+      const away = await run(id, false), full = await run(id, true);
+      assert.equal(away.finished, true);
+      assert.ok(away.worst < 1, `stood still for ${away.worst} s`);
+      assert.ok(away.time > full.time, `away ${away.time}, a bot ${full.time}`);
+    });
+  }
 });
 
 describe('what a phone hears', () => {
@@ -565,7 +784,10 @@ test('a whole evening in the browser: lobby to podium, a phone leaving and retur
   assert.equal(await real.evaluate(() => window.__pad.phase), 'results', 'the phone keeps its buttons');
   assert.equal((await g(() => window.__game.podium)).length, 3);
 
-  // rematch from the phone: straight back, same track, no reload of the world
+  // rematch from the phone, behind its second tap, once the new screen stops holding: straight back, same track, no reload of the world
+  const settled = (kind) => real.waitForFunction((kind) => { const a = window.__pad.menu.advance; return window.__pad.screen === 'sResults' && a?.kind === kind && !document.getElementById('resNext').classList.contains('held'); }, kind, { timeout: 5000 });
+  await settled('rematch');
+  await real.click('#resMoreBtn');
   await real.click('#resAgain');
   await phase('race');
   assert.equal(await g(() => window.__game.track), track);
@@ -574,6 +796,8 @@ test('a whole evening in the browser: lobby to podium, a phone leaving and retur
   await g(() => window.__game.advance(40000));
   await phase('results');
   // change track from the phone
+  await settled('podium');
+  await real.click('#resMoreBtn');
   await real.click('#resTrack');
   await phase('vote');
   await real.waitForFunction(() => window.__pad.phase === 'vote', null, { timeout: 3000 });
@@ -691,4 +915,260 @@ test('every track has a picture of its own on the vote card; only the random car
   const { TRACK_IDS } = await import('../src/data/tracks.js');
   for (const id of TRACK_IDS) assert.doesNotMatch(trackArt(id), /mosaic/, `${id} falls back to the surprise card`);
   assert.match(trackArt('random'), /mosaic/);
+});
+
+test('a phone away, on the real TV page: told at once in any phase, back with no reload, past the grace in a championship, a new phone takes the seat, the numbers land in the file', { skip: !hasBrowser && 'no browser', timeout: 280000 }, async (t) => {
+  const dist = mkdtempSync(join(tmpdir(), 'rk-away-'));
+  const dir = mkdtempSync(join(tmpdir(), 'rk-away-tm-'));
+  execFileSync(process.execPath, ['build.mjs'], { cwd: ROOT, env: { ...process.env, DIST: dist }, stdio: 'ignore' });
+  const GRACE = 1500;
+  const srv = await startServer({ distDir: dist, reserveMs: GRACE, telemetryDir: dir });
+  const browser = await launch('swiftshader');
+  t.after(async () => { await browser.close(); await srv.close(); rmSync(dist, { recursive: true, force: true }); rmSync(dir, { recursive: true, force: true }); });
+  const phoneCtx = () => browser.newContext({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true, locale: 'en-US' });
+  const tv = await (await browser.newContext({ viewport: { width: 640, height: 360 }, locale: 'en-US' })).newPage();
+  const errors = [];
+  tv.on('pageerror', (e) => errors.push(e.message));
+  await tv.goto(`${srv.base}/?lang=en&manual=1&flyover=0&countdown=0`);
+  await tv.waitForFunction(() => window.__game?.ready || window.__game?.error, null, { timeout: 60000 });
+  await tv.evaluate(() => { window.__game.renderer.frame = () => {}; }); // this test is about seats, and the CPU rasteriser is slow: no picture of the race
+  // polling on a clock, not on frames: on the CPU rasteriser a frame can take seconds
+  const says = (re, ms = 8000) => tv.waitForFunction((src) => new RegExp(src).test(document.querySelector('.offline')?.textContent || ''), re.source, { timeout: ms, polling: 50 });
+  const clear = () => tv.waitForFunction(() => document.querySelector('.offline').classList.contains('hide'), null, { timeout: 8000, polling: 50 });
+  const f = (fn, arg) => tv.evaluate(fn, arg);
+
+  // the lobby. A real phone page leaves the browser: the TV knows in a moment, not after the silence runs out
+  const phone = await (await phoneCtx()).newPage();
+  await phone.goto(`${srv.base}/pad`);
+  await phone.waitForFunction(() => window.__pad?.joined && window.__pad.slot === 0, null, { timeout: 15000 });
+  await phone.evaluate(() => { window.__sameLoad = true; });
+  const setVisible = (page, state) => page.evaluate((v) => { Object.defineProperty(document, 'visibilityState', { value: v, configurable: true }); document.dispatchEvent(new Event('visibilitychange')); }, state);
+  const t0 = Date.now();
+  await setVisible(phone, 'hidden');
+  await says(/P1 offline, 0:0[12] left/, 2500);
+  assert.ok(Date.now() - t0 < 2500, `told in ${Date.now() - t0} ms, well before the 4 s of silence could have said it`);
+  assert.equal(await phone.evaluate(() => window.__pad.joined), false);
+  await sleep(300);
+  assert.equal(srv.room.status().slots[0].connected, false, 'it did not sneak back while hidden');
+  // the foreground again: back by itself, no reload, same seat, the warning gone
+  await setVisible(phone, 'visible');
+  await phone.waitForFunction(() => window.__pad.joined && window.__pad.slot === 0, null, { timeout: 3000 });
+  assert.equal(await phone.evaluate(() => window.__sameLoad), true, 'the same page: nothing reloaded');
+  await clear();
+  assert.deepEqual(await phone.evaluate(() => document.getElementById('toast').classList.contains('show')), false, 'nothing to tell: its own seat');
+
+  // in the lobby a seat past its grace really goes
+  let p2 = await pad(srv, 'phone-two');
+  assert.equal((await p2.next('welcome')).slot, 1);
+  await tv.waitForFunction(() => window.__game.seats[1].present);
+  await p2.close();
+  await says(/P2 offline/);
+  await tv.waitForFunction(() => !window.__game.seats[1].present, null, { timeout: GRACE + 2000 });
+  await clear();
+
+  // a championship of two races. The pick: a seat going away is told there too, and holds nobody up
+  p2 = await pad(srv, 'phone-two');
+  assert.equal((await p2.next('welcome')).slot, 1);
+  await tv.waitForFunction(() => window.__game.seats[1].present && !window.__game.seats[1].away);
+  await f(() => { const fl = window.__game.flowApi; fl.setOpts({ mode: 'gp', bots: 1, laps: 2 }); fl.go(); });
+  await tv.waitForFunction(() => window.__game.phase === 'pick');
+  await p2.close();
+  await says(/P2 offline/);
+  p2 = await pad(srv, 'phone-two');
+  await clear();
+  await f(() => { const fl = window.__game.flowApi; fl.pick(0, 'jeep', true); fl.pick(1, 'tabia', true); });
+  await tv.waitForFunction(() => window.__game.phase === 'vote', null, { timeout: 10000 });
+  await f(() => { const fl = window.__game.flowApi; fl.gpToggle('antelao'); fl.gpToggle('pelmo'); fl.gpStart(); });
+  await tv.waitForFunction(() => window.__game.phase === 'race' && window.__game.state, null, { timeout: 150000 });
+  const kartOf = (slot) => f((s) => window.__game.state.karts.find((k) => k.human && k.slot === s), slot);
+  await f(() => { window.__game.advance(240); });
+
+  // gone in the race: at once on the TV, in its view and over everything; no dead kart in the road
+  await p2.close();
+  await says(/P2 offline, 0:0[12] left/);
+  await tv.waitForFunction(() => [...document.querySelectorAll('.hv .miss')].some((e) => !e.classList.contains('hide')), null, { timeout: 8000, polling: 50 });
+  const before = await kartOf(1);
+  await f(() => { window.__game.advance(240); });
+  const moved = await kartOf(1);
+  assert.ok(moved.speed > 8, `the autopilot is driving, at ${moved.speed}`);
+  assert.ok(Math.hypot(moved.x - before.x, moved.z - before.z) > 20, 'and it went somewhere');
+
+  // past the grace: no clock, and the seat stands
+  await says(/P2 offline, can still come back/, GRACE + 15000);
+  assert.equal(srv.room.status().slots[1].expired, true);
+  assert.equal(await f(() => window.__game.seats[1].present), true);
+  // back, after the grace, in the race: the same seat, and the next word from the phone drives
+  p2 = await pad(srv, 'phone-two');
+  const w = await p2.next('welcome');
+  assert.equal(w.slot, 1);
+  assert.equal(w.took, undefined);
+  await clear();
+  assert.equal(await tv.evaluate(() => [...document.querySelectorAll('.hv .miss')].every((e) => e.classList.contains('hide'))), true);
+  assert.equal((await p2.next('phase')).phase, 'race');
+  for (let seq = 1; seq <= 8; seq++) { // the input's smoothing runs on real time: a few real moments, a few steps
+    p2.send({ t: 'in', x: -1, y: 0, b: 0, d: 0, seq });
+    await sleep(25);
+    await f(() => { window.__game.advance(2); });
+  }
+  const driven = await kartOf(1);
+  assert.ok(driven.steer < -0.5, `the phone drives again: ${driven.steer}`);
+
+  // gone again, past the grace, and the race ends: the win is in the table under its seat
+  await p2.close();
+  await says(/can still come back/, GRACE + 15000);
+  await f(() => { window.__game.setAuto(true); window.__game.advance(40000); });
+  await tv.waitForFunction(() => window.__game.phase === 'results', null, { timeout: 60000 });
+  await f(() => { window.__game.setAuto(false); });
+  const seatBefore = await f(() => ({ kart: window.__game.seats[1].kart, points: window.__game.flowApi.gpTable().find((e) => e.key === 'p1').points }));
+  assert.ok(seatBefore.points > 0);
+  assert.equal(await f(() => window.__game.flowApi.free(1)), false);
+
+  // a new phone scans the QR at the results: it takes that seat and is told, and the points and kart stay
+  const fresh = await (await phoneCtx()).newPage();
+  await fresh.goto(`${srv.base}/pad`);
+  await fresh.waitForFunction(() => window.__pad?.joined, null, { timeout: 15000 });
+  assert.equal(await fresh.evaluate(() => window.__pad.slot), 1);
+  assert.equal(await fresh.evaluate(() => document.getElementById('toast').classList.contains('show')), true);
+  assert.match(await fresh.textContent('#toastBig'), /You took Player 2's seat/);
+  await clear();
+  await fresh.waitForFunction(() => window.__pad.phase === 'results', null, { timeout: 3000 });
+  assert.deepEqual(await f(() => ({ kart: window.__game.seats[1].kart, points: window.__game.flowApi.gpTable().find((e) => e.key === 'p1').points })), seatBefore);
+
+  // the second race: on the grid, with that kart and that seat
+  await f(() => window.__game.next('rematch'));
+  await tv.waitForFunction(() => window.__game.phase === 'race' && window.__game.state?.t < 5 && window.__game.flowApi.state.track === 'pelmo', null, { timeout: 150000 });
+  assert.equal((await kartOf(1)).kart, seatBefore.kart);
+
+  // back to the lobby: the seat past its grace goes, the numbers are in the file
+  await fresh.context().close();
+  await says(/P2 offline/);
+  await says(/can still come back/, GRACE + 15000);
+  await f(() => { window.__game.flowApi.quit(); });
+  await tv.waitForFunction(() => window.__game.phase === 'lobby' || window.__game.flowApi.phase === 'lobby', null, { timeout: 5000 });
+  await tv.waitForFunction(() => !window.__game.flowApi.seats[1].present, null, { timeout: 3000 });
+  await clear();
+  await sleep(200);
+  assert.equal(srv.room.status().slots[1], null, 'and the room gave it up too');
+  const lines = readFileSync(join(dir, readdirSync(dir)[0]), 'utf8').trim().split('\n').map((l) => JSON.parse(l));
+  const race = lines.find((l) => l.e === 'race');
+  assert.ok(lines.some((l) => l.e === 'session' && l.mode === 'gp' && l.laps === 2));
+  assert.deepEqual([race.track, race.mode, race.gpRace, race.gpOf], ['antelao', 'gp', 1, 2]);
+  assert.equal(race.karts.filter((k) => k.human).length, 2);
+  assert.equal(race.karts.find((k) => k.slot === 0).input, 'stick', 'the real phone said how it steers');
+  for (const k of race.karts) assert.ok(Number.isFinite(k.place) && Number.isFinite(k.bestLap) && Number.isFinite(k.wall) && typeof k.kart === 'string', JSON.stringify(k));
+  assert.ok(lines.filter((l) => l.e === 'drop').length >= 5 && lines.some((l) => l.e === 'back' && l.took === true) && lines.some((l) => l.e === 'back' && l.expired === true));
+  assert.deepEqual(errors, []);
+});
+
+test('the way back in stays off the race: the QR covers no one\'s kart, road, map or place, with the seat on the grid or not', { skip: !hasBrowser && 'no chromium', timeout: 300000 }, async (t) => {
+  const dist = mkdtempSync(join(tmpdir(), 'rk-qr-'));
+  execFileSync(process.execPath, ['build.mjs'], { cwd: ROOT, env: { ...process.env, DIST: dist }, stdio: 'ignore' });
+  const srv = await startServer({ distDir: dist, reserveMs: 600 });
+  const browser = await launch('swiftshader');
+  t.after(async () => { await browser.close(); await srv.close(); rmSync(dist, { recursive: true, force: true }); });
+  const tv = await (await browser.newContext({ viewport: { width: 1280, height: 720 }, locale: 'en-US' })).newPage();
+  await tv.goto(`${srv.base}/?lang=en&manual=1&flyover=0&countdown=0`);
+  await tv.waitForFunction(() => window.__game?.ready || window.__game?.error, null, { timeout: 60000 });
+  await tv.evaluate(() => { window.__game.renderer.frame = () => {}; });
+  const f = (fn, arg) => tv.evaluate(fn, arg);
+  // the QR's box and, for each view on the TV, what it must leave alone: the middle of the view (the kart and the road ahead), the map, the place
+  const clear = async (views) => {
+    await tv.waitForFunction(() => { const e = document.querySelector('.rejoin'); return e && !e.classList.contains('hide'); }, null, { timeout: 8000, polling: 50 });
+    const m = await f(() => {
+      const box = (e) => { const r = e.getBoundingClientRect(); return { l: r.left, t: r.top, r: r.right, b: r.bottom }; };
+      const seen = [...document.querySelectorAll('.hv')].filter((e) => e.querySelector('.plc'));
+      return {
+        qr: box(document.querySelector('.rejoin')), img: document.querySelector('.rejoin img').getBoundingClientRect().width,
+        views: seen.map((e) => { const v = box(e), mid = (v.l + v.r) / 2, half = (v.r - v.l) / 8; return [{ l: mid - half, t: v.t, r: mid + half, b: v.b }, box(e.querySelector('.map')), box(e.querySelector('.plc'))]; }),
+      };
+    });
+    assert.equal(m.views.length, views);
+    assert.ok(m.qr.r <= 1280 && m.qr.b <= 720 && m.qr.l >= 0 && m.qr.t >= 0, `on screen: ${JSON.stringify(m.qr)}`);
+    assert.ok(m.img > 100, `still something a phone can read: ${m.img}`);
+    for (const parts of m.views) for (const p of parts) {
+      assert.ok(m.qr.r <= p.l || m.qr.l >= p.r || m.qr.b <= p.t || m.qr.t >= p.b, `the QR ${JSON.stringify(m.qr)} sits on ${JSON.stringify(p)}`);
+    }
+  };
+  const a = await pad(srv, 'phone-a');
+  let b = await pad(srv, 'phone-b');
+  await tv.waitForFunction(() => window.__game.seats[0].present && window.__game.seats[1].present);
+  await f(() => { const fl = window.__game.flowApi; fl.setOpts({ mode: 'race', bots: 1, laps: 2 }); fl.go(); });
+  await tv.waitForFunction(() => window.__game.phase === 'pick');
+  await f(() => { const fl = window.__game.flowApi; fl.pick(0, 'jeep', true); fl.pick(1, 'gatto', true); });
+  await tv.waitForFunction(() => window.__game.phase === 'vote', null, { timeout: 15000 });
+  await f(() => window.__game.flowApi.forceTrack('antelao'));
+  await tv.waitForFunction(() => window.__game.phase === 'race' && window.__game.state, null, { timeout: 180000, polling: 100 });
+
+  // two views: the phone goes, its kart stays on the grid
+  await b.close();
+  await clear(2);
+  // past the grace the race ends, and the next one is run without that seat: one view, the whole TV for Player 1
+  await tv.waitForFunction(() => window.__game.seats[1].expired, null, { timeout: 8000, polling: 50 });
+  await f(() => { window.__game.setAuto(true); window.__game.advance(40000); });
+  await tv.waitForFunction(() => window.__game.phase === 'results', null, { timeout: 60000 });
+  await f(() => { window.__game.setAuto(false); window.__game.next('rematch'); });
+  await tv.waitForFunction(() => window.__game.phase === 'race' && window.__game.state?.t < 5, null, { timeout: 180000, polling: 100 });
+  assert.deepEqual(await f(() => window.__game.state.karts.filter((k) => k.human).map((k) => k.slot)), [0]);
+  await clear(1);
+  // and the way back in still is one: the phone returns, the QR goes
+  b = await pad(srv, 'phone-b');
+  assert.equal((await b.next('welcome')).slot, 1);
+  await tv.waitForFunction(() => document.querySelector('.rejoin').classList.contains('hide'), null, { timeout: 4000, polling: 50 });
+  await a.close();
+  await b.close();
+});
+
+test('the numbers of a race tell a barrier from a building, on the real TV page and in the report', { skip: !hasBrowser && 'no browser', timeout: 240000 }, async (t) => {
+  const dist = mkdtempSync(join(tmpdir(), 'rk-hits-'));
+  const dir = mkdtempSync(join(tmpdir(), 'rk-hits-tm-'));
+  execFileSync(process.execPath, ['build.mjs'], { cwd: ROOT, env: { ...process.env, DIST: dist }, stdio: 'ignore' });
+  const srv = await startServer({ distDir: dist, telemetryDir: dir });
+  const browser = await launch('swiftshader');
+  t.after(async () => { await browser.close(); await srv.close(); rmSync(dist, { recursive: true, force: true }); rmSync(dir, { recursive: true, force: true }); });
+  const tv = await (await browser.newContext({ viewport: { width: 640, height: 360 }, locale: 'en-US' })).newPage();
+  await tv.goto(`${srv.base}/?lang=en&manual=1&flyover=0&countdown=0`);
+  await tv.waitForFunction(() => window.__game?.ready || window.__game?.error, null, { timeout: 60000 });
+  await tv.evaluate(() => { window.__game.renderer.frame = () => {}; });
+  const phase = (ph) => tv.waitForFunction((p) => window.__game.flowApi.phase === p && (p !== 'race' || window.__game.state), ph, { timeout: 150000, polling: 100 });
+  const phone = await pad(srv, 'phone-hits');
+  t.after(() => phone.close());
+  await phone.next('welcome');
+  await tv.evaluate(() => { const fl = window.__game.flowApi; fl.setOpts({ mode: 'race', bots: 1, laps: 2, difficulty: 'easy' }); fl.go(); });
+  await phase('pick');
+  await tv.evaluate(() => window.__game.flowApi.pick(0, 'tabia', true));
+  await phase('vote');
+  await tv.evaluate(() => window.__game.flowApi.forceTrack('bran'));
+  await phase('race');
+  // Aimed from the road, at speed: at the houses standing by it, then across a stretch with none within reach, at the barrier.
+  const def = await loadTrackDef('bran'), track = buildTrack(def), S = track.samples;
+  const near = def.solids.map((r) => ({ r, loc: track.nearest(r[0], r[1]) })).filter((q) => Math.abs(q.loc.d) < 14 && q.r[2] > 1.5 && q.r[3] > 1.5 && q.r[6] - q.r[5] > 4 && !track.structureAt(q.loc.i));
+  const shots = near.map(({ r, loc }) => {
+    const d = loc.d > 0 ? 1 : -1, x = S.x[loc.i] + S.nx[loc.i] * d, z = S.z[loc.i] + S.nz[loc.i] * d;
+    return { u: loc.u, d, yawOffset: Math.atan2(r[0] - x, r[1] - z) - Math.atan2(S.tx[loc.i], S.tz[loc.i]) };
+  });
+  // a barrier no building brought in, on either side, from a little before the start to past where the kart meets it; since the houses of Bran were baked whole no stretch of it is 60 m from every one
+  const walls = createRace({ track, terrain: buildTerrain(track), seed: 1, laps: 1, players: [{ slot: 0, kart: 'tabia', human: true, name: 'a' }], countdown: 0 }).walls;
+  const plain = (i) => { for (let o = -5; o <= 15; o++) { const j = (i + o + track.n) % track.n; if (walls.solidLeft[j] || walls.solidRight[j]) return false; } return true; };
+  const clear = [];
+  for (let i = 0; i < track.n && clear.length < 12; i += 10) {
+    if (track.structureAt(i) || !plain(i) || def.solids.some((r) => Math.hypot(r[0] - S.x[i], r[1] - S.z[i]) < 30)) continue;
+    clear.push({ u: i / track.n, d: 0, yawOffset: 1.2 });
+  }
+  assert.ok(shots.length && clear.length, `${shots.length} at houses, ${clear.length} at barriers`);
+  await tv.evaluate((all) => {
+    const g = window.__game;
+    g.setScript(() => ({ steer: 0, throttle: 1, item: false, drift: false }));
+    for (const s of all) { g.teleport(0, s.u, s.d, { speed: 25, lap: 0, yawOffset: s.yawOffset }); g.advance(50); }
+    g.setScript(null); g.setAuto(true);
+  }, [...shots, ...clear]);
+  await tv.evaluate(() => window.__game.advance(60000));
+  await phase('results');
+  await sleep(300);
+  const lines = readFileSync(join(dir, readdirSync(dir)[0]), 'utf8').trim().split('\n').map((l) => JSON.parse(l));
+  const mine = lines.find((l) => l.e === 'race').karts.find((k) => k.slot === 0);
+  assert.ok(mine.wall > 0, `barriers counted: ${JSON.stringify(mine)}`);
+  assert.ok(mine.building > 0, `buildings counted: ${JSON.stringify(mine)}`);
+  const report = execFileSync(process.execPath, ['tools/telemetry-report.mjs', dir], { cwd: ROOT, encoding: 'utf8' });
+  assert.ok(report.includes(`${mine.wall}w ${mine.building}b`), report);
+  console.log(`# ${mine.wall} on barriers, ${mine.building} on buildings`);
 });

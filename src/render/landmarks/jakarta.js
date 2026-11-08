@@ -1915,7 +1915,19 @@ export function build(ctx) {
     place(gates, { p: [c0.x, 0, c0.z], r: [0, yaw, 0] });
     batch.add(gates);
     // Manggarai station beyond the rails: the old long roof and its new tower, closing the end of Dr Saharjo
-    const St = new Raw(), sx2 = c0.x + c0.tx * 150, sz2 = c0.z + c0.tz * 150;
+    // It stands 150 m on from the crossing, where the road turns along it: the nearest shift along the street that keeps both its footprint and
+    // the tower's 1.5 m off the asphalt, since its long side once stood 4 m into the road and karts drove through the station
+    const clearAt = (s) => {
+      const bx = c0.x + c0.tx * (150 + s), bz = c0.z + c0.tz * (150 + s), fp = [[0, 0, 79, 15], [60, 0, 23, 15]];
+      for (const [ox, oz, hx, hz] of fp) for (let a = -hx; a <= hx; a += 2) for (const b of [-hz, hz]) for (const [p, q] of [[a, b], [b * hx / hz, a * hz / hx]]) {
+        const lx = ox + p, lz = oz + q;
+        if (terrain.roadDistAt(bx + cs * lx + sn * lz, bz - sn * lx + cs * lz) < 1.5) return false;
+      }
+      return true;
+    };
+    let shift = 0;
+    for (let k = 0; k <= 80 && !clearAt(shift); k++) shift = (k % 2 ? 1 : -1) * Math.ceil((k + 1) / 2) * 0.5;
+    const St = new Raw(), sx2 = c0.x + c0.tx * (150 + shift), sz2 = c0.z + c0.tz * (150 + shift);
     St.box(sx2, 0, sz2, 150, 9, 24, yaw, c('#e4dcc4'), null, 0.84);
     St.roof(sx2, 9, sz2, 158, 30, 6, yaw + Math.PI / 2 * 0, c('#9a5a3a'));
     // tall arched windows and doors along both long sides; a blank wall this size is the first thing the eye would stop on

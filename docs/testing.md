@@ -20,7 +20,7 @@ npm run play       # builds dist/, starts the server, opens the game
 | The QR points to a `10.x` or `100.x` address, or the page never loads | A VPN on the Mac took over the address. Disconnect it, or force the Wi-Fi address: `LAN_IP=192.168.1.23 npm run play` (`ipconfig getifaddr en0` tells you which) |
 | The page loads on the Mac, not on the phone | Allow incoming connections for `node` (System Settings, Network, Firewall). Guest Wi-Fi often isolates devices: use the home Wi-Fi or a phone hotspot |
 | `Port 5191 is already in use` | Another copy is running. Stop it, or `PORT=5192 npm run play` |
-| The phone says "Connection lost" | It reconnects by itself and keeps its seat for 60 s. Its kart coasts, the TV says who is missing; after 15 s a bot drives it until the phone is back |
+| The phone says "Connection lost" | It reconnects by itself, also when the browser comes back to the foreground. The TV says at once who is offline, with a 2 minute clock, and a bot drives the kart until the phone is back. Past the 2 minutes the seat, kart, team and points still wait until the game is back in the lobby; a new phone that scans the QR takes that seat |
 
 ## Tests
 
@@ -44,6 +44,7 @@ The browser tests use Chromium from the playwright or puppeteer cache and are sk
 | `forma` | Caccia alla Forma: a normal race with none of it and the same bytes, determinism, clock and finish order, every way of dropping the wheel, the lock, weight, pull and leash, stork, razzo and frana, no rolling cheese from the crates, a real match on two short and two long roads; flow, room, phone, words, sounds. A phone and the TV from the lobby chip to results and podium, then a normal race on the same page with none of it; a long road from the tools' way in | Metal |
 | `weather` | Rain, snow, fog and night: a plain race with none of it and the same bytes, determinism, grip by surface, one splash through a puddle, thunder, the options, bots home on every track under every sky; budgets at 1, 2, 4 views; no seam across the sky; lobby and vote by phone and TV to the results, then a plain race on the same page |
 | `i18n` | dictionaries, diacritics, no em dash, every key the code asks for | no |
+| `advance` | no phase needs the computer: every mode through results and podium from the phones, undo, a phone going offline, any phone skipping, keyboard seats, a keyboard shortcut seating nobody; then a team championship on the real TV page with two real phone pages, and Player 2 alone changing track and going back to the lobby | CPU rasteriser |
 | `net`, `pad` | the room, the phone page with touch | pad only |
 | `render` | tracks and karts build, stats under budget | Metal |
 | `audio` | tunes and effects in an offline context | yes |
@@ -52,6 +53,7 @@ The browser tests use Chromium from the playwright or puppeteer cache and are sk
 
 | Command | What it does |
 |---|---|
+| `node tools/telemetry-report.mjs [dir]` | one line per race from `telemetry/`, local and gitignored: people against bots on the same road, then phones dropped and returned. `TELEMETRY=0` turns the writing off |
 | `node tools/shoot-ui.mjs [menus] [hud1] [hud2] [hud3] [hud4] [--size 1440x900] [--suffix -small] [--locale en-US]` | screenshots of every TV screen through the real game, into `docs/shots/ui-*.png`. It also reports text under 13 px, cut off or off screen |
 | `node tools/shoot-race.mjs [scenes] [2v] [4v]` | the real game with each item in use, into `docs/shots/race-*.png` |
 | `node tools/shoot-tempo.mjs [--track id] [--dir path] [menus] [road] [2v] [4v]` | the time trial through the real game and a real phone page, into `docs/shots/tempo-*.png` |
@@ -61,6 +63,7 @@ The browser tests use Chromium from the playwright or puppeteer cache and are sk
 | `node tools/shoot.mjs <track> ...` | the world, from any pose |
 | `node tools/perf.mjs` | frame times on the Metal backend |
 | `node tools/simrun.mjs` | the sim alone, many races |
+| `node tools/ladder.mjs [--levels easy] [--drivers casual] [--tracks bran] [--races 8] [--two] [--teams] [--at 7] [--over json]` | the difficulty ladder per track: scripted people on a phone against 7 bots, stepped |
 
 Use a private port and folder when several copies run at once: `PORT=0 DIST=/tmp/rk node build.mjs && PORT=0 DIST=/tmp/rk node server/index.js`.
 

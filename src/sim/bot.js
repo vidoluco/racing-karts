@@ -2,11 +2,12 @@
 // Pure pursuit on the racing line gives the desired turn, a PID on lateral error trims it, and a slip controller maps it
 // to the stick, because a drifting kart's velocity lags its nose.
 
-import { DIFFICULTY, PACK, BOT_BRAKE, DRIFT_GRIP, GRIP, DRIFT_MIN_V, DRIFT_RANGE, DRIFT_OPEN, SURFACE, clamp, wrapAngle, yawRateAt, mates } from './tuning.js';
+import { DIFFICULTY, PACK, BOT_BRAKE, DRIFT_GRIP, GRIP, DRIFT_MIN_V, DRIFT_RANGE, DRIFT_OPEN, SOLID, SURFACE, clamp, wrapAngle, yawRateAt, mates } from './tuning.js';
 import { createRng, mixSeed } from './rng.js';
 import { disasterGap } from './disasters.js';
 import { trafficAvoid } from './traffic.js';
 import { patchesAhead } from './weather.js';
+import { solidPush } from './solids.js';
 
 const CORNER_R = 62;         // m: tighter than this is a corner worth drifting
 const SCAN_STEP = 6;         // m between curvature samples ahead
@@ -200,7 +201,7 @@ export function botInput(R, k, p, dt) {
   let want = B.mistake * hw;
   if (!k.finished && !k.item && k.rouletteT <= 0 && B.route < 0 && !R.forma) { const c = crateLane(R, k, B, i, lineD); if (c !== null) want = c; }
   if (B.avoidOn) want += avoidance(R, k, B, i, want);
-  if (R.traffic && (B.avoidOn || B.cfg.avoid >= 0.25)) want = trafficAvoid(R, k, p, B, i, lineD + want) + want;
+  if (R.traffic && (B.avoidOn || B.cfg.avoid >= 0.15)) want = trafficAvoid(R, k, p, B, i, lineD + want) + want;
   // room for the kart in front: pass it instead of pushing it
   for (const o of R.state.karts) {
     if (o === k || o.finished) continue;
@@ -220,6 +221,18 @@ export function botInput(R, k, p, dt) {
   } else {
     const hwA = S.w[ai] / 2 - 1.3, dA = clamp(RL.d[ai] + B.off, -hwA, hwA);
     tx = S.x[ai] + S.nx[ai] * dA; tz = S.z[ai] + S.nz[ai] * dA;
+  }
+
+  // off its lane with a building coming: head back for the road now, along its nearest stretch and not the far point of the line. A lane itself is always clear of them.
+  if (R.solids && (B.route < 0 || (k.shortcut < 0 && R.state.t - p.solidAt < 0.5)) && Math.abs(k.d) > hw - 2.5) {
+    const m = 4 + speed * SOLID.see, fx = Math.sin(k.yaw), fz = Math.cos(k.yaw);
+    let seen = false;
+    for (let q = 0.25; q <= 1 && !seen; q += 0.25) seen = !!solidPush(R.solids, k.x + fx * m * q, k.y, k.z + fz * m * q);
+    if (seen) {
+      B.route = -1; // bumped off the shortcut it was making for, with stones between: the road, this time
+      const a = (i + Math.round(9 / T.step)) % n, hwN = S.w[a] / 2 - 2.5, dN = clamp(k.d * 0.3, -Math.max(0, hwN), Math.max(0, hwN));
+      tx = S.x[a] + S.nx[a] * dN; tz = S.z[a] + S.nz[a] * dN;
+    }
   }
 
   // pursuit in terms of where the kart is actually going, not where its nose points
@@ -285,7 +298,9 @@ export function botInput(R, k, p, dt) {
   if (R.forma && !k.finished) R.forma.botThrottle(k, p, inp);
 
   // going nowhere: back out, then point down the road
-  if (p.stillT > 0.7 && B.reverseT <= 0) B.reverseT = 0.8;
+  // and if backing out got it nowhere either, its tail is against something: forward for a moment before it tries again
+  B.forwardT = (B.forwardT ?? 0) - dt;
+  if (p.stillT > 0.7 && B.reverseT <= 0 && B.forwardT <= 0) { B.reverseT = 0.8; B.forwardT = 1.6; }
   if (B.reverseT > 0) {
     B.reverseT -= dt;
     inp.throttle = -1; inp.drift = false;
@@ -300,13 +315,16 @@ export function botInput(R, k, p, dt) {
 
 export function updateRubber(R, k, p) {
   const cfg = p.bot.cfg, L = R.track.length;
-  const gap = (R.refProgress - k.progress) * L;
+  // on easy the band waits for the slowest person still racing, not the best one
+  const gap = ((cfg.waitLast ? R.lastProgress : R.refProgress) - k.progress) * L;
   // the last stretch is where a race should still be open, so the band pulls harder there
-  const s = R.state, finale = k.progress > s.laps - (R.track.long ? PACK.finaleLong : 1) ? PACK.finale : 1;
+  const s = R.state, finale = k.progress > s.laps - (R.track.long ? PACK.finaleLong : 1) ? cfg.finale ?? PACK.finale : 1;
   p.rubber = gap > 0 ? finale * cfg.back * clamp(gap / cfg.reach, 0, 1) : cfg.front * clamp(-gap / cfg.reach, 0, 1);
   // The race among the bots stays a race: the ones off the back of the pack gain a little, the ones ahead of the pack and of every person give a little, and a lead bot alone gives more. A person in the lead is never handed anything.
   const pack = (R.fieldMean - k.progress) * L;
   if (pack > 0 || gap < 0) p.rubber += finale * cfg.pack * clamp(pack / PACK.reach, -1, 1);
   if (gap < 0 && R.order[0] === k && R.order[1]) p.rubber -= finale * cfg.leadEase * clamp(((k.progress - R.order[1].progress) * L - PACK.leadFrom) / PACK.leadReach, 0, 1);
+  // a bot already ahead of the person is never helped to get further away
+  if (gap < 0 && p.rubber > 0) p.rubber = 0;
 }
 

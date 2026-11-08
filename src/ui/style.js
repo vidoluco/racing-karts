@@ -114,7 +114,7 @@ ${seatVars}
 .rk .seat.just { animation: rk-pop-in 0.6s cubic-bezier(0.3, 1.6, 0.5, 1) both; }
 
 .rk .opts { left: ${u(612)}; top: ${u(438)}; width: ${u(858)}; height: ${u(326)}; padding: ${u(14)} ${u(28)}; display: flex; flex-direction: column; justify-content: space-between; }
-.rk .optrow { display: grid; grid-template-columns: ${u(168)} 1fr; align-items: center; gap: ${u(12)}; }
+.rk .optrow { display: grid; grid-template-columns: ${u(180)} 1fr; align-items: center; gap: ${u(12)}; }
 .rk .optrow > label { font-size: ${u(30)}; font-weight: 700; }
 .rk .chips { display: flex; gap: ${u(10)}; align-items: stretch; }
 .rk .chip { flex: 1; min-width: 0; height: ${u(62)}; padding: 0 ${u(8)}; font-size: ${u(28)}; font-weight: 700; border-radius: ${u(22)}; border: ${u(4)} solid var(--ink); background: #f7ecd9;
@@ -123,6 +123,9 @@ ${seatVars}
 .rk .chip.on { background: var(--on, #ffd23f); transform: translateY(${u(-3)}) scale(1.03); box-shadow: 0 ${u(5)} 0 var(--ink), inset 0 ${u(5)} 0 rgba(255, 255, 255, 0.45); }
 .rk .chip[data-v="easy"] { --on: #9be882; } .rk .chip[data-v="medium"] { --on: #ffd23f; } .rk .chip[data-v="hard"] { --on: #ff8a6a; }
 .rk .chip.narrow { flex: 0 0 ${u(110)}; }
+/* five languages of commentary: each chip as wide as its name, at the size of the mode and weather rows, so "Indonesia" is never cut */
+.rk .lobby .chips[data-key="voice"] { gap: ${u(6)}; }
+.rk .lobby .chips[data-key="voice"] .chip { flex: 1 1 auto; min-width: max-content; padding: 0 ${u(7)}; font-size: ${u(22)}; }
 .rk .stepper { display: flex; align-items: center; gap: ${u(12)}; }
 .rk .stepper button { width: ${u(62)}; height: ${u(62)}; flex: none; font-size: ${u(44)}; font-weight: 700; line-height: 1; border-radius: 50%; border: ${u(4)} solid var(--ink); background: #f7ecd9; box-shadow: inset 0 ${u(-6)} 0 rgba(58, 34, 56, 0.12); transition: transform 0.14s; }
 .rk .stepper button:active { transform: scale(0.92); }
@@ -476,16 +479,46 @@ ${seatVars}
 .rk:has(.scr.pick:not(.hide), .scr.vote:not(.hide), .scr.results:not(.hide), .podscr:not(.hide)) .sticker span { display: none; }
 .rk .toasts { position: absolute; left: 50%; top: ${u(18)}; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: ${u(8)}; z-index: 20; }
 .rk .toasts .pill { font-size: ${u(28)}; animation: rk-toast 4s cubic-bezier(0.25, 1.4, 0.5, 1) both; white-space: nowrap; }
+.rk .offline { display: flex; flex-wrap: wrap; justify-content: center; gap: ${u(8)}; width: max-content; max-width: 92vw; }
+.rk .offline .off { padding: ${u(6)} ${u(18)}; border-radius: ${u(999)}; border: ${u(4)} solid var(--seat); background: var(--paper); color: var(--ink); font-size: ${u(26)}; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.rk .offline .off.waits { font-weight: 500; }
+/* Every menu has its title at the top centre, so there the toasts and who is offline go to the top left corner of the 1920x1080
+   stage, letterboxed or not, clear of the sound sticker; in the lobby they take the tagline's place while they are up. */
+.rk:has(.scr.lobby:not(.hide), .scr.pick:not(.hide), .scr.vote:not(.hide), .scr.results:not(.hide), .podscr:not(.hide)) .toasts { left: calc(50% - ${u(934)}); top: calc(50% - ${u(518)}); transform: none; align-items: flex-start; }
+.rk:has(.scr.lobby:not(.hide), .scr.pick:not(.hide), .scr.vote:not(.hide), .scr.results:not(.hide), .podscr:not(.hide)) .offline { flex-direction: column; align-items: flex-start; max-width: ${u(270)}; }
+.rk:has(.scr.lobby:not(.hide), .scr.pick:not(.hide), .scr.vote:not(.hide), .scr.results:not(.hide), .podscr:not(.hide)) .offline .off { white-space: normal; font-size: ${u(22)}; line-height: 1.12; padding: ${u(4)} ${u(14)}; border-radius: ${u(24)}; } /* the longest titles leave 270 design px of the corner */
+.rk:has(.sticker:not(.hide)):has(.scr.pick:not(.hide), .scr.vote:not(.hide), .scr.results:not(.hide), .podscr:not(.hide)) .toasts { left: calc(50% - ${u(840)}); }
+.rk:has(.scr.lobby:not(.hide)) .toasts { left: calc(50% - ${u(916)}); top: calc(50% - ${u(496)}); }
+.rk:has(.toasts > :not(.hide)) .lobby .tag { visibility: hidden; }
 .rk .errcard { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: ${u(900)}; padding: ${u(36)} ${u(50)}; text-align: center; z-index: 30; }
 .rk .errcard h2 { margin: 0 0 ${u(10)}; font-size: ${u(58)}; font-weight: 700; }
 .rk .errcard p { margin: 0; font-size: ${u(32)}; font-weight: 500; }
-.rk .rejoin { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: ${u(6)}; width: ${u(360)}; padding: ${u(16)}; text-align: center; z-index: 20; }
-.rk .rejoin.corner { left: auto; top: auto; right: ${u(24)}; bottom: ${u(24)}; transform: none; }
+.rk .readybar { position: absolute; left: 50%; bottom: calc(50% - ${u(342)}); transform: translateX(-50%); z-index: 6; display: flex; align-items: center; gap: ${u(10)}; height: ${u(38)}; padding: 0 ${u(16)}; border-radius: ${u(999)}; border: ${u(3)} solid var(--ink); background: var(--paper); color: var(--ink); font-size: ${u(22)}; font-weight: 500; white-space: nowrap; }
+.rk .readybar i { font-style: normal; font-weight: 700; padding: 0 ${u(10)}; border-radius: ${u(999)}; border: ${u(3)} solid var(--seat); opacity: 0.72; font-variant-numeric: tabular-nums; }
+.rk .readybar i.on { background: var(--seat); opacity: 1; }
+.rk .readybar b { font-weight: 700; font-variant-numeric: tabular-nums; }
+/* Against the 1920x1080 stage, not the window: on the results 198 up, between the tables and the buttons; on the podium the steps
+   fill all the room above the buttons, so it sits under the title, 162 down, above the winner's kart. */
+.rk:has(.podscr:not(.hide)) .readybar { top: calc(50% - ${u(378)}); bottom: auto; }
+.rk .rejoin { position: absolute; display: flex; flex-direction: column; align-items: center; gap: ${u(6)}; width: ${u(360)}; padding: ${u(16)}; text-align: center; z-index: 20; }
+.rk .rejoin.corner { right: ${u(24)}; bottom: ${u(24)}; }
 .rk:has(.vote.gp:not(.hide)) .rejoin.corner { bottom: ${u(136)}; }
 .rk:has(.vote.gp:not(.hide)) .rejoin.corner img { width: ${u(200)}; height: ${u(200)}; }
+.rk:has(.hudscr:not(.hide)) .rejoin.corner { bottom: ${u(218)}; width: ${u(300)}; }
+.rk:has(.hudscr:not(.hide)) .rejoin.corner img { width: ${u(200)}; height: ${u(200)}; }
+.rk:has(.hudscr:not(.hide) .hv:nth-child(3)) .rejoin.corner { bottom: ${u(24)}; }
 .rk .rejoin img { display: block; width: ${u(300)}; height: ${u(300)}; padding: ${u(10)}; background: #fff; border-radius: ${u(18)}; image-rendering: pixelated; }
 .rk .rejoin b { font-size: ${u(26)}; font-weight: 700; line-height: 1.15; }
 .rk .rejoin span { font-size: ${u(22)}; font-weight: 500; }
+/* On the results and the podium the card lies down, the QR beside its words. On the results it sits in the bottom corner and the
+   buttons make room for it, so the tables stay whole; on the podium it sits at the top right, under the title and above the steps. */
+.rk:has(.results:not(.hide), .podscr:not(.hide)) .rejoin.corner { display: grid; grid-template-columns: ${u(190)} ${u(240)}; grid-template-rows: 1fr auto; column-gap: ${u(14)}; row-gap: ${u(6)}; width: auto; padding: ${u(12)} ${u(16)} ${u(12)} ${u(12)}; text-align: left; align-items: center; }
+.rk:has(.results:not(.hide), .podscr:not(.hide)) .rejoin.corner img { grid-row: 1 / 3; width: ${u(190)}; height: ${u(190)}; }
+.rk:has(.results:not(.hide), .podscr:not(.hide)) .rejoin.corner b { align-self: end; }
+.rk:has(.results:not(.hide), .podscr:not(.hide)) .rejoin.corner span { align-self: start; font-size: ${u(20)}; overflow-wrap: anywhere; }
+.rk:has(.results:not(.hide)) .rejoin.corner { bottom: ${u(12)}; }
+.rk:has(.rejoin.corner:not(.hide)) .results .rfoot { left: ${u(46)}; right: ${u(520)}; }
+.rk:has(.podscr:not(.hide)) .rejoin.corner { top: calc(50% - ${u(428)}); bottom: auto; } /* 112 down the 1920x1080 stage, letterboxed or not */
 
 @keyframes rk-drift { from { transform: translateX(-30vw); } to { transform: translateX(110vw); } }
 @keyframes rk-pop-in { 0% { transform: scale(0.78); opacity: 0; } 55% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(1); } }

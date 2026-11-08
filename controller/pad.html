@@ -187,7 +187,9 @@
   .teamic { flex: none; display: block; width: 28px; height: 28px; }
   .side button { display: flex; align-items: center; justify-content: center; gap: 5px; padding-left: 4px; }
   .side button small { font-size: 13px; font-weight: 700; opacity: 0.9; }
-  .seg[data-key="mode"], .seg[data-key="weather"] { flex-wrap: wrap; }
+  .seg[data-key="mode"], .seg[data-key="weather"], .seg[data-key="voice"] { flex-wrap: wrap; }
+  /* five voices: on a phone too narrow for them in one row they take two, and no word is a target under 40 px */
+  .seg[data-key="voice"] button { min-width: 44px; }
   /* one more row than the card was laid out for: a phone of any size still shows them all */
   @media (max-height: 640px) { #optCard.sided { gap: 3px; padding-top: 6px; padding-bottom: 6px; } #optCard.sided .optTtl { display: none; } #optCard.sided .seg button, #optCard.sided .step button { min-height: 40px; font-size: 15px; } #optCard.sided .seg { gap: 4px; } #optCard.sided .teamic { width: 24px; height: 24px; } }
   .seg.side button.on { background: var(--tc); color: #fff; -webkit-text-stroke: 3px var(--ink); paint-order: stroke fill; }
@@ -300,6 +302,10 @@
   .side { grid-column: 2; grid-row: 1 / 4; display: flex; align-items: center; justify-content: center; position: relative; z-index: 3; pointer-events: none; }
   .side button { pointer-events: auto; }
   .wxside { flex-direction: column; gap: 8px; }
+  @media (max-height: 360px) and (orientation: landscape) {
+    #sTrack.gp .ready { width: 88px; height: 88px; font-size: 17px; }
+  }
+  #gpGoBtn { --side: #c9951a; min-height: 44px; width: 100%; max-width: 150px; padding: 2px 8px; font-size: 16px; font-weight: 700; border-radius: 16px; background: var(--sun); margin-top: 4px; }
   #wxVote { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: 190px; }
   #wxVote .toy { font-size: 14px; min-height: 40px; min-width: 44px; padding: 2px 10px; font-weight: 700; background: #f7ecd9; border-radius: 16px; }
   @media (max-height: 470px) and (orientation: landscape) {
@@ -358,7 +364,18 @@
   #verdict:empty { display: none; }
 
   /* results */
-  #sResults { align-items: center; justify-content: center; gap: 10px; text-align: center; }
+  #sResults { flex-direction: row; align-items: center; justify-content: center; gap: 14px; text-align: center; }
+  #resInfo, #resGo { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
+  #resInfo > * { max-width: 100%; }
+  #resInfo #resTeam { flex-wrap: wrap; justify-content: center; white-space: normal; line-height: 1.1; }
+  #resBig { position: relative; width: min(100%, 320px); height: clamp(84px, 30vmin, 150px); }
+  #resNext { --side: var(--accent-d); width: 100%; height: 100%; border-radius: 30px; font-size: clamp(28px, 7vmin, 44px); font-weight: 700; background: radial-gradient(circle at 50% 30%, var(--accent-l), var(--accent) 66%); }
+  #resNext.done { --side: #c9951a; background: radial-gradient(circle at 50% 30%, #fff3b0, var(--sun) 66%); }
+  #resNext.held { opacity: 0.45; }
+  /* the other ways out, on every phone, behind a second tap in the far corner from the big button: a real button that says what is in it */
+  #resMoreBtn { position: absolute; left: calc(var(--sal) + 12px); bottom: calc(var(--sab) + 8px); min-height: 52px; min-width: 132px; max-width: calc(50% - 24px); padding: 4px 16px; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.1; }
+  #resMoreBtn b { font-size: 19px; }
+  #resMoreBtn small { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
   #resPlace { color: #fff; font-size: clamp(64px, 24vmin, 110px); font-weight: 700; line-height: 1; -webkit-text-stroke: 9px var(--ink); paint-order: stroke fill; filter: drop-shadow(0 4px 0 var(--ink)); }
   #resPlace sup { font-size: 0.5em; vertical-align: 0.65em; }
   #resTime { padding: 5px 16px; font-size: 18px; font-weight: 700; }
@@ -366,11 +383,32 @@
   #resUnlock { display: flex; align-items: center; gap: 8px; padding: 4px 14px 4px 6px; font-size: 16px; font-weight: 700; background: var(--cream); }
   #resUnlock.hide { display: none; }
   #resUnlock img { width: 58px; height: 58px; object-fit: contain; }
-  #resBtns { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-top: 4px; }
-  #resBtns .btn { min-width: 190px; }
-  #resWait { padding: 7px 16px; font-size: 16px; font-weight: 700; background: var(--cream); }
+  @media (max-height: 470px) and (orientation: landscape) {
+    /* room for the corner button under a screen that has everything on it */
+    #resInfo { align-self: flex-start; gap: 4px; }
+    #resPlace { font-size: 20vmin; -webkit-text-stroke-width: 7px; }
+    #resTime { padding: 2px 12px; font-size: 16px; }
+    #resUnlock { padding: 1px 10px 1px 4px; font-size: 14px; }
+    #resUnlock img { width: 40px; height: 40px; }
+    #resInfo #resTeam { font-size: 16px; }
+  }
+  /* a short screen: the button with what is in it fits in the room the old one had */
+  @media (max-height: 470px) and (orientation: landscape), (max-height: 700px) and (orientation: portrait) {
+    #resMoreBtn { min-height: 44px; padding: 2px 14px; }
+    #resMoreBtn b { font-size: 17px; }
+  }
+  /* The choices come where the numbers were. The numbers stay in the layout, unseen, so nothing moves, and the spot of Continue says
+     Close in the same shape: a finger going back to the familiar place shuts the choices and ends nothing. */
+  #resClose { position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 30px; font-size: clamp(24px, 6vmin, 36px); }
+  .unseen { visibility: hidden; }
+  #resBtns { position: absolute; top: 0; left: 0; bottom: 0; right: calc(50% + 7px); padding: inherit; padding-bottom: calc(var(--sab) + 60px); display: flex; gap: 10px; flex-wrap: wrap; align-content: center; justify-content: center; }
+  #resBtns .btn { flex: 1 1 calc(50% - 5px); min-width: 0; max-width: 220px; min-height: 48px; padding: 6px; font-size: 18px; line-height: 1.1; }
+  #resLobby.sure { background: var(--sun); }
+  #resWait { padding: 5px 14px; font-size: 15px; font-weight: 700; background: var(--cream); line-height: 1.15; }
 
   @media (orientation: portrait) {
+    #sResults { flex-direction: column; padding-bottom: calc(var(--sab) + 56px); }
+    #resInfo, #resGo { flex: 0 0 auto; width: 100%; }
     /* held upright, both thumbs low on the glass: near-even columns, and the race numbers big at the top */
     #app { grid-template-columns: 44fr 56fr; }
     #btns { --item: min(38vw, 22vh, 170px); --drift: calc(var(--item) * 0.74); }
@@ -408,7 +446,8 @@
     .bar i { height: 20px; }
     .vc.tc { height: min(100% - 20px, 420px); }
     .tc .pic { border-bottom: 0; }
-    #resBtns { flex-direction: column; width: min(100%, 300px); }
+    /* upright the numbers are above Continue: the choices fill that room from the top, and stop before it */
+    #resBtns { right: 0; bottom: auto; padding-bottom: 0; align-content: flex-start; }
   }
   @media (orientation: portrait) and (max-width: 380px) {
     .seg[data-key="weather"] button, .seg[data-key="voice"] button { font-size: 13px; padding: 2px 1px; }
@@ -466,6 +505,20 @@
     #optCard .opt { flex: none; }
     #optCard, #optCard button, #optCard label, #optCard .opt { touch-action: pan-y; }
   }
+  /* the wheel is the phone: the stick keeps down and up, and its knob shows how far the phone is turned */
+  body.gyro #base svg path:nth-child(-n+2) { display: none; }
+  body.gyro #stick.rest #knob { transition: none; }
+  #recenter { pointer-events: auto; min-width: 46px; min-height: 40px; padding: 0 12px; font-size: 15px; font-weight: 700; }
+  #steerBox { display: flex; flex-direction: column; align-items: stretch; gap: 3px; width: 100%; padding: 4px 6px 7px; border-radius: 18px; font-size: 14px; font-weight: 700; text-align: center; }
+  #steerSeg { flex: none; flex-direction: column; gap: 4px; }
+  #steerSeg button { min-height: 40px; font-size: 15px; padding: 0 4px; }
+  @media (orientation: portrait) { #goSide { flex-direction: row; } #goWait { flex: 0 1 42%; min-width: 0; } #steerBox { flex: 1; width: auto; min-width: 0; } #steerSeg { flex-direction: row; } #steerSeg button { font-size: 14px; padding: 0 2px; } }
+  #steerCard { position: fixed; inset: 0; z-index: 12; display: flex; align-items: center; justify-content: center; text-align: center; background: rgba(255, 243, 220, 0.9); padding: 12px calc(var(--sar) + 14px) 12px calc(var(--sal) + 14px); }
+  #steerCard .box { max-width: 560px; max-height: 100%; padding: 12px 18px 16px; border-radius: 26px; display: flex; flex-direction: column; gap: 6px; }
+  #steerCard h1 { margin: 0; font-size: clamp(20px, 3.2vmax, 28px); font-weight: 700; }
+  #steerCard p { margin: 0; font-size: 15px; font-weight: 500; line-height: 1.25; }
+  #steerCard .row { display: flex; gap: 12px; justify-content: center; margin-top: 8px; }
+  #steerCard .btn { font-size: 17px; min-height: 46px; padding: 4px 16px; border-radius: 18px; }
   @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
 </style>
 </head>
@@ -528,6 +581,7 @@
     <div id="goSide">
       <button id="goBtn" class="toy" type="button" data-i18n="pad.go"></button>
       <div id="goWait" class="sticker hide" data-i18n="pad.optsOf"></div>
+      <div id="steerBox" class="sticker"><span data-i18n="pad.steer"></span><div id="steerSeg" class="seg"><button type="button" data-steer="gyro" data-i18n="pad.steerGyro"></button><button type="button" data-steer="stick" data-i18n="pad.steerStick"></button></div></div>
     </div>
   </div>
   <div id="sKart" class="scr hide">
@@ -543,25 +597,37 @@
       <div class="ttl" data-i18n="pad.pickTrack"></div>
       <div class="car" id="trackCar"><div id="verdict" class="sticker"></div></div>
       <div class="dots" id="trackDots"></div>
-      <div class="side wxside"><div id="wxVote"><button id="wxCycle" class="toy" type="button"></button><button id="wxNight" class="toy" type="button"></button></div><button id="voteBtn" class="toy ready" type="button"></button></div>
+      <div class="side wxside"><div id="wxVote"><button id="wxCycle" class="toy" type="button"></button><button id="wxNight" class="toy" type="button"></button></div><button id="voteBtn" class="toy ready" type="button"></button><button id="gpGoBtn" class="toy hide" type="button"></button></div>
     </div>
   </div>
   <div id="sResults" class="scr hide">
-    <div id="resPlace"></div>
-    <div id="resTime" class="sticker"></div>
-    <div id="resTeam" class="sticker hide"></div>
-    <div id="resUnlock" class="sticker hide"><img alt=""><span></span></div>
-    <div id="resBtns">
-      <button id="resAgain" class="toy btn" type="button" data-i18n="pad.rematch"></button>
-      <button id="resTrack" class="toy btn quiet" type="button" data-i18n="pad.changeTrack"></button>
+    <div id="resInfo">
+      <div id="resPlace"></div>
+      <div id="resTime" class="sticker"></div>
+      <div id="resTeam" class="sticker hide"></div>
+      <div id="resUnlock" class="sticker hide"><img alt=""><span></span></div>
     </div>
-    <div id="resWait" class="sticker hide" data-i18n="pad.p1Decides"></div>
+    <div id="resGo" class="hide">
+      <div id="resBig">
+        <button id="resNext" class="toy" type="button"></button>
+        <button id="resClose" class="toy btn quiet hide" type="button" data-i18n="pad.advanceClose"></button>
+      </div>
+      <div id="resWait" class="sticker"></div>
+    </div>
+    <button id="resMoreBtn" class="toy btn quiet hide" type="button"><b data-i18n="pad.advanceMore"></b><small id="resMoreWhat"></small></button>
+    <div id="resBtns" class="hide">
+      <button id="resSkip" class="toy btn" type="button" data-i18n="pad.advanceSkip"></button>
+      <button id="resAgain" class="toy btn" type="button" data-i18n="pad.rematch"></button>
+      <button id="resTrack" class="toy btn" type="button" data-i18n="pad.changeTrack"></button>
+      <button id="resLobby" class="toy btn" type="button" data-i18n="pad.toLobby"></button>
+    </div>
   </div>
 </section>
 
 <header id="top">
   <div class="chip sticker"><span class="dot"></span><span id="who"></span></div>
   <div class="spacer"></div>
+  <button class="sticker hide" id="recenter" type="button" data-i18n="pad.recenter"></button>
   <button class="sticker" id="lang" type="button" data-i18n="pad.lang"></button>
   <div id="net"></div>
 </header>
@@ -575,6 +641,13 @@
     <h1 id="ovTitle"></h1>
     <p id="ovText"></p>
     <button id="ovBtn" class="toy" type="button" data-i18n="pad.useThis"></button>
+  </div>
+</div>
+<div id="steerCard" class="hide">
+  <div class="box sticker">
+    <h1 id="scTitle"></h1>
+    <p id="scText"></p>
+    <div class="row"><button id="scGo" class="toy btn" type="button"></button><button id="scStay" class="toy btn quiet" type="button" data-i18n="pad.moveStay"></button></div>
   </div>
 </div>
 <script type="module" src="pad.js"></script>

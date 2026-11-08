@@ -724,10 +724,15 @@ export function build(ctx) {
     const a = SIDE(m('ateneu', -44), Rr, 12); clearPalace(a, 60, 32, 30, { col: WHITE, columns: 6, roof: c('#8a8a90') });
     const s = SIDE(m('ateneu', 32), Rr, 30), road = at(m('ateneu', 32)), yaw = Math.atan2(-0.72, 0.69);
     ateneu(ctx, s.x, s.y, s.z, yaw);
-    void road;
     const R = new Raw();
-    for (let i = -3; i <= 3; i++) if (i) { const sn = Math.sin(yaw), cs = Math.cos(yaw); topiary(R, s.x + sn * 34 + cs * i * 10, s.y, s.z + cs * 34 - sn * i * 10, 3.6); }
-    R.quad([s.x - 44, s.y + 0.12, s.z - 44], [s.x - 44, s.y + 0.12, s.z + 44], [s.x + 44, s.y + 0.12, s.z + 44], [s.x + 44, s.y + 0.12, s.z - 44], c('#94b256'));
+    // a clipped bush of the garden row stays in the garden: one of them stood in the middle of the road and karts drove through it
+    for (let i = -3; i <= 3; i++) if (i) { const sn = Math.sin(yaw), cs = Math.cos(yaw), x = s.x + sn * 34 + cs * i * 10, z = s.z + cs * 34 - sn * i * 10; if (free(x, z, 2.5)) topiary(R, x, s.y, z, 3.6); }
+    // its lawn in 4 m squares, on its own side of the street and none on it: one flat square of it once lay over the road, and karts drove on grass
+    const side = Math.sign((s.x - road.x) * road.nx + (s.z - road.z) * road.nz);
+    for (let gx = -44; gx < 44; gx += 4) for (let gz = -44; gz < 44; gz += 4) {
+      const x0 = s.x + gx, z0 = s.z + gz;
+      if (free(x0 + 2, z0 + 2, 3) && ((x0 + 2 - road.x) * road.nx + (z0 + 2 - road.z) * road.nz) * side > 0) R.quad([x0, s.y + 0.12, z0], [x0, s.y + 0.12, z0 + 4], [x0 + 4, s.y + 0.12, z0 + 4], [x0 + 4, s.y + 0.12, z0], c('#94b256'));
+    }
     batch.add(R.geometry());
   }
   // Stirbey and Cantacuzino on the left, ornate; Palatul Victoria in the fork of the square, with its fountain

@@ -1,22 +1,22 @@
-// The menu theme carries the whole trip in one tune: accordion, then țambal, then gamelan bells over the same bouncing
-// band. The two stingers quote its opening rise. All composed for this game.
+// The menu theme carries the whole trip in one tune: the button box, then the țambal, then gamelan bells, over a village band
+// with a bass fiddle, a guitar and a felt drum. The two stingers quote its opening rise. All composed for this game.
 import { kotekan } from './lib.js';
 
 const G_PENTA = ['g4', 'a4', 'b4', 'd5', 'e5', 'g5', 'a5', 'b5', 'd6', 'e6', 'g6', 'a6', 'b6', 'd7'];
 
 const FRIENDS = {
-  lead: { inst: 'accordion', gain: 1, pan: -0.08, send: 0.13, width: 0.42, jitter: 0.06 },
-  tambal: { inst: 'tambal', gain: 1.15, pan: 0.12, send: 0.17, jitter: 0.07, loose: 0.005 },
+  lead: { inst: 'steirische', gain: 0.8, pan: -0.08, send: 0.13, jitter: 0.06, loose: 0.006, breath: 0.27 },
+  tambal: { inst: 'cimbalom', gain: 1.25, pan: 0.12, send: 0.17, jitter: 0.07, loose: 0.005 },
   bells: { inst: 'bell', gain: 0.75, pan: 0.04, send: 0.2, jitter: 0.06 },
-  counter: { inst: 'clarinet', gain: 0.25, pan: 0.28, send: 0.18, jitter: 0.06 },
+  counter: { inst: 'klarinette', gain: 0.42, pan: 0.28, send: 0.18, jitter: 0.06, loose: 0.008 },
   polos: { inst: 'gangsa', gain: 0.32, pan: -0.34, send: 0.12, jitter: 0.08 },
   sangsih: { inst: 'gangsa', gain: 0.32, pan: 0.34, send: 0.12, jitter: 0.08 },
-  arp: { inst: 'tambal', gain: 0.42, pan: -0.34, send: 0.14, arpTop: 79, jitter: 0.08, loose: 0.005 },
-  comp: { inst: 'squeeze', gain: 0.36, pan: -0.18, send: 0.07, low: 55, high: 69, width: 0.3, breath: 0.2 },
-  bass: { inst: 'bassPluck', gain: 0.48, send: 0.03, bassTop: 50, jitter: 0.05, loose: 0.004 },
-  kick: { inst: 'perc', voice: 'kick', gain: 0.24, send: 0.01, loose: 0.002 },
-  snare: { inst: 'perc', voice: 'snare', gain: 0.3, pan: -0.05, send: 0.06 },
-  hat: { inst: 'perc', voice: 'shaker', gain: 0.26, pan: 0.2, send: 0.02, jitter: 0.2 },
+  arp: { inst: 'hackbrett', gain: 0.42, pan: -0.34, send: 0.14, arpTop: 84, jitter: 0.08, loose: 0.005 },
+  comp: { inst: 'gitarre', gain: 0.56, pan: 0.24, send: 0.07, low: 52, high: 67, strum: 0.012, jitter: 0.07, loose: 0.004 },
+  bass: { inst: 'contrabas', gain: 0.5, send: 0.03, bassTop: 50, jitter: 0.05, loose: 0.004 },
+  kick: { inst: 'perc', voice: 'toba', gain: 0.3, send: 0.02, loose: 0.002 },
+  snare: { inst: 'perc', voice: 'tobaStick', gain: 0.42, pan: -0.05, send: 0.05 },
+  hat: { inst: 'perc', voice: 'shaker', gain: 0.3, pan: 0.2, send: 0.02, jitter: 0.2 },
   gong: { inst: 'perc', voice: 'kempur', gain: 0.3, send: 0.2, flat: true, loose: 0 },
   kendang: { inst: 'perc', map: { d: 'dag', t: 'tut', p: 'pak', k: 'ket', x: 'dag' }, gain: 0.34, pan: 0.16, send: 0.06, jitter: 0.12 },
 };
@@ -25,7 +25,7 @@ const BELL_T = 'g5 g5 | e5 d5 | e5 a5 | g5 d6 | e5 b5 | e5 g5 | a5 d5 | g5 g5';
 const bellKot = kotekan(BELL_T, G_PENTA, 'norot');
 
 export const menu = {
-  name: 'menu', tempo: 118, beats: 4, swing: 0.045, level: 1.22,
+  name: 'menu', tempo: 118, beats: 4, swing: 0.045, level: 1.08,
   parts: FRIENDS,
   auto: { bass: 'bounceBass', comp: 'bounceComp' },
   sections: {
@@ -77,7 +77,7 @@ export const menu = {
 
 // A short flourish, then done: the screen is what carries on.
 export const results = {
-  name: 'results', tempo: 132, beats: 4, once: true, level: 1.5,
+  name: 'results', tempo: 132, beats: 4, once: true, level: 0.96,
   parts: FRIENDS,
   auto: { bass: 'bounceBass', comp: 'bounceComp' },
   sections: {
@@ -94,15 +94,15 @@ export const results = {
 };
 
 export const podium = {
-  name: 'podium', tempo: 112, beats: 4, once: true, swing: 0, level: 1.2,
+  name: 'podium', tempo: 112, beats: 4, once: true, swing: 0, level: 0.92,
   parts: {
     ...FRIENDS,
-    lead: { ...FRIENDS.lead, gain: 1.05 },
-    counter: { ...FRIENDS.counter, gain: 0.3 },
-    tuba: { inst: 'tuba', gain: 0.48, send: 0.05, bassTop: 48, jitter: 0.05 },
+    lead: { ...FRIENDS.lead, gain: 0.86 },
+    counter: { ...FRIENDS.counter, gain: 0.46 },
+    tuba: { inst: 'basstuba', gain: 0.62, send: 0.05, bassTop: 48, jitter: 0.05 },
     cowbell: { inst: 'perc', map: { x: 'cowHi', l: 'cowLo' }, gain: 0.28, pan: 0.4, send: 0.2 },
     bigGong: { inst: 'perc', voice: 'gong', gain: 0.5, send: 0.24, flat: true, loose: 0 },
-    tambal: { ...FRIENDS.tambal, gain: 0.8 },
+    tambal: { ...FRIENDS.tambal, gain: 0.9 },
   },
   auto: { comp: 'bounceComp', tuba: 'bounceBass' },
   sections: {

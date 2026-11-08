@@ -3,7 +3,8 @@
 
 import { AUTO_HOME, DT, DIFFICULTY, FINISHED_CRUISE, FORMA, LEADER_GRACE, kartPhysics } from './tuning.js';
 import { createRng, mixSeed } from './rng.js';
-import { createKart, createPriv, stepKart, collideKarts, wallsFor, startRescue } from './kart.js';
+import { createKart, createPriv, stepKart, collideKarts, settleSolids, wallsFor, startRescue } from './kart.js';
+import { solidsFor } from './solids.js';
 import { createBoxes, hitKart, stepItemsForKart, stepBoxes, stepShots, stepSpills } from './items.js';
 import { createHazards, stepHazards, collideHazards } from './hazards.js';
 import { createDisasters, stepDisasters, fireDisaster } from './disasters.js';
@@ -35,6 +36,7 @@ export function createRace({ track, terrain, seed = 1, laps = 3, players, diffic
   const R = {
     track, terrain, state, seed, difficulty,
     walls: wallsFor(track, terrain),
+    solids: solidsFor(track),
     events: [],
     emit: (e) => { R.events.push(e); },
     priv: [],
@@ -81,12 +83,22 @@ export function createRace({ track, terrain, seed = 1, laps = 3, players, diffic
     R.priv.push(p);
     const diff = pl.difficulty || difficulty;
     p.bot = createBrain(R, k, diff);
-    const hunt = forma ? DIFFICULTY[diff].hunt : null;
-    if (hunt) p.bot.cfg = { ...p.bot.cfg, ...hunt };
+    const row = forma ? DIFFICULTY[diff].hunt : track.long ? DIFFICULTY[diff].long : null; // a level's own numbers for the hunt, or for a long track
+    if (row) p.bot.cfg = { ...p.bot.cfg, ...row };
     if (k.human) { p.capMul = 1; return; }
     const own = p.ph.top, ref = refTop ? (refTop + own) / 2 : own;
-    p.capMul = (hunt?.cap ?? DIFFICULTY[diff].cap) * ref / own;
+    p.capMul = p.capFull = (row?.cap ?? DIFFICULTY[diff].cap) * ref / own;
   });
+  // spread: each bot its own pace, drawn per race, so the field strings out and does not run as one bunch round the person; the slowest gives up this share of the cap.
+  // Only with a person racing: bots alone have nobody to let through, and their race must still end.
+  const spread = forma || !humans.length ? 0 : DIFFICULTY[difficulty]?.spread ?? 0;
+  const paced = state.karts.filter((k) => !k.human && !players[k.i].difficulty);
+  if (spread && paced.length) {
+    const rng = createRng(mixSeed(seed, 31));
+    // a lone bot runs at the middle of the spread
+    paced.map((k) => [rng.next(), k]).sort((a, b) => a[0] - b[0]).forEach(([, k], r) => { R.priv[k.i].capMul *= 1 - spread * (paced.length > 1 ? r / (paced.length - 1) : 0.5); });
+  }
+  for (const p of R.priv) p.capPaced = p.capMul;
   const biters = createBiters(R, state.karts);
   if (forma) R.forma = createForma(R, forma);
   if (countdown > 0) R.emit({ type: 'countdown', n: Math.ceil(countdown) });
@@ -136,13 +148,31 @@ export function createRace({ track, terrain, seed = 1, laps = 3, players, diffic
     }
   }
 
+  // Every person home and the room's wait over, a bot still on the road is classified with the time its road left would take it at its own pace, in the order it is in: no blank rows on the results.
+  // Not while a person is still out (a long track's autopilot past its time), who keeps the place on the road with no time, and the bots round them stay as they are.
+  function classifyRest(open) {
+    if (!humans.length || open.some((k) => k.human)) return;
+    const L = track.length, run = state.t - R.goT;
+    let last = -Infinity;
+    for (const k of state.karts) if (k.finished) last = Math.max(last, k.finishT);
+    for (const k of [...open].sort((a, b) => b.progress - a.progress)) {
+      // its pace so far, held back by the spread, made up to the cap it now drives home at
+      const p = R.priv[k.i], pace = run > 1 ? Math.max(1, (k.progress * L) / run) * (p.capFull / (p.capPaced || p.capFull)) : p.ph.top * p.capMul;
+      k.finishT = last = Math.max(last, run + (Math.max(0, state.laps - k.progress) * L) / pace);
+      k.finished = true;
+      k.place = ++R.finishers;
+      p.rubber = 0;
+    }
+  }
+
   function updateReference() {
-    let sum = 0, c = 0, best = -Infinity;
+    let sum = 0, c = 0, best = -Infinity, worst = Infinity;
     for (const k of state.karts) {
-      if (k.human) { if (k.progress > best) best = k.progress; }
+      if (k.human) { if (k.progress > best) best = k.progress; if (!k.finished && k.progress < worst) worst = k.progress; }
       sum += k.progress; c++;
     }
     R.refProgress = humans.length ? best : sum / c;
+    R.lastProgress = worst < Infinity ? worst : R.refProgress; // the slowest person still racing
     R.fieldMean = sum / c;
   }
 
@@ -155,11 +185,15 @@ export function createRace({ track, terrain, seed = 1, laps = 3, players, diffic
       if (R.weather) stepWeather(R);
       const racing = state.phase !== 'countdown';
       if (racing) { updateReference(); sendSlowHome(); }
+      // every person home: nobody is left to wait for, so the spread and the band let go and the bots still out drive home at their level's own cap
+      const peopleHome = humans.length > 0 && humans.every((k) => k.finished);
       for (const k of state.karts) {
         const p = R.priv[k.i];
         let inp;
         if (!k.human || k.finished || k.autoHome) {
-          if (!k.human && !k.finished && racing && !forma) updateRubber(R, k, p);
+          if (!k.human && !k.finished && racing && !forma) {
+            if (peopleHome) { p.capMul = p.capFull; p.rubber = 0; } else updateRubber(R, k, p);
+          }
           inp = botInput(R, k, p, DT);
         } else inp = inputs[k.i];
         stepKart(R, k, inp, DT);
@@ -173,6 +207,7 @@ export function createRace({ track, terrain, seed = 1, laps = 3, players, diffic
         if (!timeTrial) stepBoxes(R, DT);
         collideHazards(R);
         collideTraffic(R);
+        settleSolids(R);
         stepDisasters(R, DT);
         if (forma) R.forma.step();
         updatePlaces();
@@ -181,7 +216,7 @@ export function createRace({ track, terrain, seed = 1, laps = 3, players, diffic
           // a long track: on the way home on autopilot, past the time the room waits, the race is over, in the place it was in, with no time
           const humansOpen = open.some((k) => k.human && !(track.long && k.autoHome && state.t - R.homeT >= AUTO_HOME.drive));
           const over = open.length === 0 || (humans.length > 0 && !humansOpen && state.t - R.leaderT >= LEADER_GRACE);
-          if (over) state.phase = 'done';
+          if (over) { if (!humansOpen) classifyRest(open); state.phase = 'done'; }
         }
       }
     },

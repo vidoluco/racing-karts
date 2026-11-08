@@ -11,3 +11,7 @@ __pycache__/
 .venv/
 # edge-tts audio: not redistributable until its licence is settled, see CREDITS.md
 assets/voice/
+# the evening's numbers, written by the server on this Mac: see server/telemetry.js
+telemetry/
+# the self-signed certificate of the https address for tilt steering, made on this Mac: see server/tls.js
+certs/

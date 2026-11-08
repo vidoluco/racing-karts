@@ -559,7 +559,8 @@ test('from the lobby to the results by phone, twice: a time, a ghost that drives
 
   // ---------- rematch from the phone: same road, same record ----------
   await padIs('results');
-  await tap('#resAgain');
+  await phone.page.waitForFunction(() => window.__pad.menu.advance && !document.getElementById('resNext').classList.contains('held'), null, { timeout: 5000 });
+  await tap('#resNext');
   await tv.waitForFunction(() => window.__game.phase === 'race' && window.__game.tt?.view(0).ghost, null, { timeout: 120000 });
 
   // ---------- the negative: the same page, a normal race, nothing of the mode anywhere ----------

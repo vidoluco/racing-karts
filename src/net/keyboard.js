@@ -17,11 +17,17 @@ export function createKeyboard(target = globalThis.window) {
   const owner = new Map();
   KEYS.forEach((m, slot) => { for (const k of Object.values(m).flat()) owner.set(k, slot); });
 
+  // A shortcut for the Mac (Cmd+Ctrl+F and the like) is not a player. Right Ctrl is player 2's drift, so it goes on counting
+  // for that player's own keys once that player is driving, and never wakes them. On its own a modifier wakes nobody either: a
+  // seat comes from a key that means something, pressed plain.
+  const shortcut = (e, slot) => e.metaKey || e.altKey || (e.ctrlKey && !(slot === 1 && active[1] && (e.code === 'ControlRight' || down.has('ControlRight'))));
+  const WAKES_NOBODY = new Set(['ShiftLeft', 'ControlRight']);
   const onDown = (e) => {
     const slot = owner.get(e.code);
+    if (shortcut(e, slot)) { down.delete(e.code); return; }
     if (slot === undefined) return;
     if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName || '')) return;
-    active[slot] = true;
+    if (!WAKES_NOBODY.has(e.code)) active[slot] = true;
     if (!down.has(e.code)) {
       if (KEYS[slot].item.includes(e.code)) taps[slot].item = true;
       if (KEYS[slot].drift.includes(e.code)) taps[slot].drift = true;
@@ -29,19 +35,34 @@ export function createKeyboard(target = globalThis.window) {
     down.add(e.code);
     if (e.code.startsWith('Arrow')) e.preventDefault?.();
   };
-  const onUp = (e) => { down.delete(e.code); };
-  const onBlur = () => down.clear();
+  // Nothing stays held across a lost focus or a change to full screen; and with Cmd held the Mac sends no key-up for the
+  // other keys, so when Cmd lifts nothing can be trusted to be still down.
+  const letGo = () => { down.clear(); for (const t of taps) { t.item = false; t.drift = false; } };
+  const onUp = (e) => { down.delete(e.code); if (e.code === 'MetaLeft' || e.code === 'MetaRight' || e.key === 'Meta') letGo(); };
+  const onBlur = letGo;
+  const page = target?.document;
 
   if (target?.addEventListener) {
     target.addEventListener('keydown', onDown);
     target.addEventListener('keyup', onUp);
     target.addEventListener('blur', onBlur);
+    page?.addEventListener?.('fullscreenchange', letGo);
+    page?.addEventListener?.('visibilitychange', letGo);
   }
 
   const any = (keys) => keys.some((k) => down.has(k));
 
   return {
     active(slot) { return !!active[slot]; },
+    // Forget what this slot's keys hold or have queued: nobody read them while a phone had the slot, and reading them when the
+    // phone drops would make a key pressed earlier fire now. A key pressed from here on counts as ever.
+    forget(slot) {
+      const m = KEYS[slot];
+      if (!m) return;
+      for (const k of Object.values(m).flat()) down.delete(k);
+      taps[slot].item = false;
+      taps[slot].drift = false;
+    },
     // {x, y, item, drift} for an active slot, null otherwise. A tap shorter than a frame still counts once.
     get(slot) {
       const m = KEYS[slot];
@@ -60,6 +81,8 @@ export function createKeyboard(target = globalThis.window) {
       target.removeEventListener('keydown', onDown);
       target.removeEventListener('keyup', onUp);
       target.removeEventListener('blur', onBlur);
+      page?.removeEventListener?.('fullscreenchange', letGo);
+      page?.removeEventListener?.('visibilitychange', letGo);
     },
   };
 }

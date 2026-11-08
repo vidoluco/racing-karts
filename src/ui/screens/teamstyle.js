@@ -60,6 +60,9 @@ ${sides}
 .rk .podscr .steps.teams .nameplate span { font-size: ${u(30)}; font-weight: 600; }
 .rk .podscr .steps.teams .tnames { margin-top: ${u(8)}; display: flex; flex-wrap: wrap; justify-content: center; gap: ${u(4)} ${u(30)}; font-size: ${u(30)}; font-weight: 700; color: var(--ink); text-align: center; line-height: 1.1; padding: 0 ${u(8)}; }
 .rk .podscr .steps.teams .tnames span { display: inline-flex; align-items: center; white-space: nowrap; }
-.rk .podscr .steps.teams .block .num { margin-top: ${u(2)}; }
+.rk .podscr .steps.teams .tnames em { font-style: normal; font-size: ${u(24)}; font-weight: 600; margin-left: ${u(8)}; padding: 0 ${u(10)}; background: rgba(255, 255, 255, 0.7); border-radius: ${u(999)}; font-variant-numeric: tabular-nums; }
+/* the step says whose it is: "1st team", not a bare 1 that two karts seem to share */
+.rk .podscr .steps.teams .block .num { margin-top: ${u(4)}; font-size: ${u(72)}; white-space: nowrap; }
+.rk .podscr .steps.teams .stp[data-p="2"] .block .num { font-size: ${u(60)}; }
 .rk .podscr .steps.teams .tnames i { font-style: normal; font-size: ${u(23)}; margin-right: ${u(8)}; padding: ${u(1)} ${u(9)}; color: #fff; -webkit-text-stroke: ${u(5)} var(--ink); paint-order: stroke fill; background: var(--c); border: ${u(3)} solid var(--ink); border-radius: ${u(10)}; }
 `;

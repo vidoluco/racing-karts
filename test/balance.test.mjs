@@ -1,4 +1,4 @@
-// Balance rules that must hold whatever the numbers become. The numbers themselves: docs/progress/balance.md, tool docs/progress/gioco-exp/bal.mjs.
+// Balance rules that must hold whatever the numbers become. The ladder's numbers: node tools/ladder.mjs; drivers: test/helpers/drivers.mjs.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildTrack } from '../src/world/track.js';
@@ -8,7 +8,9 @@ import { createRace } from '../src/sim/index.js';
 import { AUTO_HOME, BOOST, DIFFICULTY, kartPhysics } from '../src/sim/tuning.js';
 import { ITEMS, BOX_RESPAWN, rollItem } from '../src/data/items.js';
 import { KART_IDS } from '../src/data/karts.js';
-import { hudOf } from '../src/game/flow.js';
+import { DIFFICULTIES, hudOf } from '../src/game/flow.js';
+import { TRACK_IDS } from '../src/data/tracks.js';
+import { ladderRace, mean } from './helpers/drivers.mjs';
 
 const worlds = {};
 async function world(id) {
@@ -246,4 +248,111 @@ test('karts: stats narrow, still each kart its own', () => {
   assert.ok(kartPhysics('gatto').keep > kartPhysics('seggiovia').keep);
   assert.ok(kartPhysics('seggiovia').yawFast > kartPhysics('gatto').yawFast);
   assert.ok(DIFFICULTY.easy.cap < DIFFICULTY.medium.cap && DIFFICULTY.medium.cap < DIFFICULTY.hard.cap);
+});
+
+// The ladder, against scripted people on a phone, fixed seeds, every track. Windows are wider than the targets (stick podium on medium 30 to 50) because 40 races carry about 8 points of noise.
+const cells = {};
+async function cell(level, kind, { short = 6, long = 1 } = {}) {
+  const key = `${level}/${kind}`;
+  if (cells[key]) return cells[key];
+  const out = [];
+  for (const id of TRACK_IDS) {
+    const W = await world(id), n = W.track.long ? long : short;
+    for (let s = 0; s < n; s++) out.push({ id, ...ladderRace(W, level, [kind], 8100 + s) });
+  }
+  return (cells[key] = out);
+}
+const share = (a, fn) => a.filter(fn).length / a.length;
+const say = (name, a) => `${name}: win ${share(a, (m) => m.won).toFixed(2)}, podium ${share(a, (m) => m.place <= 3).toFixed(2)}, place ${mean(a.map((m) => m.place)).toFixed(1)} over ${a.length}`;
+
+test('only three levels on the menu; the old top row stays for tools and tests', () => {
+  assert.deepEqual(DIFFICULTIES, ['easy', 'medium', 'hard']);
+  assert.ok(DIFFICULTY.expert && DIFFICULTY.ace);
+});
+
+test('easy: a casual driver wins at least 40% and is on the podium at least 80%, a bot rarely out-laps them', async () => {
+  const a = await cell('easy', 'casual'), say1 = say('easy casual', a);
+  assert.ok(share(a, (m) => m.won) >= 0.4, say1);
+  assert.ok(share(a, (m) => m.place <= 3) >= 0.8, say1);
+  assert.ok(share(a, (m) => m.botLap < m.lap) <= 0.3, `the best bot lap beat the person's best in ${share(a, (m) => m.botLap < m.lap).toFixed(2)} of the races`);
+});
+
+test('easy: a beginner is on the podium at least 40% and is seldom left behind the last bot', async () => {
+  const a = await cell('easy', 'beginner'), say1 = say('easy beginner', a);
+  assert.ok(share(a, (m) => m.place <= 3) >= 0.4, say1);
+  assert.ok(share(a, (m) => m.last) <= 0.25, `last in ${share(a, (m) => m.last).toFixed(2)}`);
+  assert.ok(share(a, (m) => m.behindLastBot > 30) <= 0.1, `over 30 s behind the last bot in ${share(a, (m) => m.behindLastBot > 30).toFixed(2)}`);
+});
+
+test('a good driver: nearly always wins on easy, often on medium, only sometimes on very hard', async () => {
+  const of = (level) => cell(level, 'good', { short: 4, long: 0 });
+  const e = await of('easy'), m = await of('medium'), h = await of('hard');
+  assert.ok(share(e, (x) => x.won) >= 0.9, say('easy', e));
+  assert.ok(share(m, (x) => x.won) >= 0.7, say('medium', m));
+  assert.ok(share(h, (x) => x.won) >= 0.15 && share(h, (x) => x.won) <= 0.85, say('hard', h));
+});
+
+// After 07/11/2026 the medium window is held by the 'stick' driver, as slow as that evening's real stick player; the casual model is quicker than the people who play.
+test('medium: a driver as slow as the real stick player reaches the podium about a third of the time; very hard: a casual one rarely', async () => {
+  const st = await cell('medium', 'stick'), m = await cell('medium', 'casual'), h = await cell('hard', 'casual');
+  const pm = share(st, (x) => x.place <= 3), ph = share(h, (x) => x.place <= 3);
+  assert.ok(pm >= 0.2 && pm <= 0.6, say('medium stick', st));
+  assert.ok(ph <= 0.25, say('hard casual', h));
+  assert.ok(mean((await cell('easy', 'casual')).map((x) => x.place)) < mean(m.map((x) => x.place)) && mean(m.map((x) => x.place)) < mean(h.map((x) => x.place)), 'each step of the ladder is a real step');
+});
+
+test('easy: bots look alive and still get it wrong: off the line more than on medium, and no parked kart', async () => {
+  const e = await cell('easy', 'casual'), m = await cell('medium', 'casual');
+  assert.ok(mean(e.map((x) => x.botOff)) > mean(m.map((x) => x.botOff)), `near the edge ${mean(e.map((x) => x.botOff)).toFixed(2)} on easy, ${mean(m.map((x) => x.botOff)).toFixed(2)} on medium`);
+  assert.equal(DIFFICULTY.easy.smart, false);
+  assert.equal(DIFFICULTY.easy.driftChance, 0);
+  assert.equal(DIFFICULTY.easy.shortcuts, 0);
+  // the slowest a band can make the slowest bot of the spread, on a long track too, and what it asks of the road: 13 m/s is 47 km/h on a straight, a kart still running and not parked
+  const E = DIFFICULTY.easy, floor = Math.min(E.cap, E.long?.cap ?? 1) * (1 - E.spread) * (1 + E.front);
+  assert.ok(kartPhysics('tabia').top * floor > 13, `slowest bot ${(kartPhysics('tabia').top * floor).toFixed(1)} m/s`);
+  const W = await world('bran');
+  const r = createRace({ track: W.track, terrain: W.terrain, seed: 8, laps: 1, players: racers(8, 1), difficulty: 'easy', countdown: 0 });
+  for (let f = 0; f < 60 * 400 && r.state.phase !== 'done'; f++) { r.step([{ ...forward, throttle: -1 }]); r.drainEvents(); }
+  const bots = r.state.karts.filter((k) => !k.human);
+  assert.ok(bots.every((k) => k.finished && W.track.length / k.finishT > 14), `bots wait, they do not park: slowest ${Math.max(...bots.map((k) => k.finishT)).toFixed(0)} s on ${W.track.length.toFixed(0)} m`);
+});
+
+// The players of 07/11/2026 on the 0.87 row: "in modalità facile sono ancora fortissimi". A gyro player with 33 wall and building hits came last on Batur and the seven bots got home within 1.3 s.
+test('easy: a driver as clumsy as that gyro player is on the podium most of the time, and the bots come home strung out, not in one bunch', async () => {
+  const a = await cell('easy', 'struggler'), say1 = say('easy struggler', a);
+  assert.ok(share(a, (m) => m.place <= 3) >= 0.65, say1);
+  assert.ok(share(a, (m) => m.last) <= 0.1, `last in ${share(a, (m) => m.last).toFixed(2)}`);
+  const spr = (c) => mean(c.map((m) => m.botSpread).filter(Number.isFinite));
+  const e = spr(a), m = spr(await cell('medium', 'casual'));
+  assert.ok(e > 150 && e > 2 * m, `first to last bot when the first gets home: ${e.toFixed(0)} m on easy, ${m.toFixed(0)} m on medium`);
+});
+
+const twoAndBot = (W, level, seed = 3) => createRace({ track: W.track, terrain: W.terrain, seed, laps: 3, difficulty: level, countdown: 0, players: [
+  { slot: 0, kart: 'tabia', human: true, name: 'a' }, { slot: 1, kart: 'tabia', human: true, name: 'b' }, { slot: -1, kart: 'tabia', human: false }, { slot: -1, kart: 'jeep', human: false }, { slot: -1, kart: 'jeep', human: false }] });
+const rubberAt = (r, W, a, b, bot, lap = 1, u = 0.3) => {
+  for (const [i, m] of [[0, a], [1, b], [2, bot], [3, bot + 600], [4, bot + 400]]) r.teleport(i, u + m / W.track.length, (i - 2) * 2, { speed: 20, lap });
+  r.step([forward, forward]);
+  return r.internals.priv[2].rubber;
+};
+
+for (const level of ['easy', 'medium', 'hard']) {
+  test(`${level}: a bot ahead of every person is never sped up, whatever the pack is doing`, async () => {
+    const W = await world('antelao');
+    // the bot is ahead of both people and behind the field's mean, where the band among the bots would pull it on
+    const p = rubberAt(twoAndBot(W, level), W, -6, -4, 0);
+    assert.ok(p <= 0, `rubber ${p}`);
+    const q = rubberAt(twoAndBot(W, level), W, -2, -4, 0, 2);
+    assert.ok(q <= 0, `on the last lap, rubber ${q}`);
+  });
+}
+
+test('easy: the band waits for the slowest person, and never lifts a bot near a person\'s top speed, not on the last lap either', async () => {
+  const W = await world('antelao');
+  // one person far ahead, one far behind, the bot between them: on easy it waits for the second
+  assert.ok(rubberAt(twoAndBot(W, 'easy'), W, 400, -400, 0) <= DIFFICULTY.easy.front * 0.99);
+  assert.ok(rubberAt(twoAndBot(W, 'medium'), W, 400, -400, 0) > 0, 'on medium the band still reads the best person');
+  for (const lap of [0, 2]) {
+    const p = rubberAt(twoAndBot(W, 'easy'), W, 600, 400, 0, lap);
+    assert.ok(p > 0 && DIFFICULTY.easy.cap * (1 + p) < 0.93, `lap ${lap}, rubber ${p}`);
+  }
 });

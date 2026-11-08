@@ -6,7 +6,7 @@
   python3 tools/make-voices.py --check      no network: 1 if a pack does not match the lines
 
 Writes assets/voice/<lang>.bin (the mp3s one after the other) and <lang>.json ({ clips: { id: [offset, bytes, seconds] } }). The cache is
-data/raw/voice/, one mp3 per line by the hash of its text, voice and mood. The first run makes ./.venv with edge-tts in it.
+data/raw/voice/, one mp3 per line by the hash of its text, voice and mood, or VOICE_CACHE=<dir>. The first run makes ./.venv with edge-tts in it.
 edge-tts talks to a Microsoft service that is not an official API: read CREDITS.md before anything leaves this machine. The packs are git
 ignored on purpose, as Web Swing's, and the game runs without them, with captions only.
 """
@@ -23,7 +23,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 VENV = ROOT / '.venv'
-CACHE = ROOT / 'data' / 'raw' / 'voice'
+CACHE = Path(os.environ['VOICE_CACHE']) if os.environ.get('VOICE_CACHE') else ROOT / 'data' / 'raw' / 'voice'
 OUT = ROOT / 'assets' / 'voice'
 TARGET_MEAN = -19.0  # dB, the mean loudness of every line, or the two voices jump by 3 dB
 PEAK_LIMIT = -1.5
@@ -104,7 +104,7 @@ async def generate(jobs, workers):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--lang', help='it, ro or id; all by default')
+    ap.add_argument('--lang', help='it, ro, id or en; all by default')
     ap.add_argument('--check', action='store_true')
     ap.add_argument('--jobs', type=int, default=4)
     args = ap.parse_args()

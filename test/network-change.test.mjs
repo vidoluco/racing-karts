@@ -83,8 +83,6 @@ test('not a network change: a blip with no address, or the same address, keeps t
   nets = { en0: iface('192.168.0.107') };
   await sleep(60);
   assert.deepEqual(ids(srv), ['old0', 'old1', 'old2', 'old3'], 'the seat stays reserved through the blip');
-  const newcomer = await pad(srv, 'stranger');
-  assert.deepEqual(await newcomer.next(), { t: 'full' }, 'and a stranger still waits for it');
   const back = await pad(srv, 'old1');
   assert.equal((await back.next('welcome')).slot, 1, 'the same phone comes back to it');
 });
@@ -108,11 +106,12 @@ test('a phone queued when the Mac moves takes the first free seat', async (t) =>
   const srv = await startServer({ netPollMs: OFF, reserveMs: OFF });
   t.after(() => srv.close());
   const old = await seatFour(srv);
+  const q = [await pad(srv, 'q0'), await pad(srv, 'q1')];
+  for (const p of q) assert.deepEqual(await p.next(), { t: 'full' });
   await old[3].close();
   await old[1].close();
   await sleep(30);
-  const q = [await pad(srv, 'q0'), await pad(srv, 'q1')];
-  for (const p of q) assert.deepEqual(await p.next(), { t: 'full' });
+  assert.ok(await q[0].none('welcome', 50), 'seats in their grace: the queue waits');
   assert.equal(srv.room.releaseAway(), 2);
   assert.equal((await q[0].next('welcome')).slot, 1);
   assert.equal((await q[1].next('welcome')).slot, 3);

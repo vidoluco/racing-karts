@@ -20,5 +20,7 @@ export const trackInfo = (id) => TRACKS.find((t) => t.id === id) || null;
 export async function loadTrackDef(id) {
   if (!trackInfo(id)) throw new Error(`unknown track: ${id}`);
   const mod = await import(`../world/tracks/${id}.js`);
+  // what stands by the road and blocks a kart, baked from the landmarks by tools/bake-solids.mjs: none yet, and the track races with its walls alone
+  mod.default.solids ??= (await import(`../world/solids/${id}.js`).catch(() => null))?.default ?? [];
   return mod.default;
 }
